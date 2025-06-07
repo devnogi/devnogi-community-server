@@ -1,5 +1,5 @@
 server:
-  port: 7778
+  port: ${SERVER_PORT}
   address: 0.0.0.0
   shutdown: graceful
   error:
@@ -23,9 +23,9 @@ spring:
       static-locations: classpath:/static/
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:${DB_PORT:3366}/${DB_SCHEMA}
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:devnogi}
+    url: jdbc:mysql://localhost:${DB_PORT}/${DB_SCHEMA}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -87,12 +87,6 @@ decorator:
 logging:
   level:
     until.the.eternity: DEBUG
-
-openapi:
-  nexon:
-    api-key: ${NEXON_API_KEY}
-  auction-history:
-    delay-ms: 1000
 
 ---
 spring:

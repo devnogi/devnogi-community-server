@@ -22,6 +22,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	gradlePluginPortal()
 }
 
 extra["snippetsDir"] = file("build/generated-snippets")
@@ -32,8 +33,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("mysql:mysql-connector-java:8.0.33")
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-mysql")
+	runtimeOnly("mysql:mysql-connector-java")
 	implementation("org.springframework.kafka:spring-kafka")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
