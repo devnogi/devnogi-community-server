@@ -70,9 +70,6 @@ decorator:
     p6spy:
       enable-logging: false
 
-logging:
-  config: classpath:logback/logback-display.xml
-
 ---
 spring:
   config:
