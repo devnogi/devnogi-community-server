@@ -13,13 +13,13 @@ if [ -f ".env.sample" ]; then
         cp ".env.sample" ".env"
         echo "✅ .env 파일이 생성되었습니다."
     else
-        echo "⚠️  .env 파일이 이미 존재합니다."
+        echo "⚠️ .env 파일이 이미 존재합니다."
     fi
 else
     echo "❌ .env.sample 파일을 찾을 수 없습니다."
 fi
 
-# src/main/resources 디렉토리에서도 확인
+# src/main/resources 디렉토리에서 확인
 if [ -d "src/main/resources" ]; then
     cd "src/main/resources"
 
