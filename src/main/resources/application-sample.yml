@@ -17,7 +17,7 @@ management:
 
 spring:
   application:
-    name: devnogi-server
+    name: devnogi-community-server
   web:
     resources:
       static-locations: classpath:/static/
