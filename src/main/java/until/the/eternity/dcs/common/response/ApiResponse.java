@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.common.reponse;
+package until.the.eternity.dcs.common.response;
 
 import lombok.Builder;
 import lombok.Getter;
