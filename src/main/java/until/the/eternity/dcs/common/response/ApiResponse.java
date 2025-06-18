@@ -1,21 +1,19 @@
 package until.the.eternity.dcs.common.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ApiResponse<T> {
 
-    private final boolean success;
-    private final T data;
-    private final ApiError error;
-
-    @Builder
-    public ApiResponse(boolean success, T data, ApiError error) {
-        this.success = success;
-        this.data = data;
-        this.error = error;
-    }
+    private boolean success;
+    private T data;
+    private ApiError error;
 
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
