@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class DemoController {
 
 	@GetMapping("/success")
-	public ResponseEntity<String> success() {
-		return ResponseEntity.ok("success");
+	public DemoDto success() {
+		return DemoDto.builder()
+				.response("success")
+				.build();
 	}
 
 	@GetMapping("/fail")
