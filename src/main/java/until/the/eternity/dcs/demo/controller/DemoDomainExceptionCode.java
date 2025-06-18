@@ -14,7 +14,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Getter
 @RequiredArgsConstructor
 public enum DemoDomainExceptionCode implements ExceptionCode {
-	DEMO_DOMAIN_NOT_FOUND_EXCEPTION(NOT_FOUND, "해당 데모 도메인을 찾을 수 없습니다")
+	DEMO_DOMAIN_NOT_FOUND_EXCEPTION(NOT_FOUND, "해당 데모 도메인을 찾을 수 없습니다"),
 	;
 
 	private final HttpStatus status;

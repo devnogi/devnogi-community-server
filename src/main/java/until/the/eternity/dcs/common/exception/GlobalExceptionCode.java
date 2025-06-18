@@ -9,7 +9,8 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @Getter
 @RequiredArgsConstructor
 public enum GlobalExceptionCode implements ExceptionCode {
-	SERVER_ERROR(INTERNAL_SERVER_ERROR, "서버 내부 에러입니다.");
+	SERVER_ERROR(INTERNAL_SERVER_ERROR, "서버 내부 에러입니다."),
+	;
 
 	private final HttpStatus status;
 	private final String message;

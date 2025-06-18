@@ -25,12 +25,4 @@ public record ExceptionResponse(
 			.message(code.getMessage())
 			.build();
 	}
-
-	public static ExceptionResponse of(HttpStatus status,  String code, String message) {
-		return ExceptionResponse.builder()
-			.status(status)
-			.code(code)
-			.message(message)
-			.build();
-	}
 }
