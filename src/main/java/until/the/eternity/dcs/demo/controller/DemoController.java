@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 예외처리기 기능 테스트를 위한 데모 컨트롤러 입니다.
  */
 @RestController
-@RequestMapping("/api/demo")
+@RequestMapping(value = "/api/demo")
 public class DemoController {
 
 	@GetMapping("/success")
