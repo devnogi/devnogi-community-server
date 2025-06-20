@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.report;
+package until.the.eternity.dcs.domain.report.entitiy;
 
 import jakarta.persistence.*;
 import lombok.*;
