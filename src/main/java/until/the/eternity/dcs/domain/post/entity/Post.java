@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
-import until.the.eternity.dcs.domain.common.entity.SoftDeleteEntity;
+import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.postLike.entity.PostLike;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 

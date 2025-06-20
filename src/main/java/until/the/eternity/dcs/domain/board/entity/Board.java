@@ -3,7 +3,7 @@ package until.the.eternity.dcs.domain.board.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
-import until.the.eternity.dcs.domain.common.entity.SoftDeleteEntity;
+import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.post.entity.Post;
 
 import java.util.List;

@@ -3,7 +3,7 @@ package until.the.eternity.dcs.domain.announcement.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.common.entity.AuditableEntity;
+import until.the.eternity.dcs.common.entity.AuditableEntity;
 
 @Entity
 @Table(name = "announcement")

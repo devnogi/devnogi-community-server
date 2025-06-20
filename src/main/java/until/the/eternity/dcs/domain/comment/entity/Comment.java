@@ -2,7 +2,7 @@ package until.the.eternity.dcs.domain.comment.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import until.the.eternity.dcs.domain.common.entity.AuditableEntity;
+import until.the.eternity.dcs.common.entity.AuditableEntity;
 import until.the.eternity.dcs.domain.post.entity.Post;
 
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.common.entity;
+package until.the.eternity.dcs.common.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
