@@ -13,10 +13,11 @@ public record BoardListResponse(
 	@Schema(description = "게시판의 개수", example = "1", requiredMode = REQUIRED)
 	int number,
 
-	@Schema(description = "게시판 리스트", example = """
+	@Schema(description = "게시판 리스트",
+		example = """
 			[{
 				"id": 1,
-				"name": 길드원 모집,
+				"name": "길드원 모집",
 				"description": "길드나 길드원을 모집하는 게시판입니다.",
 		        "topCategory": "자유 게시판",
 		        "subCategory": "길드 게시판"
