@@ -11,25 +11,25 @@ import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 @Builder
 public record BoardListResponse(
 	@Schema(description = "게시판의 개수", example = "1", requiredMode = REQUIRED)
-	int number,
+	int count,
 
 	@Schema(description = "게시판 리스트",
 		example = """
-			[{
-				"id": 1,
-				"name": "길드원 모집",
-				"description": "길드나 길드원을 모집하는 게시판입니다.",
-		        "topCategory": "자유 게시판",
-		        "subCategory": "길드 게시판"
-			}]
-		""",
+				[{
+					"id": 1,
+					"name": "길드원 모집",
+					"description": "길드나 길드원을 모집하는 게시판입니다.",
+			        "topCategory": "자유 게시판",
+			        "subCategory": "길드 게시판"
+				}]
+			""",
 		requiredMode = REQUIRED)
-	List<BoardDetailResponse> data
+	List<BoardDetailResponse> boards
 ) {
 	public static BoardListResponse from(List<Board> boardList) {
 		return BoardListResponse.builder()
-			.number(boardList.size())
-			.data(
+			.count(boardList.size())
+			.boards(
 				boardList.stream()
 					.map(BoardDetailResponse::from)
 					.toList()
