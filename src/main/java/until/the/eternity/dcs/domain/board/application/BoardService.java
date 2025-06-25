@@ -3,11 +3,14 @@ package until.the.eternity.dcs.domain.board.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.board.dto.request.BoardCreateRequest;
+import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.fake.FakeUserService;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,5 +25,10 @@ public class BoardService {
 		Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
 		Board saved = boardRepository.save(board);
 		return boardConverter.fromBoardToPersistResponse(saved);
+	}
+
+	public BoardListResponse getAllBoards() {
+		List<Board> boardList = boardRepository.findAll();
+		return boardConverter.fromBoardToListResponse(boardList);
 	}
 }
