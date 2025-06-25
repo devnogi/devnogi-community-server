@@ -27,4 +27,9 @@ public class BoardRepositoryImpl implements BoardRepository {
 		return jpaRepository.findById(id)
 			.orElseThrow(() -> new RuntimeException("No Such board with Id : " + id));
 	}
+
+	@Override
+	public void deleteById(Long id) {
+		jpaRepository.deleteById(id);
+	}
 }

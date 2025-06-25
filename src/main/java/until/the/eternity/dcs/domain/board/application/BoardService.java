@@ -41,6 +41,10 @@ public class BoardService {
 		return boardConverter.fromBoardToPersistResponse(board);
 	}
 
+	public void deleteBoard(Long id) {
+		boardRepository.deleteById(id);
+	}
+
 	private Board findBoardById(Long id) {
 		return boardRepository.findById(id);
 	}

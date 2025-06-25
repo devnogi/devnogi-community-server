@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.board.presentation;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,11 @@ public class BoardController {
 	@PatchMapping("/{id}")
 	public BoardPersistResponse updateBoard(@PathVariable("id") Long id, @RequestBody BoardUpdateRequest request) {
 		return boardService.updateBoard(id, request);
+	}
+
+	@DeleteMapping("/{id}")
+	public void deleteBoard(@PathVariable("id") Long id) {
+		boardService.deleteBoard(id);
 	}
 
 
