@@ -21,4 +21,10 @@ public class BoardRepositoryImpl implements BoardRepository {
 	public List<Board> findAll() {
 		return jpaRepository.findAllByOrderByTopCategoryAscSubCategoryAsc();
 	}
+
+	@Override
+	public Board findById(Long id) {
+		return jpaRepository.findById(id)
+			.orElseThrow(() -> new RuntimeException("No Such board with Id : " + id));
+	}
 }

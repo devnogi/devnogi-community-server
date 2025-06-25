@@ -2,7 +2,9 @@ package until.the.eternity.dcs.domain.board.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.board.dto.request.BoardCreateRequest;
+import until.the.eternity.dcs.domain.board.dto.request.BoardUpdateRequest;
 import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
@@ -30,5 +32,16 @@ public class BoardService {
 	public BoardListResponse getAllBoards() {
 		List<Board> boardList = boardRepository.findAll();
 		return boardConverter.fromBoardToListResponse(boardList);
+	}
+
+	@Transactional
+	public BoardPersistResponse updateBoard(Long id, BoardUpdateRequest request) {
+		Board board = findBoardById(id);
+		board.update(request.name(), request.description(), request.topCategory(), request.subCategory());
+		return boardConverter.fromBoardToPersistResponse(board);
+	}
+
+	private Board findBoardById(Long id) {
+		return boardRepository.findById(id);
 	}
 }
