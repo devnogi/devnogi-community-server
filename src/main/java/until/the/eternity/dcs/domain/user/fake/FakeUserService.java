@@ -8,6 +8,9 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 @Service
 public class FakeUserService implements UserService {
 	public UserSummary getCurrentUser() {
-		return UserSummary.builder().id(1L).build();
+		return UserSummary.builder()
+			.id(1L)
+			.grade("manager")
+			.build();
 	}
 }
