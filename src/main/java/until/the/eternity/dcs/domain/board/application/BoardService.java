@@ -10,7 +10,7 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
-import until.the.eternity.dcs.domain.user.fake.FakeUserService;
+import until.the.eternity.dcs.domain.user.fake.UserService;
 
 import java.util.List;
 
@@ -19,11 +19,10 @@ import java.util.List;
 public class BoardService {
 	private final BoardRepository boardRepository;
 	private final BoardConverter boardConverter;
-	// todo User 관련 기능 구현 후 Fake에서 진짜 서비스로 교체 필요
-	private final FakeUserService fakeUserService;
+	private final UserService fakeUserService;
 
 	public BoardPersistResponse createBoard(BoardCreateRequest request) {
-		UserSummary user = fakeUserService.getUser();
+		UserSummary user = fakeUserService.getCurrentUser();
 		Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
 		Board saved = boardRepository.save(board);
 		return boardConverter.fromBoardToPersistResponse(saved);
@@ -37,12 +36,20 @@ public class BoardService {
 	@Transactional
 	public BoardPersistResponse updateBoard(Long id, BoardUpdateRequest request) {
 		Board board = findBoardById(id);
+		checkManagerAuthority();
 		board.update(request.name(), request.description(), request.topCategory(), request.subCategory());
 		return boardConverter.fromBoardToPersistResponse(board);
 	}
 
 	public void deleteBoard(Long id) {
+		checkManagerAuthority();
 		boardRepository.deleteById(id);
+	}
+
+	private void checkManagerAuthority() {
+		UserSummary user = fakeUserService.getCurrentUser();
+		if (!user.getGrade().equals("manager"))
+			throw new RuntimeException("Only manager user can modify or delete board");
 	}
 
 	private Board findBoardById(Long id) {
