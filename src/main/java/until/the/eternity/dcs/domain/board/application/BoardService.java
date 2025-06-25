@@ -20,8 +20,7 @@ public class BoardService {
 	public BoardPersistResponse createBoard(BoardCreateRequest request) {
 		UserSummary user = fakeUserService.getUser();
 		Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
-		Board saved =  boardRepository.save(board);
-		System.out.println(saved.toString());
+		Board saved = boardRepository.save(board);
 		return boardConverter.fromBoardToPersistResponse(saved);
 	}
 }
