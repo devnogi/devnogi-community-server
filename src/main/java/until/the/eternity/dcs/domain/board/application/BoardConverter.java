@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.board.service;
+package until.the.eternity.dcs.domain.board.application;
 
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.dto.request.BoardCreateRequest;
