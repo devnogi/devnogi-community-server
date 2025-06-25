@@ -53,13 +53,17 @@ public class Board extends SoftDeleteEntity {
     private List<Announcement> announcements;
 
     public void update(String name, String description, String topCategory, String subCategory) {
-        if (name != null)
+        if (name != null) {
             this.name = name;
-        if (description != null)
+        }
+        if (description != null) {
             this.description = description;
-        if (topCategory != null)
+        }
+        if (topCategory != null) {
             this.topCategory = topCategory;
-        if (subCategory != null)
+        }
+        if (subCategory != null) {
             this.subCategory = subCategory;
+        }
     }
 }
