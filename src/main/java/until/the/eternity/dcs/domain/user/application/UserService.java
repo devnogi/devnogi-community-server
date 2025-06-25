@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.user.fake;
+package until.the.eternity.dcs.domain.user.application;
 
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 

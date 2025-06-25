@@ -10,7 +10,7 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
-import until.the.eternity.dcs.domain.user.fake.UserService;
+import until.the.eternity.dcs.domain.user.application.UserService;
 
 import java.util.List;
 
