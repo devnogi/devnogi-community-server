@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
+import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class BoardRepositoryImpl implements BoardRepository {
 	@Override
 	public Board findById(Long id) {
 		return jpaRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("No Such board with Id : " + id));
+			.orElseThrow(() -> new BoardNotFoundException(id));
 	}
 
 	@Override

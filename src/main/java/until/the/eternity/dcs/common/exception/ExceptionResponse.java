@@ -14,7 +14,7 @@ public record ExceptionResponse(
 		return ExceptionResponse.builder()
 			.status(exception.getCode().getStatus())
 			.code(exception.getCode().getCode())
-			.message(exception.getCode().getMessage())
+			.message(exception.getMessage())
 			.build();
 	}
 

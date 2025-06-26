@@ -22,6 +22,7 @@ public class BoardService {
 	private final UserService fakeUserService;
 
 	public BoardPersistResponse createBoard(BoardCreateRequest request) {
+		checkManagerAuthority();
 		UserSummary user = fakeUserService.getCurrentUser();
 		Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
 		Board saved = boardRepository.save(board);
@@ -35,8 +36,8 @@ public class BoardService {
 
 	@Transactional
 	public BoardPersistResponse updateBoard(Long id, BoardUpdateRequest request) {
-		Board board = findBoardById(id);
 		checkManagerAuthority();
+		Board board = findBoardById(id);
 		board.update(request.name(), request.description(), request.topCategory(), request.subCategory());
 		return boardConverter.fromBoardToPersistResponse(board);
 	}
@@ -48,8 +49,9 @@ public class BoardService {
 
 	private void checkManagerAuthority() {
 		UserSummary user = fakeUserService.getCurrentUser();
-		if (!user.getGrade().equals("manager"))
+		if (!user.getGrade().equals("manager")) {
 			throw new RuntimeException("Only manager user can modify or delete board");
+		}
 	}
 
 	private Board findBoardById(Long id) {
