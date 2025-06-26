@@ -4,8 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import until.the.eternity.dcs.domain.report.enums.ReportCategory;
+import until.the.eternity.dcs.domain.report.enums.ReportStatus;
+import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
 
 import java.time.LocalDateTime;
+
+import static until.the.eternity.dcs.domain.report.enums.ReportStatus.REPORTED;
 
 @Entity
 @Table(name = "report")
@@ -32,19 +37,19 @@ public class Report {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "category_cd", nullable = false, length = 10)
-    private String categoryCd;
+    @Enumerated(EnumType.STRING)
+    private ReportTargetType categoryCd;
 
-    @Column(name = "reason", nullable = false, length = 255)
-    private String reason;
+    @Enumerated(EnumType.STRING)
+    private ReportCategory reason;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "status_cd", nullable = false, length = 10)
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    private String statusCd = "REPORTED";
+    private ReportStatus statusCd = REPORTED;
 
     @Column(name = "replied_at")
     private LocalDateTime repliedAt;

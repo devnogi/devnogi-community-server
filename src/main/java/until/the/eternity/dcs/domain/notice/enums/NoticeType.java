@@ -1,8 +1,10 @@
 package until.the.eternity.dcs.domain.notice.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum NoticeType {
     POST_LIKE("POST_LIKE", "게시글 좋아요"),
     POST_COMMENT("POST_COMMENT", "게시글 댓글"),
@@ -17,11 +19,6 @@ public enum NoticeType {
 
     private final String code;
     private final String description;
-
-    NoticeType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
 
     public static NoticeType fromCode(String code) {
         for (NoticeType type : values()) {

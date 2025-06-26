@@ -1,8 +1,10 @@
 package until.the.eternity.dcs.domain.report.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum ReportStatus {
     REPORTED("REPORTED", "신고 접수"),
     REVIEWING("REVIEWING", "검토 중"),
@@ -12,11 +14,6 @@ public enum ReportStatus {
 
     private final String code;
     private final String description;
-
-    ReportStatus(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
 
     public static ReportStatus fromCode(String code) {
         for (ReportStatus status : values()) {

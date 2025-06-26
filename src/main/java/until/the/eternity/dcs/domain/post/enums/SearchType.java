@@ -1,8 +1,10 @@
 package until.the.eternity.dcs.domain.post.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum SearchType {
     TITLE("title", "제목"),
     CONTENT("content", "내용"),
@@ -12,11 +14,6 @@ public enum SearchType {
 
     private final String code;
     private final String description;
-
-    SearchType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
 
     public static SearchType fromCode(String code) {
         for (SearchType type : values()) {

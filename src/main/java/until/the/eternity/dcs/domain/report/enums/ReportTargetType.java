@@ -1,8 +1,10 @@
 package until.the.eternity.dcs.domain.report.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum ReportTargetType {
     POST("post", "게시글"),
     COMMENT("comment", "댓글"),
@@ -10,11 +12,6 @@ public enum ReportTargetType {
 
     private final String code;
     private final String description;
-
-    ReportTargetType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
 
     public static ReportTargetType fromCode(String code) {
         for (ReportTargetType type : values()) {

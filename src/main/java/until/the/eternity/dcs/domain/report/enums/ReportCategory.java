@@ -2,8 +2,10 @@ package until.the.eternity.dcs.domain.report.enums;
 
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum ReportCategory {
     SPAM("SPAM", "스팸/도배"),
     ABUSE("ABUSE", "욕설/비방"),
@@ -18,11 +20,6 @@ public enum ReportCategory {
 
     private final String code;
     private final String description;
-
-    ReportCategory(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
 
     public static ReportCategory fromCode(String code) {
         for (ReportCategory category : values()) {

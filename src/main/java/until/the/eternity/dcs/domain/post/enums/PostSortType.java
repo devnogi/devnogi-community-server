@@ -1,8 +1,10 @@
 package until.the.eternity.dcs.domain.post.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum PostSortType {
     LATEST("latest", "최신순"),
     MOST_VIEWED("most_viewed", "조회수순"),
@@ -11,11 +13,6 @@ public enum PostSortType {
 
     private final String code;
     private final String description;
-
-    PostSortType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
 
     public static PostSortType fromCode(String code) {
         for (PostSortType type : values()) {
