@@ -9,6 +9,7 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
+import until.the.eternity.dcs.domain.board.exception.BoardModifyForbiddenException;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.application.UserService;
 
@@ -50,7 +51,7 @@ public class BoardService {
 	private void checkManagerAuthority() {
 		UserSummary user = fakeUserService.getCurrentUser();
 		if (!user.getGrade().equals("manager")) {
-			throw new RuntimeException("Only manager user can modify or delete board");
+			throw new BoardModifyForbiddenException();
 		}
 	}
 
