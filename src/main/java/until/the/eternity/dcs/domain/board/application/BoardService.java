@@ -23,8 +23,8 @@ public class BoardService {
 	private final UserService fakeUserService;
 
 	public BoardPersistResponse createBoard(BoardCreateRequest request) {
-		checkManagerAuthority();
-		UserSummary user = fakeUserService.getCurrentUser();
+		UserSummary user = getCurrentUser();
+		checkManagerAuthority(user.getGrade());
 		Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
 		Board saved = boardRepository.save(board);
 		return boardConverter.fromBoardToPersistResponse(saved);
@@ -37,20 +37,27 @@ public class BoardService {
 
 	@Transactional
 	public BoardPersistResponse updateBoard(Long id, BoardUpdateRequest request) {
-		checkManagerAuthority();
+		UserSummary user = getCurrentUser();
+		checkManagerAuthority(user.getGrade());
 		Board board = findBoardById(id);
-		board.update(request.name(), request.description(), request.topCategory(), request.subCategory());
+		board.update(request.name(), request.description(), request.topCategory(), request.subCategory(), user.getId());
 		return boardConverter.fromBoardToPersistResponse(board);
 	}
 
+	@Transactional
 	public void deleteBoard(Long id) {
-		checkManagerAuthority();
-		boardRepository.deleteById(id);
+		UserSummary user = getCurrentUser();
+		checkManagerAuthority(user.getGrade());
+		Board board = boardRepository.findById(id);
+		board.delete(user.getId());
 	}
 
-	private void checkManagerAuthority() {
-		UserSummary user = fakeUserService.getCurrentUser();
-		if (!user.getGrade().equals("manager")) {
+	private UserSummary getCurrentUser() {
+		return fakeUserService.getCurrentUser();
+	}
+
+	private void checkManagerAuthority(String grade) {
+		if (!grade.equals("manager")) {
 			throw new BoardModifyForbiddenException();
 		}
 	}

@@ -38,10 +38,10 @@ class BoardConverterTest {
 
 		// then
 		assertNotNull(board);
-		assertEquals(board.getName(), name);
-		assertEquals(board.getDescription(), description);
-		assertEquals(board.getTopCategory(), topCategory);
-		assertEquals(board.getSubCategory(), subCategory);
+		assertEquals(name, board.getName());
+		assertEquals(description, board.getDescription());
+		assertEquals(topCategory, board.getTopCategory());
+		assertEquals(subCategory, board.getSubCategory());
 	}
 
 	@Test
@@ -59,9 +59,9 @@ class BoardConverterTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals(response.count(), 2);
-		assertEquals(response.boards().get(0).name(), name);
-		assertEquals(response.boards().get(1).name(), name + "2");
+		assertEquals(2, response.count());
+		assertEquals(name, response.boards().get(0).name());
+		assertEquals(name + "2", response.boards().get(1).name());
 	}
 
 
@@ -76,6 +76,6 @@ class BoardConverterTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals(response.id(), 1L);
+		assertEquals(1L, response.id());
 	}
 }
