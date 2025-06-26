@@ -2,7 +2,6 @@ package until.the.eternity.dcs.domain.post.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import until.the.eternity.dcs.domain.report.enums.ReportCategory;
 
 import java.util.Arrays;
 import java.util.Map;
