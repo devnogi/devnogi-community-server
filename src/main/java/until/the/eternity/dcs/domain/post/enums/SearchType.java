@@ -2,6 +2,13 @@ package until.the.eternity.dcs.domain.post.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import until.the.eternity.dcs.domain.report.enums.ReportCategory;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
@@ -15,12 +22,12 @@ public enum SearchType {
     private final String code;
     private final String description;
 
-    public static SearchType fromCode(String code) {
-        for (SearchType type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown search type code: " + code);
+    private static final Map<String, SearchType> CODE_MAP =
+            Arrays.stream(values())
+                    .collect(Collectors.toMap(SearchType::getCode, Function.identity()));
+
+
+    public static Optional<SearchType> fromCode(String code) {
+        return Optional.ofNullable(CODE_MAP.get(code));
     }
 }

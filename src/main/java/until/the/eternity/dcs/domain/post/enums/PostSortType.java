@@ -3,6 +3,12 @@ package until.the.eternity.dcs.domain.post.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Getter
 @RequiredArgsConstructor
 public enum PostSortType {
@@ -14,12 +20,12 @@ public enum PostSortType {
     private final String code;
     private final String description;
 
-    public static PostSortType fromCode(String code) {
-        for (PostSortType type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown post sort type code: " + code);
+    private static final Map<String, PostSortType> CODE_MAP =
+            Arrays.stream(values())
+                    .collect(Collectors.toMap(PostSortType::getCode, Function.identity()));
+
+
+    public static Optional<PostSortType> fromCode(String code) {
+        return Optional.ofNullable(CODE_MAP.get(code));
     }
 }

@@ -3,6 +3,12 @@ package until.the.eternity.dcs.domain.user.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Getter
 @RequiredArgsConstructor
 public enum UserGrade {
@@ -12,12 +18,12 @@ public enum UserGrade {
     private final String code;
     private final String description;
 
-    public static UserGrade fromCode(String code) {  //TODO: 에러 발생을 해버릴지 아니면 optional 객체로 처리할지 고민
-        for (UserGrade grade : values()) {
-            if (grade.code.equals(code)) {
-                return grade;
-            }
-        }
-        throw new IllegalArgumentException("Unknown user grade code: " + code);
+    private static final Map<String, UserGrade> CODE_MAP =
+            Arrays.stream(values())
+                    .collect(Collectors.toMap(UserGrade::getCode, Function.identity()));
+
+
+    public static Optional<UserGrade> fromCode(String code) {
+        return Optional.ofNullable(CODE_MAP.get(code));
     }
 }

@@ -2,6 +2,13 @@ package until.the.eternity.dcs.domain.notice.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import until.the.eternity.dcs.domain.post.enums.PostSortType;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
@@ -20,12 +27,12 @@ public enum NoticeType {
     private final String code;
     private final String description;
 
-    public static NoticeType fromCode(String code) {
-        for (NoticeType type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unknown notice type code: " + code);
+    private static final Map<String, NoticeType> CODE_MAP =
+            Arrays.stream(values())
+                    .collect(Collectors.toMap(NoticeType::getCode, Function.identity()));
+
+
+    public static Optional<NoticeType> fromCode(String code) {
+        return Optional.ofNullable(CODE_MAP.get(code));
     }
 }
