@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
-import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
