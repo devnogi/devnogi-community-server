@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 import java.time.LocalDateTime;
 
@@ -26,8 +27,8 @@ public class Notice {
     @Column(name = "title", nullable = false, length = 25)
     private String title;
 
-    @Column(name = "notice_type", nullable = false, length = 25)
-    private String noticeType;
+    @Enumerated(EnumType.STRING)
+    private NoticeType noticeType;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
