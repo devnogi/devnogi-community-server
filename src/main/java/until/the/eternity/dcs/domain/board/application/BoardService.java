@@ -10,8 +10,9 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.board.exception.BoardModifyForbiddenException;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class BoardService {
 	public void deleteBoard(Long id) {
 		UserSummary user = getCurrentUser();
 		checkManagerAuthority(user.getGrade());
-		Board board = boardRepository.findById(id);
+		Board board = findBoardById(id);
 		board.delete(user.getId());
 	}
 
@@ -63,6 +64,7 @@ public class BoardService {
 	}
 
 	private Board findBoardById(Long id) {
-		return boardRepository.findById(id);
+		return boardRepository.findById(id)
+			.orElseThrow(() -> new BoardNotFoundException(id));
 	}
 }

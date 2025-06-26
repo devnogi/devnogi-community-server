@@ -7,6 +7,7 @@ import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,13 +21,12 @@ public class BoardRepositoryImpl implements BoardRepository {
 
 	@Override
 	public List<Board> findAll() {
-		return jpaRepository.findAllByOrderByTopCategoryAscSubCategoryAsc();
+		return jpaRepository.findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc();
 	}
 
 	@Override
-	public Board findById(Long id) {
-		return jpaRepository.findById(id)
-			.orElseThrow(() -> new BoardNotFoundException(id));
+	public Optional<Board> findById(Long id) {
+		return jpaRepository.findByIdAndIsDeletedIsFalse(id);
 	}
 
 	@Override
