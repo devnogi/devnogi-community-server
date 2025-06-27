@@ -2,6 +2,9 @@ package until.the.eternity.dcs.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import until.the.eternity.dcs.domain.user.enums.UserGrade;
+
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.USER;
 
 @Entity
 @Table(name = "user_summary")
@@ -25,7 +28,7 @@ public class UserSummary {
     @Builder.Default
     private Integer level = 1;
 
-    @Column(name = "grade", length = 30)
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    private String grade = "user";
+    private UserGrade grade = USER;
 }
