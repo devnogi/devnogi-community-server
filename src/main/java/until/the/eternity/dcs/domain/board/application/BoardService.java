@@ -9,10 +9,15 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.board.exception.BoardModifyForbiddenException;
+import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
 import java.util.List;
+
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +27,8 @@ public class BoardService {
 	private final UserService fakeUserService;
 
 	public BoardPersistResponse createBoard(BoardCreateRequest request) {
-		UserSummary user = fakeUserService.getCurrentUser();
+		UserSummary user = getCurrentUser();
+		checkManagerAuthority(user.getGrade());
 		Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
 		Board saved = boardRepository.save(board);
 		return boardConverter.fromBoardToPersistResponse(saved);
@@ -35,24 +41,33 @@ public class BoardService {
 
 	@Transactional
 	public BoardPersistResponse updateBoard(Long id, BoardUpdateRequest request) {
+		UserSummary user = getCurrentUser();
+		checkManagerAuthority(user.getGrade());
 		Board board = findBoardById(id);
-		checkManagerAuthority();
-		board.update(request.name(), request.description(), request.topCategory(), request.subCategory());
+		board.update(request.name(), request.description(), request.topCategory(), request.subCategory(), user.getId());
 		return boardConverter.fromBoardToPersistResponse(board);
 	}
 
+	@Transactional
 	public void deleteBoard(Long id) {
-		checkManagerAuthority();
-		boardRepository.deleteById(id);
+		UserSummary user = getCurrentUser();
+		checkManagerAuthority(user.getGrade());
+		Board board = findBoardById(id);
+		board.delete(user.getId());
 	}
 
-	private void checkManagerAuthority() {
-		UserSummary user = fakeUserService.getCurrentUser();
-		if (!user.getGrade().equals("manager"))
-			throw new RuntimeException("Only manager user can modify or delete board");
+	private UserSummary getCurrentUser() {
+		return fakeUserService.getCurrentUser();
+	}
+
+	private void checkManagerAuthority(UserGrade grade) {
+		if (!grade.equals(ADMIN)) {
+			throw new BoardModifyForbiddenException();
+		}
 	}
 
 	private Board findBoardById(Long id) {
-		return boardRepository.findById(id);
+		return boardRepository.findById(id)
+			.orElseThrow(() -> new BoardNotFoundException(id));
 	}
 }

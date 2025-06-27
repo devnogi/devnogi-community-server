@@ -52,7 +52,7 @@ public class Board extends SoftDeleteEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Announcement> announcements;
 
-    public void update(String name, String description, String topCategory, String subCategory) {
+    public void update(String name, String description, String topCategory, String subCategory, Long updatedBy) {
         if (name != null) {
             this.name = name;
         }
@@ -65,5 +65,6 @@ public class Board extends SoftDeleteEntity {
         if (subCategory != null) {
             this.subCategory = subCategory;
         }
+        this.setUpdatedBy(updatedBy);
     }
 }

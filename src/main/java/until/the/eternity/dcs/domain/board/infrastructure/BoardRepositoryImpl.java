@@ -6,6 +6,7 @@ import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,13 +20,12 @@ public class BoardRepositoryImpl implements BoardRepository {
 
 	@Override
 	public List<Board> findAll() {
-		return jpaRepository.findAllByOrderByTopCategoryAscSubCategoryAsc();
+		return jpaRepository.findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc();
 	}
 
 	@Override
-	public Board findById(Long id) {
-		return jpaRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("No Such board with Id : " + id));
+	public Optional<Board> findById(Long id) {
+		return jpaRepository.findByIdAndIsDeletedIsFalse(id);
 	}
 
 	@Override
