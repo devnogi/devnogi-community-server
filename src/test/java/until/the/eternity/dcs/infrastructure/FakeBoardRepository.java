@@ -48,7 +48,6 @@ public class FakeBoardRepository implements BoardRepository {
 	@Override
 	public Optional<Board> findById(Long id) {
 		Board board = db.get(id);
-		System.out.println(board.getIsDeleted());
 		if (board.getIsDeleted()){
 			return Optional.empty();
 		}

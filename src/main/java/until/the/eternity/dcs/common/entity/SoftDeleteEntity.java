@@ -26,8 +26,7 @@ public abstract class SoftDeleteEntity extends AuditableEntity {
     }
 
     public void delete(Long userId){
-        this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();
+        onDelete();
         this.setUpdatedBy(userId);
     }
 }
