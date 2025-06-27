@@ -13,8 +13,11 @@ import until.the.eternity.dcs.domain.board.exception.BoardModifyForbiddenExcepti
 import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
 import java.util.List;
+
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -57,8 +60,8 @@ public class BoardService {
 		return fakeUserService.getCurrentUser();
 	}
 
-	private void checkManagerAuthority(String grade) {
-		if (!grade.equals("manager")) {
+	private void checkManagerAuthority(UserGrade grade) {
+		if (!grade.equals(ADMIN)) {
 			throw new BoardModifyForbiddenException();
 		}
 	}
