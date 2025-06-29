@@ -38,12 +38,12 @@ public record CustomPageRequest(
 		Direction resolvedDirection = parseDirection(this.direction);
 
 		return PageRequest.of(
-			resolvedPage, resolvedSize, Sort.by(resolvedDirection, resolvedSortBy)
+			resolvedPage - 1, resolvedSize, Sort.by(resolvedDirection, resolvedSortBy)
 		);
 	}
 
 	private Direction parseDirection(String dir) {
-		if (dir.equalsIgnoreCase("asc")) {
+		if (dir != null && dir.equalsIgnoreCase("asc")) {
 			return ASC;
 		}
 		return DESC;
