@@ -1,12 +1,10 @@
 package until.the.eternity.dcs.common.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-@Builder
 @Schema(description = "페이지 응답 객체")
 public record CustomPageResponse<T>(
 	@Schema(description = "데이터 리스트")
