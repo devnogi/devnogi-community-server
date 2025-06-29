@@ -3,7 +3,7 @@ package until.the.eternity.dcs.domain.post.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
-import until.the.eternity.dcs.domain.board.entity.Board;
+
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;

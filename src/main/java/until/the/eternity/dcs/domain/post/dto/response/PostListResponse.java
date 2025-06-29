@@ -1,13 +1,9 @@
 package until.the.eternity.dcs.domain.post.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
-import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
 
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
@@ -17,7 +13,7 @@ public record PostListResponse(
     @Schema(description = "게시글의 개수", example = "1", requiredMode = REQUIRED)
     int count,
 
-    @Schema(description = "게시판 리스트",
+    @Schema(description = "게시글 리스트",
             example = """
             [{
                 "id": 1,
