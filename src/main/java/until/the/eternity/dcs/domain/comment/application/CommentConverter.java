@@ -13,9 +13,8 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 @RequiredArgsConstructor
 public class CommentConverter {
 	private final CommentRepository commentRepository;
-	// todo PostService 구현 후 post 조회
-
 	public Comment fromCreateRequestToComment(CommentCreateRequest request, Long userId, Long postId) {
+		// todo PostService 구현 후 post 조회
 		Post post = Post.builder().id(postId).build();
 		if(request.parentComment() == null) {
 			return Comment.builder()
