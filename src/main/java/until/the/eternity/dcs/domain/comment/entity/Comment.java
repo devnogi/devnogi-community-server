@@ -52,7 +52,4 @@ public class Comment extends AuditableEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Column(name = "created_by")
-    private Long createdBy;
-
 }
