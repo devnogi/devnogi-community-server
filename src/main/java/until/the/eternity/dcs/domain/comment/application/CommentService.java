@@ -38,8 +38,12 @@ public class CommentService {
 		return commentConverter.fromCommentToPersistResponse(comment);
 	}
 
+	// comment는 hard delete?
 	public void delete(Long id) {
-
+		UserSummary user = getCurrentUser();
+		Comment comment = findById(id);
+		isCurrentUserEqualsWriter(user.getId(), comment);
+		commentRepository.deleteById(id);
 	}
 
 	public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
