@@ -35,16 +35,16 @@ public class CommentService {
 		Comment comment = findById(id);
 		isCurrentUserEqualsWriter(user.getId(), comment);
 
-		comment.update(request.content());
+		comment.update(request.content(), user.getId());
 		return commentConverter.fromCommentToPersistResponse(comment);
 	}
 
-	// comment는 hard delete?
+	@Transactional
 	public void delete(Long id) {
 		UserSummary user = getCurrentUser();
 		Comment comment = findById(id);
 		isCurrentUserEqualsWriter(user.getId(), comment);
-		commentRepository.deleteById(id);
+		comment.delete(user.getId());
 	}
 
 	public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
@@ -52,7 +52,6 @@ public class CommentService {
 		Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 		return comments.map(commentConverter::fromCommentToPageResponse);
 	}
-
 
 	private UserSummary getCurrentUser() {
 		return userService.getCurrentUser();

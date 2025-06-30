@@ -25,11 +25,6 @@ public class CommentRepositoryImpl implements CommentRepository {
 	}
 
 	@Override
-	public void deleteById(Long id) {
-		jpaRepository.deleteById(id);
-	}
-
-	@Override
 	public Page<Comment> findByPost(Long postId, Pageable pageable) {
 		return jpaRepository.findAllByPostId(postId, pageable);
 	}

@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.comment.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import until.the.eternity.dcs.common.entity.AuditableEntity;
+import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.post.entity.Post;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Comment extends AuditableEntity {
+public class Comment extends SoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,18 +42,12 @@ public class Comment extends AuditableEntity {
     @Builder.Default
     private Integer likeCount = 0;
 
-    @Column(name = "is_deleted")
-    @Builder.Default
-    private Boolean isDeleted = false;
-
     @Column(name = "is_blocked")
     @Builder.Default
     private Boolean isBlocked = false;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
-    public void update(String content) {
+    public void update(String content, Long userId) {
         this.content = content;
+        this.setUpdatedBy(userId);
     }
 }
