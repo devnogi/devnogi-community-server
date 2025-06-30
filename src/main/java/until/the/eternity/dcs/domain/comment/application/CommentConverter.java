@@ -26,7 +26,7 @@ public class CommentConverter {
 		}
 
 		Comment parentComment = commentRepository.findById(request.parentComment())
-			.orElseThrow(() -> new RuntimeException("Comment not found"));;
+			.orElseThrow(() -> new RuntimeException("Comment not found"));
 
 		return Comment.builder()
 			.post(post)

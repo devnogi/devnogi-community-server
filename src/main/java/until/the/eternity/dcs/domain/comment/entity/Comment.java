@@ -52,4 +52,7 @@ public class Comment extends AuditableEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    public void update(String content) {
+        this.content = content;
+    }
 }
