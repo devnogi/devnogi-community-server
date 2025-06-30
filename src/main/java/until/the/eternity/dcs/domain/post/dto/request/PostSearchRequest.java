@@ -1,7 +1,6 @@
 package until.the.eternity.dcs.domain.post.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
 
 public record PostSearchRequest(
         @Schema(description = "검색 키워드", example = "길드")
