@@ -3,7 +3,6 @@ package until.the.eternity.dcs.common.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PreRemove;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
