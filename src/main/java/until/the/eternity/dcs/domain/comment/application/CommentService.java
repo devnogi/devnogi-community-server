@@ -2,6 +2,7 @@ package until.the.eternity.dcs.domain.comment.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
@@ -47,7 +48,9 @@ public class CommentService {
 	}
 
 	public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
-		return null;
+		Pageable pageable = request.toPageable();
+		Page<Comment> comments = commentRepository.findByPost(postId, pageable);
+		return comments.map(commentConverter::fromCommentToPageResponse);
 	}
 
 

@@ -1,6 +1,8 @@
 package until.the.eternity.dcs.domain.comment.infrastructure;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
@@ -25,5 +27,10 @@ public class CommentRepositoryImpl implements CommentRepository {
 	@Override
 	public void deleteById(Long id) {
 		jpaRepository.deleteById(id);
+	}
+
+	@Override
+	public Page<Comment> findByPost(Long postId, Pageable pageable) {
+		return jpaRepository.findAllByPostId(postId, pageable);
 	}
 }
