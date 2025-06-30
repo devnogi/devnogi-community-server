@@ -13,7 +13,7 @@ public record CommentPageResponseItem(
 	Long id,
 
 	@Schema(description = "글쓴이 아이디", example = "1", requiredMode = REQUIRED)
-	Long createdBy,
+	Long userId,
 
 	@Schema(description = "대댓글일 경우 상위 댓글의 아이디", example = "1", requiredMode = NOT_REQUIRED)
 	Long parentComment,
@@ -28,7 +28,7 @@ public record CommentPageResponseItem(
 		if(comment.getParentComment() == null){
 			return CommentPageResponseItem.builder()
 				.id(comment.getId())
-				.createdBy(comment.getCreatedBy())
+				.userId(comment.getUserId())
 				.content(comment.getContent())
 				.likeCount(comment.getLikeCount())
 				.build();
@@ -36,7 +36,7 @@ public record CommentPageResponseItem(
 
 		return CommentPageResponseItem.builder()
 			.id(comment.getId())
-			.createdBy(comment.getCreatedBy())
+			.userId(comment.getUserId())
 			.parentComment(comment.getParentComment().getId())
 			.content(comment.getContent())
 			.likeCount(comment.getLikeCount())
