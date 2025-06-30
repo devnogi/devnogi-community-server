@@ -4,40 +4,29 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 
 public record PostSearchRequest(
-        @Schema(description = "검색 키워드")
+        @Schema(description = "검색 키워드", example = "길드")
         String keyword,
 
-        @Schema(description = "게시판 ID")
+        @Schema(description = "게시판 ID", example = "1")
         Long boardId,
 
-        @Schema(description = "작성자 ID")
+        @Schema(description = "작성자 ID", example = "1")
         Long userId,
 
-        @Schema(description = "태그")
+        @Schema(description = "태그", example = "길드")
         String tag,
 
-        @Schema(description = "임시저장 여부")
-        Boolean isDraft,
+        @Schema(description = "임시저장 여부", example="false")
+        Boolean isDraft
 
-        @Schema(description = "시작일 (yyyy-MM-dd)")
-        String startDate,
 
-        @Schema(description = "종료일 (yyyy-MM-dd)")
-        String endDate,
+//        @Schema(description = "시작일 (yyyy-MM-dd)")  TODO: 기간을 조건으로 검색하기를 추가하는게 좋을까요?
+//        String startDate,
+//
+//        @Schema(description = "종료일 (yyyy-MM-dd)")
+//        String endDate
 
-        @Schema(description = "정렬 기준 (created_at, view_count, like_count)")
-        String sortBy,
 
-        @Schema(description = "정렬 방향 (asc, desc)")
-        String sortDirection,
-
-        @Schema(description = "페이지 번호 (1부터 시작)", example = "0")
-        @Min(value = 0, message = "페이지 번호는 1 이상이어야 합니다.")
-        Integer page,
-
-        @Schema(description = "페이지 크기", example = "20")
-        @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다.")
-        Integer size
 ) {
 
 }
