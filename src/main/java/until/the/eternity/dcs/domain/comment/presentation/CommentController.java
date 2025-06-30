@@ -30,9 +30,11 @@ public class CommentController {
 
 	// todo 스웨거
 
-	@PostMapping
-	public ResponseEntity<CommentPersistResponse> create(@RequestBody CommentCreateRequest request) {
-		return ResponseEntity.status(CREATED).body(commentService.create(request));
+	@PostMapping("/{postId}")
+	public ResponseEntity<CommentPersistResponse> create(
+		@PathVariable("postId") Long postId,
+		@RequestBody CommentCreateRequest request) {
+		return ResponseEntity.status(CREATED).body(commentService.create(postId, request));
 	}
 
 	@PatchMapping("/{id}")
