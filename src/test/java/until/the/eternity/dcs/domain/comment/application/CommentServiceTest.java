@@ -101,7 +101,7 @@ class CommentServiceTest {
 	}
 
 	@Test
-	@DisplayName("삭제된 commen 를 조회 시 CommentNotFoundException 를 반환한다.")
+	@DisplayName("삭제된 comment 를 조회 시 CommentNotFoundException 를 반환한다.")
 	void delete_throws_CommentNotFoundException() {
 		// given
 
