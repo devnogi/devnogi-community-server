@@ -12,6 +12,8 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseIte
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
+import until.the.eternity.dcs.domain.post.exception.CommentModifyForbiddenException;
+import until.the.eternity.dcs.domain.post.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -59,12 +61,12 @@ public class CommentService {
 
 	private void isCurrentUserEqualsWriter(Long currentUserId, Comment comment) {
 		if (!currentUserId.equals(comment.getUserId())) {
-			throw new RuntimeException("Current user is not the same as the user");
+			throw new CommentModifyForbiddenException();
 		}
 	}
 
 	private Comment findById(Long id) {
 		return commentRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("Comment not found"));
+			.orElseThrow(() -> new CommentNotFoundException(id));
 	}
 }

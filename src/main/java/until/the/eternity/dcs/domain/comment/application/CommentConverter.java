@@ -8,6 +8,7 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.exception.CommentNotFoundException;
 
 @Component
 @RequiredArgsConstructor
@@ -16,7 +17,8 @@ public class CommentConverter {
 	public Comment fromCreateRequestToComment(CommentCreateRequest request, Long userId, Long postId) {
 		// todo PostService 구현 후 post 조회
 		Post post = Post.builder().id(postId).build();
-		if(request.parentComment() == null) {
+		Long parentId = request.parentComment();
+		if(parentId == null) {
 			return Comment.builder()
 				.post(post)
 				.userId(userId)
@@ -24,8 +26,8 @@ public class CommentConverter {
 				.build();
 		}
 
-		Comment parentComment = commentRepository.findById(request.parentComment())
-			.orElseThrow(() -> new RuntimeException("Comment not found"));
+		Comment parentComment = commentRepository.findById(parentId)
+			.orElseThrow(() -> new CommentNotFoundException(parentId));
 
 		return Comment.builder()
 			.post(post)
