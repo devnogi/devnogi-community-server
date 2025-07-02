@@ -44,7 +44,7 @@ public class FakeCommentRepository implements CommentRepository {
 	@Override
 	public Optional<Comment> findById(Long id) {
 		Comment comment = db.get(id);
-		if (comment.getIsDeleted()) {
+		if (comment == null || comment.getIsDeleted()) {
 			return Optional.empty();
 		}
 		return Optional.of(comment);
@@ -53,7 +53,7 @@ public class FakeCommentRepository implements CommentRepository {
 	@Override
 	public Page<Comment> findByPost(Long postId, Pageable pageable) {
 		List<Comment> filtered = db.values().stream()
-			.filter(c -> c.getPost().getId().equals(postId) && !c.getIsDeleted())
+			.filter(c -> c.getPost().getId().equals(postId))
 			.sorted(Comparator.comparing(Comment::getCreatedAt))
 			.collect(Collectors.toList());
 

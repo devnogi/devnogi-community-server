@@ -21,11 +21,11 @@ public class CommentRepositoryImpl implements CommentRepository {
 
 	@Override
 	public Optional<Comment> findById(Long id) {
-		return jpaRepository.findByIdAndIsDeletedIsFalse(id);
+		return jpaRepository.findById(id);
 	}
 
 	@Override
 	public Page<Comment> findByPost(Long postId, Pageable pageable) {
-		return jpaRepository.findAllByPostIdAndIsDeletedIsFalse(postId, pageable);
+		return jpaRepository.findAllByPostId(postId, pageable);
 	}
 }

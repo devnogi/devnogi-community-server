@@ -43,7 +43,6 @@ class CommentServiceTest {
 		commentRepository.clearDbForTest();
 
 		Post post = Post.builder().id(id).build();
-
 		Comment comment = Comment
 			.builder()
 			.id(id)
@@ -90,8 +89,6 @@ class CommentServiceTest {
 	@Test
 	@DisplayName("delete 는 comment 를 삭제 처리한다.")
 	void delete_Success() {
-		// given
-
 		// when
 		commentService.delete(id);
 
@@ -101,15 +98,14 @@ class CommentServiceTest {
 	}
 
 	@Test
-	@DisplayName("삭제된 comment 를 조회 시 CommentNotFoundException 를 반환한다.")
+	@DisplayName("없는 ID로 comment 를 조회 시 CommentNotFoundException 를 반환한다.")
 	void delete_throws_CommentNotFoundException() {
 		// given
+		Long notExist = 999L;
 
 		// when
-		commentService.delete(id);
-
 		// then
-		assertThatThrownBy(() -> commentService.delete(id))
+		assertThatThrownBy(() -> commentService.delete(notExist))
 			.isInstanceOf(CommentNotFoundException.class);
 	}
 

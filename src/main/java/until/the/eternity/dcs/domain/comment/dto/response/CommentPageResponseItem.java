@@ -22,7 +22,13 @@ public record CommentPageResponseItem(
 	String content,
 
 	@Schema(description = "좋아요 수", example = "0", requiredMode = REQUIRED)
-	Integer likeCount
+	Integer likeCount,
+
+	@Schema(description = "삭제 여부", example = "false", requiredMode = REQUIRED)
+	Boolean isDeleted,
+
+	@Schema(description = "차단 여부", example = "false", requiredMode = REQUIRED)
+	Boolean isBlocked
 ) {
 	public static CommentPageResponseItem from(Comment comment) {
 		if(comment.getParentComment() == null){
@@ -31,6 +37,8 @@ public record CommentPageResponseItem(
 				.userId(comment.getUserId())
 				.content(comment.getContent())
 				.likeCount(comment.getLikeCount())
+				.isDeleted(comment.getIsDeleted())
+				.isBlocked(comment.getIsBlocked())
 				.build();
 		}
 
@@ -40,6 +48,8 @@ public record CommentPageResponseItem(
 			.parentComment(comment.getParentComment().getId())
 			.content(comment.getContent())
 			.likeCount(comment.getLikeCount())
+			.isDeleted(comment.getIsDeleted())
+			.isBlocked(comment.getIsBlocked())
 			.build();
 	}
 }
