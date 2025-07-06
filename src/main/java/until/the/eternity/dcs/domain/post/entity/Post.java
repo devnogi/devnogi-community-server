@@ -64,4 +64,18 @@ public class Post extends SoftDeleteEntity {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PostTag> postTags;
+
+    public void update(String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId){
+        if(title != null){
+            this.title = title;
+        }
+        if(content != null){
+            this.content = content;
+        }
+        if(isDraft != null){
+            this.isDraft = isDraft;
+        }
+        this.postTags = postTags;
+        this.setUpdatedBy(userId);
+    }
 }
