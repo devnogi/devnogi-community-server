@@ -97,7 +97,7 @@ public class PostService {
     }
 
     private Post findById(Long id) {
-        return postRepository.findById(id)
+        return postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
     }
 
