@@ -33,6 +33,7 @@ public class PostService {
 
     //todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     //todo postTag 관련 로직도 추후 필요
+    @Transactional
     public PostSummaryResponse createPost(PostCreateRequest request){
         UserSummary user = getCurrentUser();
         List<PostTag> postTagList = new ArrayList<>();
@@ -61,6 +62,7 @@ public class PostService {
         return posts.map(postConverter::fromPostToPostSummaryResponse);
     }
 
+    @Transactional
     public PostSummaryResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
 
         UserSummary user = getCurrentUser();
@@ -80,7 +82,7 @@ public class PostService {
         return postConverter.fromPostToPostSummaryResponse(postRepository.save(post));
     }
 
-
+    @Transactional
     public void deletePost(Long id){
         UserSummary user = getCurrentUser();
         Post post = findById(id);
