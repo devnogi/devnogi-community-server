@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.post.exception;
+package until.the.eternity.dcs.domain.comment.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
