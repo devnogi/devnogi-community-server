@@ -13,6 +13,7 @@ import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -59,7 +60,7 @@ public class PostService {
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
-        Page<Post> posts = postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(pageable);
+        Page<Post> posts = postRepository.findAllByIdAndIsDeletedFalseAndIsBlockedFalse(pageable);
 
         return posts.map(postConverter::fromPostToPostSummaryResponse);
     }
@@ -90,7 +91,7 @@ public class PostService {
         Post post = findById(id);
 
         if(!Objects.equals(user.getId(), post.getUserId())){
-            throw new RuntimeException("자신이 작성한 게시글만 삭제할 수 있습니다.");
+            throw new PostDeletionNotAllowedException();
         }
 
         postRepository.delete(post);

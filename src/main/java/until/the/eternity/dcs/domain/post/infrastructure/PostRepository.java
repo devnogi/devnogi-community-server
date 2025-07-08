@@ -13,5 +13,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findByIdAndIsDeletedFalseAndIsBlockedFalse(Long id);
 
-    Page<Post> findByIdAndIsDeletedFalseAndIsBlockedFalse(Pageable pageable);
+    Page<Post> findAllByIdAndIsDeletedFalseAndIsBlockedFalse(Pageable pageable);
 }
