@@ -44,8 +44,8 @@ public class PostController {
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostDetailResponse.class)))
-    public ResponseEntity<PostDetailResponse> getPost(@PathVariable Long id) {
-        return ResponseEntity.status(OK).body(postService.findPost(id));
+    public PostDetailResponse getPost(@PathVariable Long id) {
+        return postService.findPost(id);
     }
 
     @GetMapping
@@ -68,7 +68,8 @@ public class PostController {
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
-    public ResponseEntity<PostSummaryResponse> updatePost(@PathVariable Long id, PostUpdateRequest postUpdateRequest) {
+    public ResponseEntity<PostSummaryResponse> updatePost(@PathVariable Long id
+            , @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
         return ResponseEntity.status(OK).body(postService.updatePost(id,postUpdateRequest));
     }
 

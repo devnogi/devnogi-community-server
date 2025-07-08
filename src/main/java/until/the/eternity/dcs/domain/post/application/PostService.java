@@ -13,6 +13,8 @@ import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
+import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
@@ -57,7 +59,7 @@ public class PostService {
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
-        Page<Post> posts = postRepository.findAll(pageable);
+        Page<Post> posts = postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(pageable);
 
         return posts.map(postConverter::fromPostToPostSummaryResponse);
     }
@@ -69,7 +71,7 @@ public class PostService {
 
         // 우선 본인 글만 수정할 수 있게 (ADMIN 권한도 게시글 내용을 수정할 수 있게 할건지)
         if(!Objects.equals(user.getId(), postUpdateRequest.userId())){
-            throw new RuntimeException("자신이 생성한 게시글만 수정 할 수 있습니다. " + id);
+            throw new PostModifyForbiddenException();
         }
 
         //todo 우선 runtimeException으로 처리 차후 customException 추가해야됨
@@ -100,7 +102,7 @@ public class PostService {
 
     private Post findById(Long id) {
         return postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
+                .orElseThrow(() -> new PostNotFoundException(id));
     }
 
     //todo 더 좋은 방법이 있을지

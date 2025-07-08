@@ -2,6 +2,7 @@ package until.the.eternity.dcs.domain.post.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
@@ -10,7 +11,7 @@ public record PostUpdateRequest(
 
         //수정 할 게시글의 작성자 id 받아와야 할거같아 추가
         @Schema(description = "게시글을 작성한 사용자의 id", example = "1")
-        @NotBlank(message = "userId는 필수입니다.")
+        @NotNull(message = "userId는 필수입니다.")
         Long userId,
 
         @Schema(description = "게시글 제목", example = "수정된 게시글 제목입니다.")
