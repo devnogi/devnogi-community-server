@@ -2,6 +2,7 @@ package until.the.eternity.dcs.domain.comment.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +24,7 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class CommentLike {
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -33,7 +36,6 @@ public class CommentLike {
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
-	// BaseEntity의 updatedAt은 필요 없기 때문에 상속받지 않고 createdAt만 따로 추가
 	@Setter
 	@CreatedDate
 	@Column(name = "created_at", nullable = false, updatable = false)

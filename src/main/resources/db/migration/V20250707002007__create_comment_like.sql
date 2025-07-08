@@ -1,4 +1,4 @@
-drop table comment_like;
+DROP TABLE IF EXISTS comment_like;
 
 CREATE TABLE comment_like
 (
