@@ -8,7 +8,7 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.exception.CommentNotFoundException;
+import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 
 @Component
 @RequiredArgsConstructor
