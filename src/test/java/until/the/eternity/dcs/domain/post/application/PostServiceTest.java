@@ -55,6 +55,7 @@ class PostServiceTest {
     private PostService postService;
     private UserSummary mockUser;
     private Post mockPost;
+    private Post mockPost2;
     private PostCreateRequest createRequest;
     private PostUpdateRequest updateRequest;
     private PostSummaryResponse mockSummaryResponse;
@@ -82,7 +83,23 @@ class PostServiceTest {
                 .comments(new ArrayList<>())
                 .postTags(new ArrayList<>())
                 .build();
+
         mockPost.setIsDeleted(false);
+
+        mockPost2= Post.builder()
+                .id(2L)
+                .board(mockBoard)
+                .title("Test Title2")
+                .content("Test Content2")
+                .userId(1L)
+                .isDraft(false)
+                .isBlocked(false)
+                .comments(new ArrayList<>())
+                .postTags(new ArrayList<>())
+                .build();
+
+        mockPost2.setIsDeleted(false);
+
 
         createRequest = new PostCreateRequest(1L,"New Post","New Content"
                 ,false, Arrays.asList("tag1", "tag2"));
@@ -202,7 +219,7 @@ class PostServiceTest {
             CustomPageRequest pageRequest = mock(CustomPageRequest.class);
 
             Pageable pageable = PageRequest.of(1, 10);
-            List<Post> posts = Arrays.asList(mockPost);
+            List<Post> posts = Arrays.asList(mockPost,mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
 
 
@@ -216,7 +233,7 @@ class PostServiceTest {
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
 
             // Then
-            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent()).hasSize(2);
             assertThat(result.getContent().get(0)).isEqualTo(mockSummaryResponse);
             verify(postRepository).findAllByIdAndIsDeletedFalseAndIsBlockedFalse(pageable);
         }
