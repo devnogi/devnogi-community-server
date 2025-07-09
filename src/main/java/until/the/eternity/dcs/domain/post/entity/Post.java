@@ -8,6 +8,7 @@ import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.postLike.entity.PostLike;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -64,4 +65,18 @@ public class Post extends SoftDeleteEntity {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PostTag> postTags;
+
+    public void update(String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId){
+        if(title != null){
+            this.title = title;
+        }
+        if(content != null){
+            this.content = content;
+        }
+        if(isDraft != null){
+            this.isDraft = isDraft;
+        }
+        this.postTags = (postTags !=null) ? postTags : new ArrayList<>();
+        this.setUpdatedBy(userId);
+    }
 }
