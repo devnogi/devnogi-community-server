@@ -224,7 +224,7 @@ class PostServiceTest {
 
 
             given(pageRequest.toPageable()).willReturn(pageable);
-            given(postRepository.findAllByIdAndIsDeletedFalseAndIsBlockedFalse(pageable))
+            given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
             given(postConverter.fromPostToPostSummaryResponse(mockPost))
                     .willReturn(mockSummaryResponse);
@@ -235,7 +235,7 @@ class PostServiceTest {
             // Then
             assertThat(result.getContent()).hasSize(2);
             assertThat(result.getContent().get(0)).isEqualTo(mockSummaryResponse);
-            verify(postRepository).findAllByIdAndIsDeletedFalseAndIsBlockedFalse(pageable);
+            verify(postRepository).findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
         }
     }
 

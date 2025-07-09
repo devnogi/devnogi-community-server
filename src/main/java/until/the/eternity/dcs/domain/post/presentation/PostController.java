@@ -22,7 +22,7 @@ import static org.springframework.http.HttpStatus.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/posts")
 public class PostController {
-    public final PostService postService;
+    private final PostService postService;
 
     @PostMapping
     @Operation(summary = "게시글 생성 API", description = """

@@ -8,6 +8,7 @@ import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.postLike.entity.PostLike;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -75,7 +76,7 @@ public class Post extends SoftDeleteEntity {
         if(isDraft != null){
             this.isDraft = isDraft;
         }
-        this.postTags = postTags;
+        this.postTags = (postTags !=null) ? postTags : new ArrayList<>();
         this.setUpdatedBy(userId);
     }
 }

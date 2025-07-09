@@ -60,7 +60,7 @@ public class PostService {
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
-        Page<Post> posts = postRepository.findAllByIdAndIsDeletedFalseAndIsBlockedFalse(pageable);
+        Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
 
         return posts.map(postConverter::fromPostToPostSummaryResponse);
     }
