@@ -20,8 +20,6 @@ import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class CommentService {
