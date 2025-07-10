@@ -2,9 +2,9 @@ package until.the.eternity.dcs.domain.comment.entity;
 
 public interface CommentLikeRepository {
 
-	CommentLike findCommentLikeByCommentIdAndUserId(Long commentId, Long userId);
-
 	CommentLike save(CommentLike commentLike);
+
+	CommentLike findByCommentIdAndUserId(Long commentId, Long userId);
 
 	void deleteById(Long id);
 }

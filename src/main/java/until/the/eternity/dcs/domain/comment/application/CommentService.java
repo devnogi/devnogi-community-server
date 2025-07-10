@@ -56,15 +56,26 @@ public class CommentService {
 
 	public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
 		Pageable pageable = request.toPageable();
+		Long userId;
+		UserSummary user = getCurrentUser();
+		if(user != null) {
+			userId = user.getId();
+		} else {
+			userId = null;
+		}
 		Page<Comment> comments = commentRepository.findByPost(postId, pageable);
-		return comments.map(commentConverter::fromCommentToPageResponse);
+
+		return comments.map(c -> {
+			CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(c.getId(), userId);
+			return commentConverter.fromCommentToPageResponse(c, commentLike != null);
+		});
 	}
 
 	@Transactional
 	public void toggleLike(CommentLikeToggleRequest request) {
 		Long userId = getCurrentUser().getId();
 
-		CommentLike commentLike = commentLikeRepository.findCommentLikeByCommentIdAndUserId(request.commentId(), userId);
+		CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId);
 
 		if (commentLike == null) {
 			likeComment(request, userId);

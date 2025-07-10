@@ -117,7 +117,6 @@ class PostServiceTest {
                 .id(1L)
                 .title("Test Title")
                 .content("Test Content")
-                .comments(new ArrayList<>())
                 .build();
     }
 
@@ -173,7 +172,6 @@ class PostServiceTest {
             // Given
             Long postId = 1L;
             List<Comment> comments = new ArrayList<>();
-            List<CommentPageResponseItem> commentResponses = new ArrayList<>();
 
             Post postWithComments = Post.builder()
                     .id(postId)
@@ -185,7 +183,7 @@ class PostServiceTest {
 
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
                     .willReturn(Optional.of(postWithComments));
-            given(postConverter.fromPostToPostDetailResponse(postWithComments, commentResponses))
+            given(postConverter.fromPostToPostDetailResponse(postWithComments))
                     .willReturn(mockDetailResponse);
 
             // When
@@ -194,7 +192,7 @@ class PostServiceTest {
             // Then
             assertThat(result).isEqualTo(mockDetailResponse);
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
-            verify(postConverter).fromPostToPostDetailResponse(eq(postWithComments), anyList());
+            verify(postConverter).fromPostToPostDetailResponse(eq(postWithComments));
         }
 
         @Test

@@ -32,7 +32,7 @@ public class PostConverter {
         return PostSummaryResponse.from(post);
     }
 
-    public PostDetailResponse fromPostToPostDetailResponse(Post post, List<CommentPageResponseItem>comments){
-        return PostDetailResponse.from(post,comments);
+    public PostDetailResponse fromPostToPostDetailResponse(Post post){
+        return PostDetailResponse.from(post);
     }
 }

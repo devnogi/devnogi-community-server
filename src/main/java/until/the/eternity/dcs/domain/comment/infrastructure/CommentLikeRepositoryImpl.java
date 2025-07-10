@@ -11,8 +11,8 @@ public class CommentLikeRepositoryImpl implements CommentLikeRepository {
 	private final JpaCommentLikeRepository jpaCommentLikeRepository;
 
 	@Override
-	public CommentLike findCommentLikeByCommentIdAndUserId(Long commentId, Long userId) {
-		return jpaCommentLikeRepository.findCommentLikeByCommentIdAndUserId(commentId, userId)
+	public CommentLike findByCommentIdAndUserId(Long commentId, Long userId) {
+		return jpaCommentLikeRepository.findByCommentIdAndUserId(commentId, userId)
 			.orElse(null);
 	}
 
