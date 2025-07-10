@@ -45,4 +45,8 @@ public class CommentConverter {
 	public CommentPageResponseItem fromCommentToPageResponse(Comment comment, Boolean isLiked) {
 		return CommentPageResponseItem.from(comment, isLiked);
 	}
+
+	public CommentPageResponseItem fromCommentToPageResponseNonAuth(Comment comment) {
+		return CommentPageResponseItem.from(comment, false);
+	}
 }

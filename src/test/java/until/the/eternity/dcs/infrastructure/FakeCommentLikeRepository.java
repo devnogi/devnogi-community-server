@@ -4,7 +4,10 @@ import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,7 +34,7 @@ public class FakeCommentLikeRepository implements CommentLikeRepository {
 			.createdAt(LocalDateTime.now())
 			.build();
 
-		db.put(result.getId(), commentLike);
+		db.put(result.getId(), result);
 		return result;
 	}
 
@@ -42,6 +45,19 @@ public class FakeCommentLikeRepository implements CommentLikeRepository {
 				db.remove(commentLike.getId());
 			}
 		});
+	}
+
+	@Override
+	public Set<Long> findIdsByUserIdAndCommentIdIn(Long userId, List<Long> commentIds) {
+		Set<Long> result = new HashSet<>();
+
+		db.values().forEach(commentLike -> {
+			if (commentLike.getUserId().equals(userId) && commentIds.contains(commentLike.getId())) {
+				result.add(commentLike.getId());
+			}
+		});
+
+		return result;
 	}
 
 	public void clearDbForTest() {

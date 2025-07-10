@@ -20,6 +20,9 @@ import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
+import java.util.List;
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -56,19 +59,21 @@ public class CommentService {
 
 	public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
 		Pageable pageable = request.toPageable();
-		Long userId;
-		UserSummary user = getCurrentUser();
-		if (user != null) {
-			userId = user.getId();
-		} else {
-			userId = null;
-		}
+
 		Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
-		return comments.map(c -> {
-			CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(c.getId(), userId);
-			return commentConverter.fromCommentToPageResponse(c, commentLike != null);
-		});
+		if (userService.isAuthenticated()) {
+			UserSummary user = getCurrentUser();
+			Long userId = user.getId();
+			List<Long> commentIds = comments.map(Comment::getId).toList();
+			Set<Long> likedCommentIds = commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
+
+			return comments.map(c ->
+				commentConverter.fromCommentToPageResponse(c, likedCommentIds.contains(c.getId()))
+			);
+		}
+
+		return comments.map(commentConverter::fromCommentToPageResponseNonAuth);
 	}
 
 	@Transactional

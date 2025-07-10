@@ -5,6 +5,9 @@ import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 
+import java.util.List;
+import java.util.Set;
+
 @Repository
 @RequiredArgsConstructor
 public class CommentLikeRepositoryImpl implements CommentLikeRepository {
@@ -24,5 +27,10 @@ public class CommentLikeRepositoryImpl implements CommentLikeRepository {
 	@Override
 	public void deleteByCommentId(Long commentId) {
 		jpaCommentLikeRepository.deleteByCommentId(commentId);
+	}
+
+	@Override
+	public Set<Long> findIdsByUserIdAndCommentIdIn(Long userId, List<Long> commentIds) {
+		return jpaCommentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
 	}
 }
