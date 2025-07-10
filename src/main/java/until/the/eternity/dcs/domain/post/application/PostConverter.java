@@ -2,7 +2,6 @@ package until.the.eternity.dcs.domain.post.application;
 
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;

@@ -6,5 +6,5 @@ public interface CommentLikeRepository {
 
 	CommentLike findByCommentIdAndUserId(Long commentId, Long userId);
 
-	void deleteById(Long id);
+	void deleteByCommentId(Long commentId);
 }

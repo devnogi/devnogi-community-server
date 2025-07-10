@@ -58,7 +58,7 @@ public class CommentService {
 		Pageable pageable = request.toPageable();
 		Long userId;
 		UserSummary user = getCurrentUser();
-		if(user != null) {
+		if (user != null) {
 			userId = user.getId();
 		} else {
 			userId = null;
@@ -92,7 +92,7 @@ public class CommentService {
 	}
 
 	private void unlikeComment(CommentLikeToggleRequest request) {
-		commentLikeRepository.deleteById(request.commentId());
+		commentLikeRepository.deleteByCommentId(request.commentId());
 		Comment comment = findById(request.commentId());
 		comment.unlike();
 	}

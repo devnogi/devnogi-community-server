@@ -22,7 +22,7 @@ public class CommentLikeRepositoryImpl implements CommentLikeRepository {
 	}
 
 	@Override
-	public void deleteById(Long id) {
-		jpaCommentLikeRepository.deleteById(id);
+	public void deleteByCommentId(Long commentId) {
+		jpaCommentLikeRepository.deleteByCommentId(commentId);
 	}
 }
