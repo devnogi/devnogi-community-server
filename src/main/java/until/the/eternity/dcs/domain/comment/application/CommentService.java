@@ -7,15 +7,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
+import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
+import until.the.eternity.dcs.domain.comment.entity.CommentLike;
+import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.comment.exception.CommentModifyForbiddenException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +28,8 @@ public class CommentService {
 	private final CommentRepository commentRepository;
 	private final CommentConverter commentConverter;
 	private final UserService userService;
+	private final CommentLikeRepository commentLikeRepository;
+	private final CommentLikeConverter commentLikeConverter;
 
 	public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
 		UserSummary user = getCurrentUser();
@@ -53,6 +60,32 @@ public class CommentService {
 		Pageable pageable = request.toPageable();
 		Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 		return comments.map(commentConverter::fromCommentToPageResponse);
+	}
+
+	@Transactional
+	public void toggleLike(CommentLikeToggleRequest request) {
+		Long userId = getCurrentUser().getId();
+
+		CommentLike commentLike = commentLikeRepository.findCommentLikeByCommentIdAndUserId(request.commentId(), userId);
+
+		if (commentLike == null) {
+			likeComment(request, userId);
+			return;
+		}
+		unlikeComment(request);
+	}
+
+	private void likeComment(CommentLikeToggleRequest request, Long userId) {
+		CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
+		commentLikeRepository.save(commentLike);
+		Comment comment = findById(request.commentId());
+		comment.like();
+	}
+
+	private void unlikeComment(CommentLikeToggleRequest request) {
+		commentLikeRepository.deleteById(request.commentId());
+		Comment comment = findById(request.commentId());
+		comment.unlike();
 	}
 
 	private UserSummary getCurrentUser() {

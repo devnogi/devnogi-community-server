@@ -11,10 +11,12 @@ import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
+import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.fake.FakeUserService;
+import until.the.eternity.dcs.infrastructure.FakeCommentLikeRepository;
 import until.the.eternity.dcs.infrastructure.FakeCommentRepository;
 
 import java.util.ArrayList;
@@ -35,7 +37,10 @@ class CommentServiceTest {
 		commentRepository = new FakeCommentRepository();
 		CommentConverter commentConverter = new CommentConverter(commentRepository);
 		UserService userService = new FakeUserService();
-		commentService = new CommentService(commentRepository, commentConverter, userService);
+		CommentLikeRepository commentLikeRepository = new FakeCommentLikeRepository();
+		CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
+		commentService = new CommentService(commentRepository, commentConverter, userService,
+			commentLikeRepository, commentLikeConverter);
 	}
 
 	@BeforeEach

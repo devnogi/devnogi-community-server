@@ -48,4 +48,12 @@ public class Comment extends SoftDeleteEntity {
         this.content = content;
         this.setUpdatedBy(userId);
     }
+
+    public void like(){
+        this.likeCount++;
+    }
+
+    public void unlike(){
+        this.likeCount--;
+    }
 }
