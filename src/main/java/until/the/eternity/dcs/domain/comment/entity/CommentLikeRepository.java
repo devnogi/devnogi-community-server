@@ -9,7 +9,7 @@ public interface CommentLikeRepository {
 
 	CommentLike findByCommentIdAndUserId(Long commentId, Long userId);
 
-	void deleteByCommentId(Long commentId);
+	void deleteByCommentIdAndUserId(Long commentId, Long userId);
 
 	Set<Long> findIdsByUserIdAndCommentIdIn(Long userId, List<Long> commentIds);
 }

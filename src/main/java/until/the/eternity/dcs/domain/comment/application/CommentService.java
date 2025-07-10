@@ -86,7 +86,7 @@ public class CommentService {
 			likeComment(request, userId);
 			return;
 		}
-		unlikeComment(request);
+		unlikeComment(request, userId);
 	}
 
 	private void likeComment(CommentLikeToggleRequest request, Long userId) {
@@ -96,8 +96,8 @@ public class CommentService {
 		comment.like();
 	}
 
-	private void unlikeComment(CommentLikeToggleRequest request) {
-		commentLikeRepository.deleteByCommentId(request.commentId());
+	private void unlikeComment(CommentLikeToggleRequest request, Long userId) {
+		commentLikeRepository.deleteByCommentIdAndUserId(request.commentId(), userId);
 		Comment comment = findById(request.commentId());
 		comment.unlike();
 	}

@@ -39,9 +39,9 @@ public class FakeCommentLikeRepository implements CommentLikeRepository {
 	}
 
 	@Override
-	public void deleteByCommentId(Long commentId) {
+	public void deleteByCommentIdAndUserId(Long commentId, Long userId) {
 		db.values().forEach(commentLike -> {
-			if (commentLike.getCommentId().equals(commentId)) {
+			if (commentLike.getCommentId().equals(commentId) && commentLike.getUserId().equals(userId)) {
 				db.remove(commentLike.getId());
 			}
 		});
