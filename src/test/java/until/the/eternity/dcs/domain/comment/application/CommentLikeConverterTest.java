@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
