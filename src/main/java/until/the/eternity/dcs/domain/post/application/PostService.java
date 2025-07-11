@@ -71,7 +71,6 @@ public class PostService {
             throw new PostModifyForbiddenException();
         }
 
-        //todo 우선 runtimeException으로 처리 차후 customException 추가해야됨
         Post post = findById(id);
 
         List<PostTag> postTagList = convertStringToPostTag(post,postUpdateRequest.tags());
@@ -101,23 +100,6 @@ public class PostService {
         return postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
-
-
-	// todo CommentController의 findByPostId API 를 이용해 프론트에서 댓글만 따로 받아오는건 어떤지
-
-//    우선은 기존 글에서 comment 리스트를 받아와 각 요소를 CommentPageResponseItem로 변환 한 후 반환하는 로직 사용
-//    private List<CommentPageResponseItem> getCommentPageResponseItemList(List<Comment> commentList){
-//
-//        List<CommentPageResponseItem> commentPageResponseItemList = new ArrayList<>();
-//
-//        commentList.forEach(comment -> {
-//
-//            commentPageResponseItemList.add(CommentPageResponseItem.from(comment, ));
-//        });
-//
-//        return commentPageResponseItemList;
-//    }
-
 
     //todo Tag, PostTag service 구현 후 로직 수정 필요
     private List<PostTag> convertStringToPostTag(Post post, List<String> stringList){

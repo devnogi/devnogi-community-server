@@ -42,6 +42,9 @@ public record PostDetailResponse(
         @Schema(description = "차단 여부", example = "false")
         Boolean isBlocked,
 
+        @Schema(description = "좋아요 여부", example = "false")
+        Boolean isLiked,
+
         @Schema(description = "생성일시")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime createdAt,
