@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.postLike.dto.request;
+package until.the.eternity.dcs.domain.post.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

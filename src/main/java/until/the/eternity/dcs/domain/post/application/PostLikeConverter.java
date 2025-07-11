@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.postLike.application;
+package until.the.eternity.dcs.domain.post.application;
 
 
 import lombok.RequiredArgsConstructor;
@@ -6,15 +6,14 @@ import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.postLike.dto.request.PostLikeCreateRequest;
-import until.the.eternity.dcs.domain.postLike.dto.response.PostLikeResponse;
+import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.postLike.entity.PostLike;
 
 @Component
 @RequiredArgsConstructor
 public class PostLikeConverter {
 
-    private PostRepository postRepository;
+    private final PostRepository postRepository;
 
     public PostLike fromPostLikeCreateRequestToPostLike(PostLikeCreateRequest postLikeCreateRequest){
 
@@ -23,12 +22,6 @@ public class PostLikeConverter {
 
         return PostLike.builder()
                 .post(post)
-                .build();
-    }
-
-    public PostLikeResponse fromPostLikeToPostLikeResponse(PostLike postLike){
-        return PostLikeResponse.builder()
-                .id(postLike.getId())
                 .build();
     }
 

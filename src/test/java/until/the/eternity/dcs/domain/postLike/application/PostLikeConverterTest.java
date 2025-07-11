@@ -8,12 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import until.the.eternity.dcs.domain.post.application.PostLikeConverter;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import static org.mockito.BDDMockito.*;
 
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.postLike.dto.request.PostLikeCreateRequest;
-import until.the.eternity.dcs.domain.postLike.dto.response.PostLikeResponse;
+import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.postLike.entity.PostLike;
 
 import java.util.Optional;
@@ -57,22 +57,4 @@ public class PostLikeConverterTest {
 
     }
 
-    @Test
-    @DisplayName("postLikeToResponse 테스트")
-    void fromPostLikeToPostLikeResponse_Success(){
-
-        //given
-        PostLike postLike = PostLike.builder()
-                .id(1L)
-                .post(mockPost)
-                .build();
-
-        //when
-        PostLikeResponse result = postLikeConverter.fromPostLikeToPostLikeResponse(postLike);
-
-        //then
-        assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(postLike.getId());
-
-    }
 }
