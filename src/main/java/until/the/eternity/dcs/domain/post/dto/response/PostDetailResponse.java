@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
-import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
@@ -54,13 +53,10 @@ public record PostDetailResponse(
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime updatedAt,
 
-        @Schema(description = "댓글 목록")
-        List<CommentPageResponseItem> comments,
-
         @Schema(description = "태그 목록")
         List<PostTag> tags
 ) {
-    public static PostDetailResponse from(Post post, List<CommentPageResponseItem>comments){
+    public static PostDetailResponse from(Post post){
         return PostDetailResponse.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
@@ -74,7 +70,6 @@ public record PostDetailResponse(
                 .isBlocked(post.getIsBlocked())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
-                .comments(comments)
                 .tags(post.getPostTags())
                 .build();
     }

@@ -19,6 +19,7 @@ import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.common.response.CustomPageResponse;
 import until.the.eternity.dcs.domain.comment.application.CommentService;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
+import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
@@ -85,6 +86,19 @@ public class CommentController {
 		@ModelAttribute CustomPageRequest request
 	) {
 		return CustomPageResponse.from(commentService.findByPostId(postId, request));
+	}
+
+
+	@PostMapping("/like")
+	@Operation(summary = "댓글 좋아요 API", description = """
+			- Description : 이 API는 댓글에 좋아요 상태를 토글합니다.
+			- Assignee : 이신행
+		""")
+	@ApiResponse(responseCode = "201")
+	public ResponseEntity<Void> toggleCommentLike(
+		@RequestBody CommentLikeToggleRequest request) {
+		commentService.toggleLike(request);
+		return ResponseEntity.status(NO_CONTENT).build();
 	}
 
 }

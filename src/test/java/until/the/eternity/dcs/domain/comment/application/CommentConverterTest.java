@@ -71,7 +71,7 @@ class CommentConverterTest {
 			.build();
 
 		// when
-		CommentPageResponseItem response = commentConverter.fromCommentToPageResponse(comment);
+		CommentPageResponseItem response = commentConverter.fromCommentToPageResponse(comment, false);
 
 		// then
 		assertNotNull(response);

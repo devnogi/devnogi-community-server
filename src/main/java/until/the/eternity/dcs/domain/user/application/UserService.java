@@ -4,4 +4,6 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 public interface UserService {
 	UserSummary getCurrentUser();
+
+	Boolean isAuthenticated();
 }

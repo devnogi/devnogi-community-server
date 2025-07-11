@@ -15,4 +15,8 @@ public class FakeUserService implements UserService {
 			.grade(ADMIN)
 			.build();
 	}
+
+	public Boolean isAuthenticated() {
+		return true;
+	}
 }

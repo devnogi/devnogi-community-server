@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
+import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
@@ -15,6 +16,7 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.fake.FakeUserService;
+import until.the.eternity.dcs.infrastructure.FakeCommentLikeRepository;
 import until.the.eternity.dcs.infrastructure.FakeCommentRepository;
 
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class CommentServiceTest {
 	static CommentService commentService;
 	static FakeCommentRepository commentRepository;
+	static FakeCommentLikeRepository commentLikeRepository;
 	static Long id = 1L;
 	static String content = "content";
 
@@ -35,12 +38,16 @@ class CommentServiceTest {
 		commentRepository = new FakeCommentRepository();
 		CommentConverter commentConverter = new CommentConverter(commentRepository);
 		UserService userService = new FakeUserService();
-		commentService = new CommentService(commentRepository, commentConverter, userService);
+		commentLikeRepository = new FakeCommentLikeRepository();
+		CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
+		commentService = new CommentService(commentRepository, commentConverter, userService,
+			commentLikeRepository, commentLikeConverter);
 	}
 
 	@BeforeEach
 	void init() {
 		commentRepository.clearDbForTest();
+		commentLikeRepository.clearDbForTest();
 
 		Post post = Post.builder().id(id).build();
 		Comment comment = Comment
@@ -111,7 +118,7 @@ class CommentServiceTest {
 
 	@Test
 	@DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다.")
-	void findByPostId() {
+	void findByPostId_Success() {
 		// given
 		CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
@@ -125,5 +132,34 @@ class CommentServiceTest {
 		assertEquals(1, response.getNumberOfElements());
 		assertEquals(1, response.getContent().size());
 		assertEquals(content, response.getContent().get(0).content());
+	}
+
+	@Test
+	@DisplayName("toggleLike 는 좋아요를 누르지 않았을 때 Comment 에 좋아요를 누른다. ")
+	void toggleLike_Like() {
+		// given
+		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
+
+		// when
+		commentService.toggleLike(request);
+
+		// then
+		Comment comment = commentRepository.findById(id).get();
+		assertEquals(1, comment.getLikeCount());
+	}
+
+	@Test
+	@DisplayName("toggleLike 는 좋아요가 이미 눌려있을 때 Comment 에 좋아요를 취소한다. ")
+	void toggleLike_Unlike() {
+		// given
+		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
+
+		// when
+		commentService.toggleLike(request);
+		commentService.toggleLike(request);
+
+		// then
+		Comment comment = commentRepository.findById(id).get();
+		assertEquals(0, comment.getLikeCount());
 	}
 }

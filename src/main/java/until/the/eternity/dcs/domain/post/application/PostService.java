@@ -6,8 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
-import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
-import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
@@ -51,9 +49,7 @@ public class PostService {
     public PostDetailResponse findPost(Long id) {
         Post post = findById(id);
 
-        List<CommentPageResponseItem> commentPageResponseItemList = getCommentPageResponseItemList(post.getComments());
-
-        return postConverter.fromPostToPostDetailResponse(post, commentPageResponseItemList);
+        return postConverter.fromPostToPostDetailResponse(post);
     }
 
 
@@ -106,18 +102,23 @@ public class PostService {
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    //todo 더 좋은 방법이 있을지
-    //우선은 기존 글에서 comment 리스트를 받아와 각 요소를 CommentPageResponseItem로 변환 한 후 반환하는 로직 사용
-    private List<CommentPageResponseItem> getCommentPageResponseItemList(List<Comment> commentList){
 
-        List<CommentPageResponseItem> commentPageResponseItemList = new ArrayList<>();
+	// todo CommentController의 findByPostId API 를 이용해 프론트에서 댓글만 따로 받아오는건 어떤지
 
-        commentList.forEach(comment -> commentPageResponseItemList.add(CommentPageResponseItem.from(comment)));
+//    우선은 기존 글에서 comment 리스트를 받아와 각 요소를 CommentPageResponseItem로 변환 한 후 반환하는 로직 사용
+//    private List<CommentPageResponseItem> getCommentPageResponseItemList(List<Comment> commentList){
+//
+//        List<CommentPageResponseItem> commentPageResponseItemList = new ArrayList<>();
+//
+//        commentList.forEach(comment -> {
+//
+//            commentPageResponseItemList.add(CommentPageResponseItem.from(comment, ));
+//        });
+//
+//        return commentPageResponseItemList;
+//    }
 
-        return commentPageResponseItemList;
-    }
 
-    
     //todo Tag, PostTag service 구현 후 로직 수정 필요
     private List<PostTag> convertStringToPostTag(Post post, List<String> stringList){
         List<PostTag> postTagList = new ArrayList<>();
