@@ -42,7 +42,11 @@ public class CommentConverter {
 		return CommentPersistResponse.from(comment);
 	}
 
-	public CommentPageResponseItem fromCommentToPageResponse(Comment comment) {
-		return CommentPageResponseItem.from(comment);
+	public CommentPageResponseItem fromCommentToPageResponse(Comment comment, Boolean isLiked) {
+		return CommentPageResponseItem.from(comment, isLiked);
+	}
+
+	public CommentPageResponseItem fromCommentToPageResponseNonAuth(Comment comment) {
+		return CommentPageResponseItem.from(comment, false);
 	}
 }

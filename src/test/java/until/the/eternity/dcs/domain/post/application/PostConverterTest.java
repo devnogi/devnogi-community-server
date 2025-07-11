@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
@@ -111,7 +110,6 @@ public class PostConverterTest {
         String content = "테스트 게시글 내용";
         Boolean isDraft = false;
         Board board = Board.builder().id(boardId).build();
-        List<CommentPageResponseItem> comments = new ArrayList<>(); //우선 빈 리스트 사용, 이거 때문에 테스트가 이상함
         List<PostTag> postTags = new ArrayList<>(); //우선 빈 리스트 사용
 
         Post post = Post.builder()
@@ -131,7 +129,7 @@ public class PostConverterTest {
 
 
         // when
-        PostDetailResponse result = postConverter.fromPostToPostDetailResponse(post, comments);
+        PostDetailResponse result = postConverter.fromPostToPostDetailResponse(post);
 
         // then
         assertThat(result).isNotNull();
@@ -147,8 +145,6 @@ public class PostConverterTest {
         assertThat(result.isBlocked()).isEqualTo(post.getIsBlocked());
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
         assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
-        assertThat(result.comments()).hasSize(0);
-        assertThat(result.comments()).containsExactlyElementsOf(comments);
         assertThat(result.tags()).hasSize(0);
         assertThat(result.tags()).containsExactlyElementsOf(post.getPostTags());
     }
