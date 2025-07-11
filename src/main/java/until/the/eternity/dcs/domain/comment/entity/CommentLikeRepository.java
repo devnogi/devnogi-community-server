@@ -1,15 +1,31 @@
 package until.the.eternity.dcs.domain.comment.entity;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import until.the.eternity.dcs.domain.comment.infrastructure.JpaCommentLikeRepository;
+
 import java.util.List;
 import java.util.Set;
 
-public interface CommentLikeRepository {
+@Repository
+@RequiredArgsConstructor
+public class CommentLikeRepository {
+	private final JpaCommentLikeRepository jpaCommentLikeRepository;
 
-	CommentLike save(CommentLike commentLike);
+	public CommentLike findByCommentIdAndUserId(Long commentId, Long userId) {
+		return jpaCommentLikeRepository.findByCommentIdAndUserId(commentId, userId)
+			.orElse(null);
+	}
 
-	CommentLike findByCommentIdAndUserId(Long commentId, Long userId);
+	public CommentLike save(CommentLike commentLike) {
+		return jpaCommentLikeRepository.save(commentLike);
+	}
 
-	void deleteByCommentIdAndUserId(Long commentId, Long userId);
+	public void deleteByCommentIdAndUserId(Long commentId, Long userId) {
+		jpaCommentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
+	}
 
-	Set<Long> findIdsByUserIdAndCommentIdIn(Long userId, List<Long> commentIds);
+	public Set<Long> findIdsByUserIdAndCommentIdIn(Long userId, List<Long> commentIds) {
+		return jpaCommentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
+	}
 }

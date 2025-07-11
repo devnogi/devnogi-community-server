@@ -28,20 +28,20 @@ import static org.mockito.Mockito.when;
 
 class BoardServiceTest {
 	@Mock
-	static BoardRepository boardRepository = mock(BoardRepository.class);
-	static BoardConverter boardConverter = new BoardConverter();
-	static UserService userService = new FakeUserService();
+	BoardRepository boardRepository = mock(BoardRepository.class);
+	BoardConverter boardConverter = new BoardConverter();
+	UserService userService = new FakeUserService();
 
 	@InjectMocks
 	BoardService boardService = new BoardService(boardRepository, boardConverter, userService);
 
-	static Board board1;
-	static Board board2;
-	static Long boardId = 1L;
-	static String name = "board name";
-	static String description = "board description";
-	static String topCategory = "top category";
-	static String subCategory = "sub category";
+	Board board1;
+	Board board2;
+	Long boardId = 1L;
+	String name = "board name";
+	String description = "board description";
+	String topCategory = "top category";
+	String subCategory = "sub category";
 
 	@BeforeEach
 	void init() {

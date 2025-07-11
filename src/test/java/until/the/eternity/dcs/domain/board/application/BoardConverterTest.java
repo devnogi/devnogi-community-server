@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.board.application;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.board.dto.request.BoardCreateRequest;
@@ -15,16 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class BoardConverterTest {
-	static BoardConverter boardConverter;
-	static String name = "board name";
-	static String description = "board description";
-	static String topCategory = "top category";
-	static String subCategory = "sub category";
-
-	@BeforeAll
-	static void setUp() {
-		boardConverter = new BoardConverter();
-	}
+	BoardConverter boardConverter = new BoardConverter();
+	String name = "board name";
+	String description = "board description";
+	String topCategory = "top category";
+	String subCategory = "sub category";
 
 	@Test
 	@DisplayName("BoardCreateRequest 에서 Board 로 변경할 수 있다.")

@@ -10,12 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CommentLikeConverterTest {
-	static CommentLikeConverter commentLikeConverter;
-
-	@BeforeAll
-	static void setUp() {
-		commentLikeConverter = new CommentLikeConverter();
-	}
+	CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
 
 	@Test
 	@DisplayName("fromToggleRequest 는 CommentLikeToggleRequest 를 CommentLike 로 변환한다.")
@@ -32,5 +27,4 @@ class CommentLikeConverterTest {
 		assertEquals(id, commentLike.getCommentId());
 		assertEquals(id, commentLike.getUserId());
 	}
-
 }
