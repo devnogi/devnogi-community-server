@@ -27,12 +27,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class BoardServiceTest {
-	@Mock
 	BoardRepository boardRepository = mock(BoardRepository.class);
 	BoardConverter boardConverter = new BoardConverter();
 	UserService userService = new FakeUserService();
-
-	@InjectMocks
 	BoardService boardService = new BoardService(boardRepository, boardConverter, userService);
 
 	Board board1;

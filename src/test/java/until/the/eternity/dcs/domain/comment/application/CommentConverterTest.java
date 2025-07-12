@@ -3,8 +3,6 @@ package until.the.eternity.dcs.domain.comment.application;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
@@ -20,9 +18,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class CommentConverterTest {
-	@Mock
 	CommentRepository commentRepository = mock(CommentRepository.class);
-	@InjectMocks
 	CommentConverter commentConverter = new CommentConverter(commentRepository);
 
 	Comment comment;

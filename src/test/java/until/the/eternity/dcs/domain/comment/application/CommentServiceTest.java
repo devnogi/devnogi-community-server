@@ -3,8 +3,6 @@ package until.the.eternity.dcs.domain.comment.application;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -35,15 +33,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class CommentServiceTest {
-	@Mock
 	CommentRepository commentRepository = mock(CommentRepository.class);
-	@Mock
 	CommentLikeRepository commentLikeRepository = mock(CommentLikeRepository.class);
 	CommentConverter commentConverter = new CommentConverter(commentRepository);
 	UserService userService = new FakeUserService();
 	CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
 
-	@InjectMocks
 	CommentService commentService = new CommentService(commentRepository, commentConverter, userService,
 		commentLikeRepository, commentLikeConverter);
 
