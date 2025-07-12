@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.comment.infrastructure.JpaCommentLikeRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -12,9 +13,8 @@ import java.util.Set;
 public class CommentLikeRepository {
 	private final JpaCommentLikeRepository jpaCommentLikeRepository;
 
-	public CommentLike findByCommentIdAndUserId(Long commentId, Long userId) {
-		return jpaCommentLikeRepository.findByCommentIdAndUserId(commentId, userId)
-			.orElse(null);
+	public Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId) {
+		return jpaCommentLikeRepository.findByCommentIdAndUserId(commentId, userId);
 	}
 
 	public CommentLike save(CommentLike commentLike) {

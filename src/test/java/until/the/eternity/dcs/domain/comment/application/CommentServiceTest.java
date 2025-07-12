@@ -146,7 +146,7 @@ class CommentServiceTest {
 		CommentLike commentLike = CommentLike.builder()
 			.id(id).commentId(id).userId(id).build();
 		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
-		when(commentLikeRepository.findByCommentIdAndUserId(anyLong(), anyLong())).thenReturn(commentLike);
+		when(commentLikeRepository.findByCommentIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(commentLike));
 		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
 		// when

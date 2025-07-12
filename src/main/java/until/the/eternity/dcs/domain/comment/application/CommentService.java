@@ -21,6 +21,7 @@ import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -80,9 +81,7 @@ public class CommentService {
 	public void toggleLike(CommentLikeToggleRequest request) {
 		Long userId = getCurrentUser().getId();
 
-		CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId);
-
-		if (commentLike == null) {
+		if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
 			likeComment(request, userId);
 			return;
 		}
