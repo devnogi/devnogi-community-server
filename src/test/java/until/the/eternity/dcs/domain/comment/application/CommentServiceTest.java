@@ -18,7 +18,7 @@ import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.fake.FakeUserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,12 +31,13 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 class CommentServiceTest {
 	CommentRepository commentRepository = mock(CommentRepository.class);
 	CommentLikeRepository commentLikeRepository = mock(CommentLikeRepository.class);
 	CommentConverter commentConverter = new CommentConverter(commentRepository);
-	UserService userService = new FakeUserService();
+	UserService userService = mock(UserService.class);
 	CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
 
 	CommentService commentService = new CommentService(commentRepository, commentConverter, userService,
@@ -45,6 +46,7 @@ class CommentServiceTest {
 	Comment comment;
 	Long id = 1L;
 	String content = "content";
+	UserSummary user;
 
 	@BeforeEach
 	void init() {
@@ -57,6 +59,11 @@ class CommentServiceTest {
 			.childComments(new ArrayList<>())
 			.content(content)
 			.build();
+
+		user = UserSummary.builder()
+			.id(1L)
+			.grade(ADMIN)
+			.build();
 	}
 
 	@Test
@@ -64,6 +71,7 @@ class CommentServiceTest {
 	void create_Success() {
 		// given
 		when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+		when(userService.getCurrentUser()).thenReturn(user);
 		CommentCreateRequest request = new CommentCreateRequest(null, content);
 
 		// when
@@ -78,6 +86,7 @@ class CommentServiceTest {
 	void update_Success() {
 		// given
 		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
+		when(userService.getCurrentUser()).thenReturn(user);
 		String newContent = "new content";
 		CommentUpdateRequest request = new CommentUpdateRequest(newContent);
 
@@ -94,6 +103,9 @@ class CommentServiceTest {
 	@Test
 	@DisplayName("delete 는 comment 를 삭제 처리한다.")
 	void delete_Success() {
+		// given
+		when(userService.getCurrentUser()).thenReturn(user);
+
 		// when
 		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
 		commentService.delete(id);
@@ -128,6 +140,8 @@ class CommentServiceTest {
 	void toggleLike_Like() {
 		// given
 		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
+		when(userService.getCurrentUser()).thenReturn(user);
+		when(userService.isAuthenticated()).thenReturn(true);
 		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
 		// when
@@ -147,6 +161,8 @@ class CommentServiceTest {
 			.id(id).commentId(id).userId(id).build();
 		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
 		when(commentLikeRepository.findByCommentIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(commentLike));
+		when(userService.getCurrentUser()).thenReturn(user);
+		when(userService.isAuthenticated()).thenReturn(true);
 		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
 		// when

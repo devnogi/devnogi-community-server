@@ -10,7 +10,7 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.fake.FakeUserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,11 +23,12 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 class BoardServiceTest {
 	BoardRepository boardRepository = mock(BoardRepository.class);
 	BoardConverter boardConverter = new BoardConverter();
-	UserService userService = new FakeUserService();
+	UserService userService = mock(UserService.class);
 	BoardService boardService = new BoardService(boardRepository, boardConverter, userService);
 
 	Board board1;
@@ -37,6 +38,7 @@ class BoardServiceTest {
 	String description = "board description";
 	String topCategory = "top category";
 	String subCategory = "sub category";
+	UserSummary user;
 
 	@BeforeEach
 	void init() {
@@ -61,6 +63,11 @@ class BoardServiceTest {
 			.build();
 		board2.setCreatedAt(LocalDateTime.now());
 		board2.setUpdatedAt(LocalDateTime.now());
+
+		user = UserSummary.builder()
+			.id(1L)
+			.grade(ADMIN)
+			.build();
 	}
 
 	@Test
@@ -69,6 +76,7 @@ class BoardServiceTest {
 		// given
 		when(boardRepository.save(any(Board.class))).thenReturn(board1);
 		when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+		when(userService.getCurrentUser()).thenReturn(user);
 		BoardCreateRequest request = new BoardCreateRequest(name, description, topCategory, subCategory);
 
 		// when
@@ -113,6 +121,7 @@ class BoardServiceTest {
 	void updateBoard_Success() {
 		// given
 		when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+		when(userService.getCurrentUser()).thenReturn(user);
 		String newName = "new name";
 		String newDescription = "new description";
 		String newTopCategory = "new top category";
@@ -139,6 +148,7 @@ class BoardServiceTest {
 	void deleteBoard_throws_BoardNotFoundException() {
 		// given
 		when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+		when(userService.getCurrentUser()).thenReturn(user);
 
 		// when
 		boardService.deleteBoard(boardId);

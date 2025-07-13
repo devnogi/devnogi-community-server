@@ -21,7 +21,6 @@ import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
