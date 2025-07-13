@@ -80,9 +80,7 @@ public class CommentService {
 	public void toggleLike(CommentLikeToggleRequest request) {
 		Long userId = getCurrentUser().getId();
 
-		CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId);
-
-		if (commentLike == null) {
+		if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
 			likeComment(request, userId);
 			return;
 		}

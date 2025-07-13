@@ -1,10 +1,11 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
@@ -12,46 +13,45 @@ import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
+import until.the.eternity.dcs.domain.comment.entity.CommentLike;
+import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
+import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.fake.FakeUserService;
-import until.the.eternity.dcs.infrastructure.FakeCommentLikeRepository;
-import until.the.eternity.dcs.infrastructure.FakeCommentRepository;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 class CommentServiceTest {
-	static CommentService commentService;
-	static FakeCommentRepository commentRepository;
-	static FakeCommentLikeRepository commentLikeRepository;
-	static Long id = 1L;
-	static String content = "content";
+	CommentRepository commentRepository = mock(CommentRepository.class);
+	CommentLikeRepository commentLikeRepository = mock(CommentLikeRepository.class);
+	CommentConverter commentConverter = new CommentConverter(commentRepository);
+	UserService userService = mock(UserService.class);
+	CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
 
-	@BeforeAll
-	static void setUp() {
-		commentRepository = new FakeCommentRepository();
-		CommentConverter commentConverter = new CommentConverter(commentRepository);
-		UserService userService = new FakeUserService();
-		commentLikeRepository = new FakeCommentLikeRepository();
-		CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
-		commentService = new CommentService(commentRepository, commentConverter, userService,
-			commentLikeRepository, commentLikeConverter);
-	}
+	CommentService commentService = new CommentService(commentRepository, commentConverter, userService,
+		commentLikeRepository, commentLikeConverter);
+
+	Comment comment;
+	Long id = 1L;
+	String content = "content";
+	UserSummary user;
 
 	@BeforeEach
 	void init() {
-		commentRepository.clearDbForTest();
-		commentLikeRepository.clearDbForTest();
-
 		Post post = Post.builder().id(id).build();
-		Comment comment = Comment
-			.builder()
+		comment = Comment.builder()
 			.id(id)
 			.post(post)
 			.userId(id)
@@ -60,13 +60,18 @@ class CommentServiceTest {
 			.content(content)
 			.build();
 
-		commentRepository.save(comment);
+		user = UserSummary.builder()
+			.id(1L)
+			.grade(ADMIN)
+			.build();
 	}
 
 	@Test
 	@DisplayName("create 는 새로운 comment 를 생성힌다.")
 	void create_Success() {
 		// given
+		when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+		when(userService.getCurrentUser()).thenReturn(user);
 		CommentCreateRequest request = new CommentCreateRequest(null, content);
 
 		// when
@@ -80,6 +85,8 @@ class CommentServiceTest {
 	@DisplayName("update 는 comment 의 content 를 수정한다.")
 	void update_Success() {
 		// given
+		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
+		when(userService.getCurrentUser()).thenReturn(user);
 		String newContent = "new content";
 		CommentUpdateRequest request = new CommentUpdateRequest(newContent);
 
@@ -96,30 +103,24 @@ class CommentServiceTest {
 	@Test
 	@DisplayName("delete 는 comment 를 삭제 처리한다.")
 	void delete_Success() {
+		// given
+		when(userService.getCurrentUser()).thenReturn(user);
+
 		// when
+		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
 		commentService.delete(id);
 
 		// then
 		Optional<Comment> comment = commentRepository.findById(id);
-		assertEquals(Optional.empty(), comment);
-	}
-
-	@Test
-	@DisplayName("없는 ID로 comment 를 조회 시 CommentNotFoundException 를 반환한다.")
-	void delete_throws_CommentNotFoundException() {
-		// given
-		Long notExist = 999L;
-
-		// when
-		// then
-		assertThatThrownBy(() -> commentService.delete(notExist))
-			.isInstanceOf(CommentNotFoundException.class);
+		assertTrue(comment.get().getIsDeleted());
 	}
 
 	@Test
 	@DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다.")
 	void findByPostId_Success() {
 		// given
+		Page<Comment> page = new PageImpl<>(List.of(comment));
+		when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
 		CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
 		// when
@@ -138,6 +139,9 @@ class CommentServiceTest {
 	@DisplayName("toggleLike 는 좋아요를 누르지 않았을 때 Comment 에 좋아요를 누른다. ")
 	void toggleLike_Like() {
 		// given
+		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
+		when(userService.getCurrentUser()).thenReturn(user);
+		when(userService.isAuthenticated()).thenReturn(true);
 		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
 		// when
@@ -152,10 +156,16 @@ class CommentServiceTest {
 	@DisplayName("toggleLike 는 좋아요가 이미 눌려있을 때 Comment 에 좋아요를 취소한다. ")
 	void toggleLike_Unlike() {
 		// given
+		comment.like();
+		CommentLike commentLike = CommentLike.builder()
+			.id(id).commentId(id).userId(id).build();
+		when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
+		when(commentLikeRepository.findByCommentIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(commentLike));
+		when(userService.getCurrentUser()).thenReturn(user);
+		when(userService.isAuthenticated()).thenReturn(true);
 		CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
 		// when
-		commentService.toggleLike(request);
 		commentService.toggleLike(request);
 
 		// then

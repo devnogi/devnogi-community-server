@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
@@ -10,12 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CommentLikeConverterTest {
-	static CommentLikeConverter commentLikeConverter;
-
-	@BeforeAll
-	static void setUp() {
-		commentLikeConverter = new CommentLikeConverter();
-	}
+	CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
 
 	@Test
 	@DisplayName("fromToggleRequest 는 CommentLikeToggleRequest 를 CommentLike 로 변환한다.")
@@ -32,5 +26,4 @@ class CommentLikeConverterTest {
 		assertEquals(id, commentLike.getCommentId());
 		assertEquals(id, commentLike.getUserId());
 	}
-
 }

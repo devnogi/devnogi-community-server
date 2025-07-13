@@ -1,6 +1,6 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
@@ -8,27 +8,36 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseIte
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
-import until.the.eternity.dcs.infrastructure.FakeCommentRepository;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CommentConverterTest {
-	static CommentConverter commentConverter;
-	static Long id = 1L;
-	static String content = "content";
+	CommentRepository commentRepository = mock(CommentRepository.class);
+	CommentConverter commentConverter = new CommentConverter(commentRepository);
 
-	@BeforeAll
-	static void setUp() {
-		CommentRepository commentRepository = new FakeCommentRepository();
-		commentConverter = new CommentConverter(commentRepository);
+	Comment comment;
+	Long id = 1L;
+	String content = "content";
+
+	@BeforeEach
+	void init() {
+		comment = Comment.builder()
+			.id(id)
+			.content(content)
+			.build();
 	}
 
 	@Test
 	@DisplayName("CommentCreateRequest 에서 Comment 로 변환할 수 있다.")
 	void fromCreateRequestToComment() {
 		// given
+		when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
 		CommentCreateRequest request = new CommentCreateRequest(null, content);
 
 		// when
@@ -81,6 +90,4 @@ class CommentConverterTest {
 		assertEquals(content, response.content());
 		assertEquals(0, response.likeCount());
 	}
-
-
 }

@@ -1,7 +1,5 @@
 package until.the.eternity.dcs.domain.board.application;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,47 +8,75 @@ import until.the.eternity.dcs.domain.board.dto.request.BoardUpdateRequest;
 import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
+import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.fake.FakeUserService;
-import until.the.eternity.dcs.infrastructure.FakeBoardRepository;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 class BoardServiceTest {
-	static BoardService boardService;
-	static FakeBoardRepository boardRepository;
-	static String name = "board name";
-	static String description = "board description";
-	static String topCategory = "top category";
-	static String subCategory = "sub category";
+	BoardRepository boardRepository = mock(BoardRepository.class);
+	BoardConverter boardConverter = new BoardConverter();
+	UserService userService = mock(UserService.class);
+	BoardService boardService = new BoardService(boardRepository, boardConverter, userService);
 
-	@BeforeAll
-	static void setUp() {
-		boardRepository = new FakeBoardRepository();
-		BoardConverter boardConverter = new BoardConverter();
-		UserService userService = new FakeUserService();
-		boardService = new BoardService(boardRepository, boardConverter, userService);
-	}
+	Board board1;
+	Board board2;
+	Long boardId = 1L;
+	String name = "board name";
+	String description = "board description";
+	String topCategory = "top category";
+	String subCategory = "sub category";
+	UserSummary user;
 
 	@BeforeEach
 	void init() {
-		boardRepository.clearDbForTest();
-
-		Board board = Board.builder()
+		board1 = Board.builder()
+			.id(boardId)
 			.name(name)
 			.description(description)
 			.topCategory(topCategory)
 			.subCategory(subCategory)
+			.createdBy(1L)
 			.build();
-		boardRepository.save(board);
+		board1.setCreatedAt(LocalDateTime.now());
+		board1.setUpdatedAt(LocalDateTime.now());
+
+		board2 = Board.builder()
+			.id(boardId + 1)
+			.name(name + "2")
+			.description(description + "2")
+			.topCategory(topCategory + "2")
+			.subCategory(subCategory + "2")
+			.createdBy(1L)
+			.build();
+		board2.setCreatedAt(LocalDateTime.now());
+		board2.setUpdatedAt(LocalDateTime.now());
+
+		user = UserSummary.builder()
+			.id(1L)
+			.grade(ADMIN)
+			.build();
 	}
 
 	@Test
 	@DisplayName("createBoard 는 새로운 Board를 저장한다.")
 	void createBoard_Success() {
 		// given
+		when(boardRepository.save(any(Board.class))).thenReturn(board1);
+		when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+		when(userService.getCurrentUser()).thenReturn(user);
 		BoardCreateRequest request = new BoardCreateRequest(name, description, topCategory, subCategory);
 
 		// when
@@ -58,7 +84,7 @@ class BoardServiceTest {
 
 		// then
 		assertNotNull(response);
-		assertEquals(2L, response.id());
+		assertEquals(boardId, response.id());
 
 		Board board = boardRepository.findById(response.id()).get();
 		assertNotNull(board);
@@ -74,12 +100,15 @@ class BoardServiceTest {
 	@Test
 	@DisplayName("getAllBoards 는 DB 에 저장된 모든 데이터를 BoardListResponse 로 조회한다.")
 	void getAllBoards_Success() {
+		// given
+		when(boardRepository.findAll()).thenReturn(List.of(board1, board2));
+
 		// when
 		BoardListResponse response = boardService.getAllBoards();
 
 		// then
 		assertNotNull(response);
-		assertEquals(1, response.count());
+		assertEquals(2, response.count());
 		assertEquals(1L, response.boards().get(0).id());
 		assertEquals(name, response.boards().get(0).name());
 		assertEquals(description, response.boards().get(0).description());
@@ -91,12 +120,13 @@ class BoardServiceTest {
 	@DisplayName("updateBoard 는 Board 의 정보를 변경한다.")
 	void updateBoard_Success() {
 		// given
+		when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+		when(userService.getCurrentUser()).thenReturn(user);
 		String newName = "new name";
 		String newDescription = "new description";
 		String newTopCategory = "new top category";
 		String newSubCategory = "new sub category";
 		BoardUpdateRequest request = new BoardUpdateRequest(newName, newDescription, newTopCategory, newSubCategory);
-		Long boardId = 1L;
 
 		// when
 		BoardPersistResponse response = boardService.updateBoard(boardId, request);
@@ -114,16 +144,17 @@ class BoardServiceTest {
 	}
 
 	@Test
-	@DisplayName("deleteBoard 는 게시판을 삭제하고, 조회 시 BoardNotFoundException 을 발생시킵니다.")
+	@DisplayName("deleteBoard 는 게시판을 삭제한다.")
 	void deleteBoard_throws_BoardNotFoundException() {
 		// given
-		Long boardId = 1L;
+		when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+		when(userService.getCurrentUser()).thenReturn(user);
 
 		// when
 		boardService.deleteBoard(boardId);
 
 		// then
-		Assertions.assertThatThrownBy(() -> boardService.deleteBoard(boardId))
-			.isInstanceOf(BoardNotFoundException.class);
+		Board board = boardRepository.findById(boardId).get();
+		assertTrue(board.getIsDeleted());
 	}
 }
