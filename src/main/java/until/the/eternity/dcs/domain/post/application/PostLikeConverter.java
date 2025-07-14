@@ -7,7 +7,7 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
-import until.the.eternity.dcs.domain.postLike.entity.PostLike;
+import until.the.eternity.dcs.domain.post.entity.PostLike;
 
 @Component
 @RequiredArgsConstructor

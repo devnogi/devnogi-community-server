@@ -1,10 +1,9 @@
-package until.the.eternity.dcs.domain.postLike.entity;
+package until.the.eternity.dcs.domain.post.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import until.the.eternity.dcs.domain.post.entity.Post;
 
 import java.time.LocalDateTime;
 
