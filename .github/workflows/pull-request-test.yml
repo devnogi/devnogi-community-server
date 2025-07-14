@@ -1,5 +1,6 @@
 name: pull-request-test.yml
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - develop
