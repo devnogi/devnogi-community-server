@@ -26,7 +26,6 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
