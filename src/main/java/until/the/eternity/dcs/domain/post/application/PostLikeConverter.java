@@ -1,26 +1,16 @@
 package until.the.eternity.dcs.domain.post.application;
 
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
-import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 
 @Component
-@RequiredArgsConstructor
 public class PostLikeConverter {
 
-    private final PostRepository postRepository;
-
-    public PostLike fromPostLikeCreateRequestToPostLike(PostLikeCreateRequest postLikeCreateRequest){
-
-        Post post = postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postLikeCreateRequest.postId())
-                .orElseThrow(()-> new PostNotFoundException(postLikeCreateRequest.postId()));
-
+    public PostLike toEntity(Long userId, Post post){
         return PostLike.builder()
+                .userId(userId)
                 .post(post)
                 .build();
     }

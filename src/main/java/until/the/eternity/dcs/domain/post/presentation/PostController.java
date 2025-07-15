@@ -85,12 +85,12 @@ public class PostController {
         return ResponseEntity.status(NO_CONTENT).build();
     }
 
-    @DeleteMapping("like")
+    @PostMapping("like")
     @Operation(summary = "게시글 좋아요 토글 API", description = """
 			- Description : 이 API는 게시글 토글 API 입니다.
 			- Assignee : 고범수
 		""")
-    @ApiResponse(responseCode = "200")
+    @ApiResponse(responseCode = "201")
     public ResponseEntity<Void> like(@RequestBody PostLikeCreateRequest postLikeCreateRequest) {
         postService.togglePostLike(postLikeCreateRequest);
         return ResponseEntity.status(NO_CONTENT).build();

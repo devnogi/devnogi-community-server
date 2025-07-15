@@ -56,11 +56,11 @@ class PostServiceTest {
     @Mock
     private PostLikeRepository postLikeRepository;
 
+    @Mock
+    private PostLikeConverter postLikeConverter;
+
     @InjectMocks
     private PostService postService;
-
-    @Mock
-    private PostLikeConverter postLikeConverter; //postRepository mocking을 위함
 
     private UserSummary mockUser;
     private Post mockPost;
@@ -69,7 +69,6 @@ class PostServiceTest {
     private PostUpdateRequest updateRequest;
     private PostSummaryResponse mockSummaryResponse;
     private PostDetailResponse mockDetailResponse;
-    private PostLike postLike;
 
     @BeforeEach
     void setUp() {
@@ -384,13 +383,10 @@ class PostServiceTest {
         public void likePost_Test(){
             //given
 
-            postLike =PostLike.builder()
-                    .post(mockPost)
-                    .userId(mockUser.getId())
-                    .build();
-
             PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(mockPost.getId());
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
+            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
+                    .willReturn(false);
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L)).willReturn(Optional.of(mockPost));
 
             //when
@@ -398,7 +394,7 @@ class PostServiceTest {
 
             //then
             assertThat(mockPost.getLikeCount()).isEqualTo(1);
-            verify(postLikeRepository).findByUserIdAndPostId(mockUser.getId(),mockPost.getId());
+            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(),mockPost.getId());
 
         }
 
@@ -407,15 +403,15 @@ class PostServiceTest {
         public void unlikePost_Test(){
             //given
 
-            postLike =PostLike.builder()
+            PostLike postLike =PostLike.builder()
                     .post(mockPost)
                     .userId(mockUser.getId())
                     .build();
 
             PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(mockPost.getId());
 
-            given(postLikeRepository.findByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
-                    .willReturn(Optional.of(postLike));
+            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
+                    .willReturn(true);
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L)).willReturn(Optional.of(mockPost));
 
@@ -425,7 +421,7 @@ class PostServiceTest {
             //then
             assertThat(mockPost.getLikeCount()).isEqualTo(-1);
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(1L);
-            verify(postLikeRepository).findByUserIdAndPostId(mockUser.getId(),mockPost.getId());
+            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(),mockPost.getId());
             verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(),mockPost.getId());
         }
 

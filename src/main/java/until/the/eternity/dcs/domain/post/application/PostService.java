@@ -97,19 +97,20 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
     public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest) {
         Long userId = getCurrentUser().getId();
         Long postId = postLikeCreateRequest.postId();
-        Post post = postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId).orElseThrow(()->new PostNotFoundException(postId));
+        Post post = findById(postId);
 
-        if(postLikeRepository.findByUserIdAndPostId(userId,postId).isEmpty()){
-            //todo: 결국 이 안에서 또 post 객체를 불러옴
-            PostLike newPostLike = postLikeConverter.fromPostLikeCreateRequestToPostLike(postLikeCreateRequest);
+        if(!postLikeRepository.existsByUserIdAndPostId(userId,postId)){
+            PostLike newPostLike = postLikeConverter.toEntity(userId,post);
+
             postLikeRepository.save(newPostLike);
             post.like();
             return;
         }
-        postLikeRepository.deleteByUserIdAndPostId(userId,post.getId());
+        postLikeRepository.deleteByUserIdAndPostId(userId,postId);
         post.unLike();
     }
 
