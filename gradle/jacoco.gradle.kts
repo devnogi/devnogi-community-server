@@ -28,7 +28,9 @@ tasks.named<JacocoReport>("jacocoTestReport").configure {
                     "**/repository/**",
                     "**/exception/**",
                     "**/aop/**",
-                    "**/config/**",
+                    "**/common/**",
+                    "**/demo/**",
+                    "**/enums/**",
                     "**/DCSApplication.class"
                 )
             }
