@@ -65,7 +65,9 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification").config
                     "**/repository/**",
                     "**/exception/**",
                     "**/aop/**",
-                    "**/config/**",
+                    "**/common/**",
+                    "**/demo/**",
+                    "**/enums/**",
                     "**/DCSApplication.class"
                 )
             }
