@@ -63,3 +63,17 @@ tasks.asciidoctor {
 	inputs.dir(project.extra["snippetsDir"]!!)
 	dependsOn(tasks.test)
 }
+
+apply(from = "./gradle/jacoco.gradle.kts")
+
+// Jacoco 리포트 태스크 설정
+tasks.named<JacocoReport>("jacocoTestReport") {
+	// test 태스크가 먼저 실행되도록 의존성 추가
+	dependsOn(tasks.test)
+
+	// 리포트 포맷 활성화
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+	}
+}
