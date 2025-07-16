@@ -53,3 +53,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: '**/build/jacoco/test/jacocoTestReport.xml'
+
+      - name: Lint Check With Spotless
+        run: ./gradlew spotlessCheck
