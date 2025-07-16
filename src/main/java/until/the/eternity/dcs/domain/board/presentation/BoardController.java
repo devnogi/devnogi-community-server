@@ -1,5 +1,8 @@
 package until.the.eternity.dcs.domain.board.presentation;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,62 +23,67 @@ import until.the.eternity.dcs.domain.board.dto.request.BoardUpdateRequest;
 import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/board")
 public class BoardController {
-	private final BoardService boardService;
+    private final BoardService boardService;
 
-	@PostMapping
-	@Operation(summary = "게시판 생성 API", description = """
+    @PostMapping
+    @Operation(
+            summary = "게시판 생성 API",
+            description = """
 			- Description : 이 API는 게시판을 생성합니다.
 			- Assignee : 이신행
 		""")
-	@ApiResponse(
-		responseCode = "201",
-		content = @Content(schema = @Schema(implementation = BoardPersistResponse.class)))
-	public ResponseEntity<BoardPersistResponse> createBoard(@RequestBody BoardCreateRequest request) {
-		return ResponseEntity.status(CREATED).body(boardService.createBoard(request));
-	}
+    @ApiResponse(
+            responseCode = "201",
+            content = @Content(schema = @Schema(implementation = BoardPersistResponse.class)))
+    public ResponseEntity<BoardPersistResponse> createBoard(
+            @RequestBody BoardCreateRequest request) {
+        return ResponseEntity.status(CREATED).body(boardService.createBoard(request));
+    }
 
-	@GetMapping
-	@Operation(summary = "게시판 조회 API", description = """
+    @GetMapping
+    @Operation(
+            summary = "게시판 조회 API",
+            description =
+                    """
 			- Description : 이 API는 게시판을 topCategory-subCategory 순으로 정렬, 조회합니다.
 			- Assignee : 이신행
 		""")
-	@ApiResponse(
-		responseCode = "200",
-		content = @Content(schema = @Schema(implementation = BoardListResponse.class)))
-	public BoardListResponse getBoards() {
-		return boardService.getAllBoards();
-	}
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = BoardListResponse.class)))
+    public BoardListResponse getBoards() {
+        return boardService.getAllBoards();
+    }
 
-	@PatchMapping("/{id}")
-	@Operation(summary = "게시판 수정 API", description = """
+    @PatchMapping("/{id}")
+    @Operation(
+            summary = "게시판 수정 API",
+            description = """
 			- Description : 이 API는 게시판을 수정합니다.
 			- Assignee : 이신행
 		""")
-	@ApiResponse(
-		responseCode = "200",
-		content = @Content(schema = @Schema(implementation = BoardPersistResponse.class)))
-	public BoardPersistResponse updateBoard(
-		@PathVariable("id") Long id,
-		@RequestBody BoardUpdateRequest request
-	) {
-		return boardService.updateBoard(id, request);
-	}
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = BoardPersistResponse.class)))
+    public BoardPersistResponse updateBoard(
+            @PathVariable("id") Long id, @RequestBody BoardUpdateRequest request) {
+        return boardService.updateBoard(id, request);
+    }
 
-	@DeleteMapping("/{id}")
-	@Operation(summary = "게시판 삭제 API", description = """
+    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "게시판 삭제 API",
+            description = """
 			- Description : 이 API는 게시판을 삭제합니다.
 			- Assignee : 이신행
 		""")
-	@ApiResponse(responseCode = "204")
-	public ResponseEntity<Void> deleteBoard(@PathVariable("id") Long id) {
-		boardService.deleteBoard(id);
-		return ResponseEntity.status(NO_CONTENT).build();
-	}
+    @ApiResponse(responseCode = "204")
+    public ResponseEntity<Void> deleteBoard(@PathVariable("id") Long id) {
+        boardService.deleteBoard(id);
+        return ResponseEntity.status(NO_CONTENT).build();
+    }
 }

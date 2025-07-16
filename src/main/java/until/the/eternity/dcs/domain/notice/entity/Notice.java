@@ -1,12 +1,11 @@
 package until.the.eternity.dcs.domain.notice.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notice")

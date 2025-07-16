@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.domain.notice.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -29,7 +28,6 @@ public enum NoticeType {
     private static final Map<String, NoticeType> CODE_MAP =
             Arrays.stream(values())
                     .collect(Collectors.toMap(NoticeType::getCode, Function.identity()));
-
 
     public static Optional<NoticeType> fromCode(String code) {
         return Optional.ofNullable(CODE_MAP.get(code));

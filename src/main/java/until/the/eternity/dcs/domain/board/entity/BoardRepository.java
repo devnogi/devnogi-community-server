@@ -1,26 +1,25 @@
 package until.the.eternity.dcs.domain.board.entity;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.board.infrastructure.JpaBoardRepository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
 @RequiredArgsConstructor
 public class BoardRepository {
-	private final JpaBoardRepository jpaRepository;
+    private final JpaBoardRepository jpaRepository;
 
-	public Board save(Board board) {
-		return jpaRepository.save(board);
-	}
+    public Board save(Board board) {
+        return jpaRepository.save(board);
+    }
 
-	public List<Board> findAll() {
-		return jpaRepository.findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc();
-	}
+    public List<Board> findAll() {
+        return jpaRepository.findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc();
+    }
 
-	public Optional<Board> findById(Long id) {
-		return jpaRepository.findByIdAndIsDeletedIsFalse(id);
-	}
+    public Optional<Board> findById(Long id) {
+        return jpaRepository.findByIdAndIsDeletedIsFalse(id);
+    }
 }

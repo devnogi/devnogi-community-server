@@ -1,8 +1,17 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import org.junit.jupiter.api.Nested;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,37 +39,21 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostService 단위 테스트")
 class PostServiceTest {
 
-    @Mock
-    private PostRepository postRepository;
+    @Mock private PostRepository postRepository;
 
-    @Mock
-    private PostConverter postConverter;
+    @Mock private PostConverter postConverter;
 
-    @Mock
-    private UserService fakeUserService;
+    @Mock private UserService fakeUserService;
 
-    @Mock
-    private PostLikeRepository postLikeRepository;
+    @Mock private PostLikeRepository postLikeRepository;
 
-    @Mock
-    private PostLikeConverter postLikeConverter;
+    @Mock private PostLikeConverter postLikeConverter;
 
-    @InjectMocks
-    private PostService postService;
+    @InjectMocks private PostService postService;
 
     private UserSummary mockUser;
     private Post mockPost;
@@ -72,63 +65,60 @@ class PostServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockUser = UserSummary.builder()
-                .id(1L)
-                .nickname("testUser")
-                .build();
+        mockUser = UserSummary.builder().id(1L).nickname("testUser").build();
 
-        Board mockBoard = Board.builder()
-                .id(1L)
-                .build();
+        Board mockBoard = Board.builder().id(1L).build();
 
-        mockPost = Post.builder()
-                .id(1L)
-                .board(mockBoard)
-                .title("Test Title")
-                .content("Test Content")
-                .userId(1L)
-                .isDraft(false)
-                .isBlocked(false)
-                .comments(new ArrayList<>())
-                .postTags(new ArrayList<>())
-                .build();
+        mockPost =
+                Post.builder()
+                        .id(1L)
+                        .board(mockBoard)
+                        .title("Test Title")
+                        .content("Test Content")
+                        .userId(1L)
+                        .isDraft(false)
+                        .isBlocked(false)
+                        .comments(new ArrayList<>())
+                        .postTags(new ArrayList<>())
+                        .build();
 
         mockPost.setIsDeleted(false);
 
-        mockPost2= Post.builder()
-                .id(2L)
-                .board(mockBoard)
-                .title("Test Title2")
-                .content("Test Content2")
-                .userId(1L)
-                .isDraft(false)
-                .isBlocked(false)
-                .comments(new ArrayList<>())
-                .postTags(new ArrayList<>())
-                .build();
+        mockPost2 =
+                Post.builder()
+                        .id(2L)
+                        .board(mockBoard)
+                        .title("Test Title2")
+                        .content("Test Content2")
+                        .userId(1L)
+                        .isDraft(false)
+                        .isBlocked(false)
+                        .comments(new ArrayList<>())
+                        .postTags(new ArrayList<>())
+                        .build();
 
         mockPost2.setIsDeleted(false);
 
+        createRequest =
+                new PostCreateRequest(
+                        1L, "New Post", "New Content", false, Arrays.asList("tag1", "tag2"));
 
-        createRequest = new PostCreateRequest(1L,"New Post","New Content"
-                ,false, Arrays.asList("tag1", "tag2"));
+        updateRequest =
+                new PostUpdateRequest(
+                        1L,
+                        "Updated Title",
+                        "Updated Content",
+                        false,
+                        Arrays.asList("tag3", "tag4"));
 
-        updateRequest = new PostUpdateRequest(1L,"Updated Title","Updated Content"
-                ,false,Arrays.asList("tag3", "tag4"));
+        mockSummaryResponse = PostSummaryResponse.builder().id(1L).title("Test Title").build();
 
-
-        mockSummaryResponse = PostSummaryResponse.builder()
-                .id(1L)
-                .title("Test Title")
-                .build();
-
-        mockDetailResponse = PostDetailResponse.builder()
-                .id(1L)
-                .title("Test Title")
-                .content("Test Content")
-                .build();
-
-
+        mockDetailResponse =
+                PostDetailResponse.builder()
+                        .id(1L)
+                        .title("Test Title")
+                        .content("Test Content")
+                        .build();
     }
 
     @Nested
@@ -161,7 +151,8 @@ class PostServiceTest {
         @DisplayName("사용자 인증 실패 시 예외 발생")
         void createPost_UserAuthenticationFailed() {
             // Given
-            given(fakeUserService.getCurrentUser()).willThrow(new RuntimeException("User not found"));
+            given(fakeUserService.getCurrentUser())
+                    .willThrow(new RuntimeException("User not found"));
 
             // When & Then
             assertThatThrownBy(() -> postService.createPost(createRequest))
@@ -184,13 +175,14 @@ class PostServiceTest {
             Long postId = 1L;
             List<Comment> comments = new ArrayList<>();
 
-            Post postWithComments = Post.builder()
-                    .id(postId)
-                    .title("Test Title")
-                    .content("Test Content")
-                    .userId(1L)
-                    .comments(comments)
-                    .build();
+            Post postWithComments =
+                    Post.builder()
+                            .id(postId)
+                            .title("Test Title")
+                            .content("Test Content")
+                            .userId(1L)
+                            .comments(comments)
+                            .build();
 
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
                     .willReturn(Optional.of(postWithComments));
@@ -228,9 +220,8 @@ class PostServiceTest {
             CustomPageRequest pageRequest = mock(CustomPageRequest.class);
 
             Pageable pageable = PageRequest.of(1, 10);
-            List<Post> posts = Arrays.asList(mockPost,mockPost2);
+            List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
-
 
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
@@ -279,10 +270,7 @@ class PostServiceTest {
         void updatePost_ForbiddenUser() {
             // Given
             Long postId = 1L;
-            UserSummary anotherUser = UserSummary.builder()
-                    .id(2L)
-                    .nickname("anotherUser")
-                    .build();
+            UserSummary anotherUser = UserSummary.builder().id(2L).nickname("anotherUser").build();
 
             given(fakeUserService.getCurrentUser()).willReturn(anotherUser);
 
@@ -339,10 +327,7 @@ class PostServiceTest {
         void deletePost_NotAllowed() {
             // Given
             Long postId = 1L;
-            UserSummary anotherUser = UserSummary.builder()
-                    .id(2L)
-                    .nickname("anotherUser")
-                    .build();
+            UserSummary anotherUser = UserSummary.builder().id(2L).nickname("anotherUser").build();
 
             given(fakeUserService.getCurrentUser()).willReturn(anotherUser);
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
@@ -380,51 +365,49 @@ class PostServiceTest {
     class LikePostTest {
         @Test
         @DisplayName("게시글 좋아요")
-        public void likePost_Test(){
-            //given
+        public void likePost_Test() {
+            // given
 
-            PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(mockPost.getId());
+            PostLikeCreateRequest postLikeCreateRequest =
+                    new PostLikeCreateRequest(mockPost.getId());
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
+            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(false);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L)).willReturn(Optional.of(mockPost));
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
+                    .willReturn(Optional.of(mockPost));
 
-            //when
+            // when
             postService.togglePostLike(postLikeCreateRequest);
 
-            //then
+            // then
             assertThat(mockPost.getLikeCount()).isEqualTo(1);
-            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(),mockPost.getId());
-
+            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }
 
         @Test
         @DisplayName("게시글 좋아요 해제")
-        public void unlikePost_Test(){
-            //given
+        public void unlikePost_Test() {
+            // given
 
-            PostLike postLike =PostLike.builder()
-                    .post(mockPost)
-                    .userId(mockUser.getId())
-                    .build();
+            PostLike postLike = PostLike.builder().post(mockPost).userId(mockUser.getId()).build();
 
-            PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(mockPost.getId());
+            PostLikeCreateRequest postLikeCreateRequest =
+                    new PostLikeCreateRequest(mockPost.getId());
 
-            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
+            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L)).willReturn(Optional.of(mockPost));
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
+                    .willReturn(Optional.of(mockPost));
 
-            //when
+            // when
             postService.togglePostLike(postLikeCreateRequest);
 
-            //then
+            // then
             assertThat(mockPost.getLikeCount()).isEqualTo(-1);
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(1L);
-            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(),mockPost.getId());
-            verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(),mockPost.getId());
+            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
+            verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }
-
     }
 }
-

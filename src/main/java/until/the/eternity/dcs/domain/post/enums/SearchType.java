@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.domain.post.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -24,7 +23,6 @@ public enum SearchType {
     private static final Map<String, SearchType> CODE_MAP =
             Arrays.stream(values())
                     .collect(Collectors.toMap(SearchType::getCode, Function.identity()));
-
 
     public static Optional<SearchType> fromCode(String code) {
         return Optional.ofNullable(CODE_MAP.get(code));

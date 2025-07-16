@@ -1,14 +1,12 @@
 package until.the.eternity.dcs.domain.report.enums;
 
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -30,7 +28,6 @@ public enum ReportCategory {
     private static final Map<String, ReportCategory> CODE_MAP =
             Arrays.stream(values())
                     .collect(Collectors.toMap(ReportCategory::getCode, Function.identity()));
-
 
     public static Optional<ReportCategory> fromCode(String code) {
         return Optional.ofNullable(CODE_MAP.get(code));

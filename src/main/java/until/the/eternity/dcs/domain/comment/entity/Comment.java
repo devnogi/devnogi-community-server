@@ -1,11 +1,10 @@
 package until.the.eternity.dcs.domain.comment.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.post.entity.Post;
-
-import java.util.List;
 
 @Entity
 @Table(name = "comment")
@@ -30,7 +29,11 @@ public class Comment extends SoftDeleteEntity {
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "parentComment",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private List<Comment> childComments;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
@@ -49,11 +52,11 @@ public class Comment extends SoftDeleteEntity {
         this.setUpdatedBy(userId);
     }
 
-    public void like(){
+    public void like() {
         this.likeCount++;
     }
 
-    public void unlike(){
+    public void unlike() {
         this.likeCount--;
     }
 }

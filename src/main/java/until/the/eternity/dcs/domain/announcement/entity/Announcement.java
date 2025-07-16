@@ -2,8 +2,8 @@ package until.the.eternity.dcs.domain.announcement.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.common.entity.AuditableEntity;
+import until.the.eternity.dcs.domain.board.entity.Board;
 
 @Entity
 @Table(name = "announcement")
@@ -49,5 +49,4 @@ public class Announcement extends AuditableEntity {
     @Column(name = "is_global")
     @Builder.Default
     private Boolean isGlobal = false;
-
 }

@@ -1,5 +1,11 @@
 package until.the.eternity.dcs.domain.post.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,21 +18,11 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostConverter 테스트")
 public class PostConverterTest {
 
-    @InjectMocks
-    private PostConverter postConverter;
+    @InjectMocks private PostConverter postConverter;
 
     @Test
     @DisplayName("정상적인 PostCreateRequest로 Post 객체를 생성한다")
@@ -39,19 +35,13 @@ public class PostConverterTest {
         Boolean isDraft = false;
 
         Long userId = 100L;
-        List<String> stringTagList = Arrays.asList(
-                "test1",
-                "test2"
-        );
+        List<String> stringTagList = Arrays.asList("test1", "test2");
 
-        List<PostTag> postTagList = Arrays.asList(
-                PostTag.builder().id(1L).build(),
-                PostTag.builder().id(2L).build()
-        );
+        List<PostTag> postTagList =
+                Arrays.asList(PostTag.builder().id(1L).build(), PostTag.builder().id(2L).build());
 
-        PostCreateRequest request = new PostCreateRequest(boardId,title,content,isDraft,stringTagList);
-
-
+        PostCreateRequest request =
+                new PostCreateRequest(boardId, title, content, isDraft, stringTagList);
 
         // when
         Post result = postConverter.fromCreateRequestToPost(request, userId, postTagList);
@@ -67,7 +57,6 @@ public class PostConverterTest {
         assertThat(result.getPostTags()).containsExactlyElementsOf(postTagList);
     }
 
-
     @Test
     @DisplayName("정상적인 Post로 PostSummaryResponse를 생성한다")
     void should_CreatePostSummaryResponse_When_ValidPost() {
@@ -78,13 +67,14 @@ public class PostConverterTest {
         String content = "테스트 게시글 내용";
         Boolean isDraft = false;
 
-        Post post = Post.builder()
-                .id(1L)
-                .title(title)
-                .viewCount(1)
-                .likeCount(1)
-                .commentCount(1)
-                .build();
+        Post post =
+                Post.builder()
+                        .id(1L)
+                        .title(title)
+                        .viewCount(1)
+                        .likeCount(1)
+                        .commentCount(1)
+                        .build();
         post.setCreatedAt(LocalDateTime.now());
 
         // when
@@ -110,23 +100,23 @@ public class PostConverterTest {
         String content = "테스트 게시글 내용";
         Boolean isDraft = false;
         Board board = Board.builder().id(boardId).build();
-        List<PostTag> postTags = new ArrayList<>(); //우선 빈 리스트 사용
+        List<PostTag> postTags = new ArrayList<>(); // 우선 빈 리스트 사용
 
-        Post post = Post.builder()
-                .id(1L)
-                .board(board)
-                .title(title)
-                .content(content)
-                .viewCount(1)
-                .likeCount(1)
-                .commentCount(1)
-                .isDraft(isDraft)
-                .isBlocked(false)
-                .postTags(postTags)
-                .build();
+        Post post =
+                Post.builder()
+                        .id(1L)
+                        .board(board)
+                        .title(title)
+                        .content(content)
+                        .viewCount(1)
+                        .likeCount(1)
+                        .commentCount(1)
+                        .isDraft(isDraft)
+                        .isBlocked(false)
+                        .postTags(postTags)
+                        .build();
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
-
 
         // when
         PostDetailResponse result = postConverter.fromPostToPostDetailResponse(post);
@@ -148,5 +138,4 @@ public class PostConverterTest {
         assertThat(result.tags()).hasSize(0);
         assertThat(result.tags()).containsExactlyElementsOf(post.getPostTags());
     }
-
 }
