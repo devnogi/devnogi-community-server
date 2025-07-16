@@ -12,6 +12,7 @@ import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.common.response.CustomPageResponse;
 import until.the.eternity.dcs.domain.post.application.PostService;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
@@ -81,6 +82,17 @@ public class PostController {
     @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         postService.deletePost(id);
+        return ResponseEntity.status(NO_CONTENT).build();
+    }
+
+    @PostMapping("like")
+    @Operation(summary = "게시글 좋아요 토글 API", description = """
+			- Description : 이 API는 게시글 토글 API 입니다.
+			- Assignee : 고범수
+		""")
+    @ApiResponse(responseCode = "201")
+    public ResponseEntity<Void> like(@RequestBody PostLikeCreateRequest postLikeCreateRequest) {
+        postService.togglePostLike(postLikeCreateRequest);
         return ResponseEntity.status(NO_CONTENT).build();
     }
 

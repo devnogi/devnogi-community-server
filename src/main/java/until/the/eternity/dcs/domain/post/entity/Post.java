@@ -5,7 +5,6 @@ import lombok.*;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
-import until.the.eternity.dcs.domain.postLike.entity.PostLike;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
 import java.util.ArrayList;
@@ -78,5 +77,11 @@ public class Post extends SoftDeleteEntity {
         }
         this.postTags = (postTags !=null) ? postTags : new ArrayList<>();
         this.setUpdatedBy(userId);
+    }
+    public void like(){
+        this.likeCount++;
+    }
+    public void unLike(){
+        this.likeCount--;
     }
 }
