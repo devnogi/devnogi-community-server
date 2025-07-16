@@ -7,13 +7,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
@@ -31,6 +34,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostConverter postConverter;
     private final UserService fakeUserService;
+    private final PostLikeRepository postLikeRepository;
+    private final PostLikeConverter postLikeConverter;
 
     //todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     //todo postTag 관련 로직도 추후 필요
@@ -92,6 +97,25 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    @Transactional
+    public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest) {
+        Long userId = getCurrentUser().getId();
+        Long postId = postLikeCreateRequest.postId();
+        Post post = findById(postId);
+
+        if(!postLikeRepository.existsByUserIdAndPostId(userId,postId)){
+            PostLike newPostLike = postLikeConverter.toEntity(userId,post);
+
+            postLikeRepository.save(newPostLike);
+            post.like();
+            return;
+        }
+        postLikeRepository.deleteByUserIdAndPostId(userId,postId);
+        post.unLike();
+    }
+
+
+
     private UserSummary getCurrentUser() {
         return fakeUserService.getCurrentUser();
     }
@@ -113,4 +137,5 @@ public class PostService {
 
         return postTagList;
     }
+
 }

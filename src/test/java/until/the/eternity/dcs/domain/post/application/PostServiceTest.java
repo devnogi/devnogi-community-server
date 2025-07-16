@@ -16,13 +16,16 @@ import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
@@ -50,8 +53,15 @@ class PostServiceTest {
     @Mock
     private UserService fakeUserService;
 
+    @Mock
+    private PostLikeRepository postLikeRepository;
+
+    @Mock
+    private PostLikeConverter postLikeConverter;
+
     @InjectMocks
     private PostService postService;
+
     private UserSummary mockUser;
     private Post mockPost;
     private Post mockPost2;
@@ -117,6 +127,8 @@ class PostServiceTest {
                 .title("Test Title")
                 .content("Test Content")
                 .build();
+
+
     }
 
     @Nested
@@ -361,6 +373,58 @@ class PostServiceTest {
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
             verify(postRepository, never()).delete(any());
         }
+    }
+
+    @Nested
+    @DisplayName("게시글 좋아요 테스트")
+    class LikePostTest {
+        @Test
+        @DisplayName("게시글 좋아요")
+        public void likePost_Test(){
+            //given
+
+            PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(mockPost.getId());
+            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
+            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
+                    .willReturn(false);
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L)).willReturn(Optional.of(mockPost));
+
+            //when
+            postService.togglePostLike(postLikeCreateRequest);
+
+            //then
+            assertThat(mockPost.getLikeCount()).isEqualTo(1);
+            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(),mockPost.getId());
+
+        }
+
+        @Test
+        @DisplayName("게시글 좋아요 해제")
+        public void unlikePost_Test(){
+            //given
+
+            PostLike postLike =PostLike.builder()
+                    .post(mockPost)
+                    .userId(mockUser.getId())
+                    .build();
+
+            PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(mockPost.getId());
+
+            given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(),mockPost.getId()))
+                    .willReturn(true);
+            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L)).willReturn(Optional.of(mockPost));
+
+            //when
+            postService.togglePostLike(postLikeCreateRequest);
+
+            //then
+            assertThat(mockPost.getLikeCount()).isEqualTo(-1);
+            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(1L);
+            verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(),mockPost.getId());
+            verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(),mockPost.getId());
+        }
+
     }
 }
 
