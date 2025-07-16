@@ -3,6 +3,7 @@ plugins {
 	id("org.springframework.boot") version "3.5.0"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.asciidoctor.jvm.convert") version "3.3.2"
+	id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "until.the.eternity"
@@ -74,4 +75,29 @@ tasks.named<JacocoReport>("jacocoTestReport") {
 		xml.required.set(true)
 		html.required.set(true)
 	}
+}
+
+// Spotless
+spotless {
+	java {
+		googleJavaFormat().aosp()
+		removeUnusedImports()
+		importOrder()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+
+	format("misc") {
+		target("*.gradle.kts", ".gitignore")
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+}
+
+tasks.named("compileJava") {
+	dependsOn("spotlessApply")
+}
+
+tasks.named("build") {
+	dependsOn("spotlessApply")
 }
