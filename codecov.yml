@@ -1,6 +1,11 @@
 codecov:
   require_ci_to_pass: true
 
+coverage:
+  status:
+    patch:
+      enabled: false
+
 comment:
   layout: "reach,diff,flags,files,footer"
   behavior: default

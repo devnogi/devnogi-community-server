@@ -7,32 +7,26 @@ import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.post.entity.Post;
 
 class CommentTest {
-	static Comment comment;
-	static String content = "content";
-	@BeforeEach
-	void setUp() {
-		Post post = Post.builder().id(1L).build();
+    static Comment comment;
+    static String content = "content";
 
-		comment = Comment.builder()
-			.id(1L)
-			.userId(1L)
-			.post(post)
-			.content(content)
-			.build();
-	}
+    @BeforeEach
+    void setUp() {
+        Post post = Post.builder().id(1L).build();
 
+        comment = Comment.builder().id(1L).userId(1L).post(post).content(content).build();
+    }
 
-	@Test
-	@DisplayName("update 는 content 를 수정한다.")
-	void update_Success() {
-		// given
-		String newContent = "newContent";
+    @Test
+    @DisplayName("update 는 content 를 수정한다.")
+    void update_Success() {
+        // given
+        String newContent = "newContent";
 
-		// when
-		comment.update(newContent, 1L);
+        // when
+        comment.update(newContent, 1L);
 
-		// then
-		Assertions.assertEquals(newContent, comment.getContent());
-	}
-
+        // then
+        Assertions.assertEquals(newContent, comment.getContent());
+    }
 }

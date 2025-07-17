@@ -1,5 +1,7 @@
 package until.the.eternity.dcs.domain.comment.application;
 
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,98 +22,97 @@ import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
-import java.util.List;
-import java.util.Set;
-
 @Service
 @RequiredArgsConstructor
 public class CommentService {
-	private final CommentRepository commentRepository;
-	private final CommentConverter commentConverter;
-	private final UserService userService;
-	private final CommentLikeRepository commentLikeRepository;
-	private final CommentLikeConverter commentLikeConverter;
+    private final CommentRepository commentRepository;
+    private final CommentConverter commentConverter;
+    private final UserService userService;
+    private final CommentLikeRepository commentLikeRepository;
+    private final CommentLikeConverter commentLikeConverter;
 
-	public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
-		UserSummary user = getCurrentUser();
-		Comment comment = commentConverter.fromCreateRequestToComment(request, user.getId(), postId);
-		Comment save = commentRepository.save(comment);
-		return commentConverter.fromCommentToPersistResponse(save);
-	}
+    public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
+        UserSummary user = getCurrentUser();
+        Comment comment =
+                commentConverter.fromCreateRequestToComment(request, user.getId(), postId);
+        Comment save = commentRepository.save(comment);
+        return commentConverter.fromCommentToPersistResponse(save);
+    }
 
-	@Transactional
-	public CommentPersistResponse update(Long id, CommentUpdateRequest request) {
-		UserSummary user = getCurrentUser();
-		Comment comment = findById(id);
-		isCurrentUserEqualsWriter(user.getId(), comment);
+    @Transactional
+    public CommentPersistResponse update(Long id, CommentUpdateRequest request) {
+        UserSummary user = getCurrentUser();
+        Comment comment = findById(id);
+        isCurrentUserEqualsWriter(user.getId(), comment);
 
-		comment.update(request.content(), user.getId());
-		return commentConverter.fromCommentToPersistResponse(comment);
-	}
+        comment.update(request.content(), user.getId());
+        return commentConverter.fromCommentToPersistResponse(comment);
+    }
 
-	@Transactional
-	public void delete(Long id) {
-		UserSummary user = getCurrentUser();
-		Comment comment = findById(id);
-		isCurrentUserEqualsWriter(user.getId(), comment);
-		comment.delete(user.getId());
-	}
+    @Transactional
+    public void delete(Long id) {
+        UserSummary user = getCurrentUser();
+        Comment comment = findById(id);
+        isCurrentUserEqualsWriter(user.getId(), comment);
+        comment.delete(user.getId());
+    }
 
-	public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
-		Pageable pageable = request.toPageable();
+    public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
+        Pageable pageable = request.toPageable();
 
-		Page<Comment> comments = commentRepository.findByPost(postId, pageable);
+        Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
-		if (userService.isAuthenticated()) {
-			UserSummary user = getCurrentUser();
-			Long userId = user.getId();
-			List<Long> commentIds = comments.map(Comment::getId).toList();
-			Set<Long> likedCommentIds = commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
+        if (userService.isAuthenticated()) {
+            UserSummary user = getCurrentUser();
+            Long userId = user.getId();
+            List<Long> commentIds = comments.map(Comment::getId).toList();
+            Set<Long> likedCommentIds =
+                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
 
-			return comments.map(c ->
-				commentConverter.fromCommentToPageResponse(c, likedCommentIds.contains(c.getId()))
-			);
-		}
+            return comments.map(
+                    c ->
+                            commentConverter.fromCommentToPageResponse(
+                                    c, likedCommentIds.contains(c.getId())));
+        }
 
-		return comments.map(commentConverter::fromCommentToPageResponseNonAuth);
-	}
+        return comments.map(commentConverter::fromCommentToPageResponseNonAuth);
+    }
 
-	@Transactional
-	public void toggleLike(CommentLikeToggleRequest request) {
-		Long userId = getCurrentUser().getId();
+    @Transactional
+    public void toggleLike(CommentLikeToggleRequest request) {
+        Long userId = getCurrentUser().getId();
 
-		if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
-			likeComment(request, userId);
-			return;
-		}
-		unlikeComment(request, userId);
-	}
+        if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
+            likeComment(request, userId);
+            return;
+        }
+        unlikeComment(request, userId);
+    }
 
-	private void likeComment(CommentLikeToggleRequest request, Long userId) {
-		CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
-		commentLikeRepository.save(commentLike);
-		Comment comment = findById(request.commentId());
-		comment.like();
-	}
+    private void likeComment(CommentLikeToggleRequest request, Long userId) {
+        CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
+        commentLikeRepository.save(commentLike);
+        Comment comment = findById(request.commentId());
+        comment.like();
+    }
 
-	private void unlikeComment(CommentLikeToggleRequest request, Long userId) {
-		commentLikeRepository.deleteByCommentIdAndUserId(request.commentId(), userId);
-		Comment comment = findById(request.commentId());
-		comment.unlike();
-	}
+    private void unlikeComment(CommentLikeToggleRequest request, Long userId) {
+        commentLikeRepository.deleteByCommentIdAndUserId(request.commentId(), userId);
+        Comment comment = findById(request.commentId());
+        comment.unlike();
+    }
 
-	private UserSummary getCurrentUser() {
-		return userService.getCurrentUser();
-	}
+    private UserSummary getCurrentUser() {
+        return userService.getCurrentUser();
+    }
 
-	private void isCurrentUserEqualsWriter(Long currentUserId, Comment comment) {
-		if (!currentUserId.equals(comment.getUserId())) {
-			throw new CommentModifyForbiddenException();
-		}
-	}
+    private void isCurrentUserEqualsWriter(Long currentUserId, Comment comment) {
+        if (!currentUserId.equals(comment.getUserId())) {
+            throw new CommentModifyForbiddenException();
+        }
+    }
 
-	private Comment findById(Long id) {
-		return commentRepository.findById(id)
-			.orElseThrow(() -> new CommentNotFoundException(id));
-	}
+    private Comment findById(Long id) {
+        return commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(id));
+    }
 }

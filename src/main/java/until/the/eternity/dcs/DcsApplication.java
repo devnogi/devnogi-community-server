@@ -8,8 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing
 public class DcsApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(DcsApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(DcsApplication.class, args);
+    }
 }

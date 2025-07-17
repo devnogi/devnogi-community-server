@@ -1,15 +1,13 @@
 package until.the.eternity.dcs.domain.post.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.comment.entity.Comment;
-import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
-import until.the.eternity.dcs.domain.tag.entity.PostTag;
-
 import java.util.ArrayList;
 import java.util.List;
-
+import lombok.*;
+import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
+import until.the.eternity.dcs.domain.board.entity.Board;
+import until.the.eternity.dcs.domain.comment.entity.Comment;
+import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
 @Entity
 @Table(name = "post")
@@ -56,32 +54,47 @@ public class Post extends SoftDeleteEntity {
     @Builder.Default
     private Boolean isBlocked = false;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private List<PostLike> likes;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private List<PostTag> postTags;
 
-    public void update(String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId){
-        if(title != null){
+    public void update(
+            String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId) {
+        if (title != null) {
             this.title = title;
         }
-        if(content != null){
+        if (content != null) {
             this.content = content;
         }
-        if(isDraft != null){
+        if (isDraft != null) {
             this.isDraft = isDraft;
         }
-        this.postTags = (postTags !=null) ? postTags : new ArrayList<>();
+        this.postTags = (postTags != null) ? postTags : new ArrayList<>();
         this.setUpdatedBy(userId);
     }
-    public void like(){
+
+    public void like() {
         this.likeCount++;
     }
-    public void unLike(){
+
+    public void unLike() {
         this.likeCount--;
     }
 }

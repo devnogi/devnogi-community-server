@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.domain.post.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
@@ -23,7 +22,6 @@ public enum PostSortType {
     private static final Map<String, PostSortType> CODE_MAP =
             Arrays.stream(values())
                     .collect(Collectors.toMap(PostSortType::getCode, Function.identity()));
-
 
     public static Optional<PostSortType> fromCode(String code) {
         return Optional.ofNullable(CODE_MAP.get(code));

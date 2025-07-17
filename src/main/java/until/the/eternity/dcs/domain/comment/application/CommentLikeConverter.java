@@ -6,10 +6,7 @@ import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 
 @Component
 public class CommentLikeConverter {
-	public CommentLike fromToggleRequest(CommentLikeToggleRequest request, Long userId) {
-		return CommentLike.builder()
-			.userId(userId)
-			.commentId(request.commentId())
-			.build();
-	}
+    public CommentLike fromToggleRequest(CommentLikeToggleRequest request, Long userId) {
+        return CommentLike.builder().userId(userId).commentId(request.commentId()).build();
+    }
 }

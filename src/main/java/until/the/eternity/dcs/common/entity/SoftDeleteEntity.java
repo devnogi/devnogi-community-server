@@ -3,10 +3,9 @@ package until.the.eternity.dcs.common.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PreRemove;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @MappedSuperclass
 @Getter
@@ -20,12 +19,12 @@ public abstract class SoftDeleteEntity extends AuditableEntity {
     private LocalDateTime deletedAt;
 
     @PreRemove
-    protected void onDelete(){
+    protected void onDelete() {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
 
-    public void delete(Long userId){
+    public void delete(Long userId) {
         onDelete();
         this.setUpdatedBy(userId);
     }

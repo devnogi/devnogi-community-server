@@ -20,19 +20,21 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
     private final ObjectMapper objectMapper;
 
     @Override
-    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+    public boolean supports(
+            MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         // void나 ApiResponse 타입이면 감싸지 않음
         return !returnType.getParameterType().equals(Void.TYPE)
                 && !ApiResponse.class.isAssignableFrom(returnType.getParameterType());
     }
 
     @Override
-    public Object beforeBodyWrite(Object body,
-                                  MethodParameter returnType,
-                                  MediaType selectedContentType,
-                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
-                                  org.springframework.http.server.ServerHttpRequest request,
-                                  org.springframework.http.server.ServerHttpResponse response) {
+    public Object beforeBodyWrite(
+            Object body,
+            MethodParameter returnType,
+            MediaType selectedContentType,
+            Class<? extends HttpMessageConverter<?>> selectedConverterType,
+            org.springframework.http.server.ServerHttpRequest request,
+            org.springframework.http.server.ServerHttpResponse response) {
 
         try {
             if (request instanceof ServletServerHttpRequest servletRequest) {
@@ -58,10 +60,9 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
     }
 
     private boolean isSwaggerPath(String path) {
-        return path != null && (
-                path.startsWith("/v3/api-docs") ||
-                        path.startsWith("/swagger-ui") ||
-                        path.startsWith("/swagger-resources")
-        );
+        return path != null
+                && (path.startsWith("/v3/api-docs")
+                        || path.startsWith("/swagger-ui")
+                        || path.startsWith("/swagger-resources"));
     }
 }
