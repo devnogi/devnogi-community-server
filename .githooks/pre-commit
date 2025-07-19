@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "▶ Running Spotless format…"
 if ! ./gradlew spotlessApply --quiet; then
   echo >&2 "✗ Spotless formatting failed. Please fix formatting before committing."

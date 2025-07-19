@@ -24,8 +24,9 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "target_type", nullable = false, length = 10)
-    private String targetType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_type", nullable = false)
+    private ReportTargetType targetType;
 
     @Column(name = "target_id")
     private Long targetId;
@@ -37,10 +38,10 @@ public class Report {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    private ReportTargetType categoryCd;
+    private ReportCategory categoryCd;
 
-    @Enumerated(EnumType.STRING)
-    private ReportCategory reason;
+    @Column(name = "reason", nullable = false)
+    private String reason;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
