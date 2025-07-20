@@ -12,11 +12,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ReportStatus {
     REPORTED("REPORTED", "신고 접수"),
-    REJECT("REJECT", "반려"),
-    ACCEPT("ACCEPT", "승인"),
-    // todo 아래 두 개를 사용해야될지 고민입니다. (기존 ddl엔 위 세 개만 있습니다)
     REVIEWING("REVIEWING", "검토 중"),
-    RESOLVED("RESOLVED", "처리 완료");
+    REJECT("REJECT", "반려"),
+    ACCEPT("ACCEPT", "승인");
 
     private final String code;
     private final String description;
