@@ -14,8 +14,7 @@ public enum ReportStatus {
     REPORTED("REPORTED", "신고 접수"),
     REVIEWING("REVIEWING", "검토 중"),
     REJECT("REJECT", "반려"),
-    ACCEPT("ACCEPT", "승인"),
-    RESOLVED("RESOLVED", "처리 완료");
+    ACCEPT("ACCEPT", "승인");
 
     private final String code;
     private final String description;
