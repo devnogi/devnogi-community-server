@@ -62,4 +62,17 @@ public class Report {
 
     @Column(name = "revived_by")
     private Long revivedBy;
+
+    public void update(
+            ReportStatus statusCd,
+            LocalDateTime repliedAt,
+            Long repliedBy,
+            LocalDateTime revivedAt,
+            Long revivedBy) {
+        this.statusCd = statusCd;
+        this.repliedAt = repliedAt;
+        this.repliedBy = repliedBy;
+        this.revivedAt = revivedAt;
+        this.revivedBy = revivedBy;
+    }
 }
