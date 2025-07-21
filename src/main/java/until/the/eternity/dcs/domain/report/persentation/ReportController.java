@@ -130,7 +130,7 @@ public class ReportController {
             content =
                     @Content(
                             schema = @Schema(implementation = ReportReportedSummaryResponse.class)))
-    public CustomPageResponse<ReportReportedSummaryResponse> getRevivedReports(
+    public CustomPageResponse<ReportReportedSummaryResponse> getReportedReports(
             @ModelAttribute CustomPageRequest request) {
         return CustomPageResponse.from(reportService.findReportedReports(request));
     }
