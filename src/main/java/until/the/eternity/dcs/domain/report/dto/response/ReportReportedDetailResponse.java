@@ -24,5 +24,6 @@ public record ReportReportedDetailResponse(
                 ReportCategory categoryCd,
         @Schema(description = "신고 사유", example = "불법 광고") @NotNull(message = "신고 사유는 필수입니다")
                 String reason,
-        @Schema(description = "신고 사유", example = "불법 광고") @NotNull(message = "신고 사유는 필수입니다")
+        @Schema(description = "신고 생성일자", example = "2025-07-21")
+                @NotNull(message = "신고 생성일자는 필수입니다")
                 LocalDateTime createdAt) {}

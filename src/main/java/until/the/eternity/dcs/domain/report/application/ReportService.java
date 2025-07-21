@@ -2,7 +2,6 @@ package until.the.eternity.dcs.domain.report.application;
 
 import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
-import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -80,8 +79,7 @@ public class ReportService {
     }
 
     @Transactional
-    public ReportPersistResponse updatePost(
-            Long id, @Valid ReportUpdateRequest reportUpdateRequest) {
+    public ReportPersistResponse updatePost(Long id, ReportUpdateRequest reportUpdateRequest) {
         UserSummary user = getCurrentUser();
 
         checkManagerAuthority(user.getGrade());
