@@ -2,10 +2,7 @@ package until.the.eternity.dcs.domain.report.application;
 
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
-import until.the.eternity.dcs.domain.report.dto.response.ReportRepliedDetailResponse;
-import until.the.eternity.dcs.domain.report.dto.response.ReportRepliedSummaryResponse;
-import until.the.eternity.dcs.domain.report.dto.response.ReportRevivedDetailResponse;
-import until.the.eternity.dcs.domain.report.dto.response.ReportRevivedSummaryResponse;
+import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 
 @Component
@@ -68,5 +65,30 @@ public class ReportConverter {
                 .repliedAt(report.getRepliedAt())
                 .repliedBy(report.getRepliedBy())
                 .build();
+    }
+
+    public ReportReportedDetailResponse fromReportToReportReportedDetailResponse(Report report) {
+        return ReportReportedDetailResponse.builder()
+                .Id(report.getId())
+                .targetType(report.getTargetType())
+                .targetId(report.getTargetId())
+                .targetUserId(report.getTargetUserId())
+                .userId(report.getUserId())
+                .categoryCd(report.getCategoryCd())
+                .reason(report.getReason())
+                .build();
+    }
+
+    public ReportReportedSummaryResponse fromReportToReportReportedSummaryResponse(Report report) {
+        return ReportReportedSummaryResponse.builder()
+                .Id(report.getId())
+                .targetType(report.getTargetType())
+                .targetUserId(report.getTargetUserId())
+                .categoryCd(report.getCategoryCd())
+                .build();
+    }
+
+    public ReportPersistResponse fromReportToReportPersistResponse(Report report) {
+        return ReportPersistResponse.of(report.getId());
     }
 }
