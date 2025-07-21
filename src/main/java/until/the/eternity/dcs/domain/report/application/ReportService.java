@@ -79,6 +79,7 @@ public class ReportService {
         return reportedReports.map(reportConverter::fromReportToReportReportedSummaryResponse);
     }
 
+    @Transactional
     public ReportPersistResponse updatePost(
             Long id, @Valid ReportUpdateRequest reportUpdateRequest) {
         UserSummary user = getCurrentUser();
@@ -103,6 +104,7 @@ public class ReportService {
         return reportConverter.fromReportToReportPersistResponse(report);
     }
 
+    @Transactional
     public void deleteReport(Long id) {
         UserSummary user = getCurrentUser();
         checkManagerAuthority(user.getGrade());
