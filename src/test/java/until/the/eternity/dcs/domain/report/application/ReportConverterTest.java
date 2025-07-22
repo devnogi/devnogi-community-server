@@ -88,11 +88,11 @@ class ReportConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.Id()).isEqualTo(report.getId());
-        assertThat(result.targetType()).isEqualTo(report.getTargetType());
+        assertThat(result.targetType()).isEqualTo(report.getTargetType().getCode());
         assertThat(result.targetId()).isEqualTo(report.getTargetId());
         assertThat(result.targetUserId()).isEqualTo(report.getTargetUserId());
         assertThat(result.userId()).isEqualTo(report.getUserId());
-        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd());
+        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd().getCode());
         assertThat(result.reason()).isEqualTo(report.getReason());
         assertThat(result.revivedAt()).isEqualTo(report.getRevivedAt());
         assertThat(result.revivedBy()).isEqualTo(report.getRevivedBy());
@@ -116,9 +116,9 @@ class ReportConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.Id()).isEqualTo(report.getId());
-        assertThat(result.targetType()).isEqualTo(report.getTargetType());
+        assertThat(result.targetType()).isEqualTo(report.getTargetType().getCode());
         assertThat(result.targetUserId()).isEqualTo(report.getTargetUserId());
-        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd());
+        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd().getCode());
         assertThat(result.revivedAt()).isEqualTo(report.getRevivedAt());
         assertThat(result.revivedBy()).isEqualTo(report.getRevivedBy());
     }
@@ -141,11 +141,11 @@ class ReportConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.Id()).isEqualTo(report.getId());
-        assertThat(result.targetType()).isEqualTo(report.getTargetType());
+        assertThat(result.targetType()).isEqualTo(report.getTargetType().getCode());
         assertThat(result.targetId()).isEqualTo(report.getTargetId());
         assertThat(result.targetUserId()).isEqualTo(report.getTargetUserId());
         assertThat(result.userId()).isEqualTo(report.getUserId());
-        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd());
+        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd().getCode());
         assertThat(result.reason()).isEqualTo(report.getReason());
         assertThat(result.repliedAt()).isEqualTo(report.getRepliedAt());
         assertThat(result.repliedBy()).isEqualTo(report.getRepliedBy());
@@ -169,9 +169,9 @@ class ReportConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.Id()).isEqualTo(report.getId());
-        assertThat(result.targetType()).isEqualTo(report.getTargetType());
+        assertThat(result.targetType()).isEqualTo(report.getTargetType().getCode());
         assertThat(result.targetUserId()).isEqualTo(report.getTargetUserId());
-        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd());
+        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd().getCode());
         assertThat(result.repliedAt()).isEqualTo(report.getRepliedAt());
         assertThat(result.repliedBy()).isEqualTo(report.getRepliedBy());
     }
@@ -194,11 +194,11 @@ class ReportConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.Id()).isEqualTo(report.getId());
-        assertThat(result.targetType()).isEqualTo(report.getTargetType());
+        assertThat(result.targetType()).isEqualTo(report.getTargetType().getCode());
         assertThat(result.targetId()).isEqualTo(report.getTargetId());
         assertThat(result.targetUserId()).isEqualTo(report.getTargetUserId());
         assertThat(result.userId()).isEqualTo(report.getUserId());
-        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd());
+        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd().getCode());
         assertThat(result.reason()).isEqualTo(report.getReason());
     }
 
@@ -220,9 +220,9 @@ class ReportConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.Id()).isEqualTo(report.getId());
-        assertThat(result.targetType()).isEqualTo(report.getTargetType());
+        assertThat(result.targetType()).isEqualTo(report.getTargetType().getCode());
         assertThat(result.targetUserId()).isEqualTo(report.getTargetUserId());
-        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd());
+        assertThat(result.categoryCd()).isEqualTo(report.getCategoryCd().getCode());
     }
 
     @Test

@@ -36,11 +36,11 @@ public class ReportConverter {
     public ReportRevivedDetailResponse fromReportToReportRevivedDetailResponse(Report report) {
         return ReportRevivedDetailResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
                 .userId(report.getUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .revivedAt(report.getRevivedAt())
                 .revivedBy(report.getRevivedBy())
@@ -50,9 +50,9 @@ public class ReportConverter {
     public ReportRevivedSummaryResponse fromReportToReportRevivedSummaryResponse(Report report) {
         return ReportRevivedSummaryResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .revivedAt(report.getRevivedAt())
                 .revivedBy(report.getRevivedBy())
                 .build();
@@ -61,11 +61,11 @@ public class ReportConverter {
     public ReportRepliedDetailResponse fromReportToReportRepliedDetailResponse(Report report) {
         return ReportRepliedDetailResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
                 .userId(report.getUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .repliedAt(report.getRepliedAt())
                 .repliedBy(report.getRepliedBy())
@@ -75,9 +75,9 @@ public class ReportConverter {
     public ReportRepliedSummaryResponse fromReportToReportRepliedSummaryResponse(Report report) {
         return ReportRepliedSummaryResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .repliedAt(report.getRepliedAt())
                 .repliedBy(report.getRepliedBy())
                 .build();
@@ -86,11 +86,11 @@ public class ReportConverter {
     public ReportReportedDetailResponse fromReportToReportReportedDetailResponse(Report report) {
         return ReportReportedDetailResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
                 .userId(report.getUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .build();
     }
@@ -98,9 +98,9 @@ public class ReportConverter {
     public ReportReportedSummaryResponse fromReportToReportReportedSummaryResponse(Report report) {
         return ReportReportedSummaryResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .build();
     }
 
