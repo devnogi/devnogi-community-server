@@ -170,7 +170,7 @@ class ReportServiceTest {
             Page<Report> reportPage = new PageImpl<>(List.of(mockReport));
             ReportRepliedSummaryResponse summaryResponse = mock(ReportRepliedSummaryResponse.class);
 
-            given(reportRepository.findAllByStatus(ReportStatus.ACCEPT, pageable))
+            given(reportRepository.findAllByStatusCd(ReportStatus.ACCEPT, pageable))
                     .willReturn(reportPage);
             given(reportConverter.fromReportToReportRepliedSummaryResponse(mockReport))
                     .willReturn(summaryResponse);
@@ -192,7 +192,7 @@ class ReportServiceTest {
             Page<Report> reportPage = new PageImpl<>(List.of(mockReport));
             ReportRevivedSummaryResponse summaryResponse = mock(ReportRevivedSummaryResponse.class);
 
-            given(reportRepository.findAllByStatus(ReportStatus.REJECT, pageable))
+            given(reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable))
                     .willReturn(reportPage);
             given(reportConverter.fromReportToReportRevivedSummaryResponse(mockReport))
                     .willReturn(summaryResponse);
@@ -215,7 +215,7 @@ class ReportServiceTest {
             ReportReportedSummaryResponse summaryResponse =
                     mock(ReportReportedSummaryResponse.class);
 
-            given(reportRepository.findAllByStatus(ReportStatus.REPORTED, pageable))
+            given(reportRepository.findAllByStatusCd(ReportStatus.REPORTED, pageable))
                     .willReturn(reportPage);
             given(reportConverter.fromReportToReportReportedSummaryResponse(mockReport))
                     .willReturn(summaryResponse);

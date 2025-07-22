@@ -55,7 +55,7 @@ public class ReportService {
         Pageable pageable = request.toPageable();
 
         Page<Report> repliedReports =
-                reportRepository.findAllByStatus(ReportStatus.ACCEPT, pageable);
+                reportRepository.findAllByStatusCd(ReportStatus.ACCEPT, pageable);
 
         return repliedReports.map(reportConverter::fromReportToReportRepliedSummaryResponse);
     }
@@ -64,7 +64,7 @@ public class ReportService {
         Pageable pageable = request.toPageable();
 
         Page<Report> revivedReports =
-                reportRepository.findAllByStatus(ReportStatus.REJECT, pageable);
+                reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable);
 
         return revivedReports.map(reportConverter::fromReportToReportRevivedSummaryResponse);
     }
@@ -73,7 +73,7 @@ public class ReportService {
         Pageable pageable = request.toPageable();
 
         Page<Report> reportedReports =
-                reportRepository.findAllByStatus(ReportStatus.REPORTED, pageable);
+                reportRepository.findAllByStatusCd(ReportStatus.REPORTED, pageable);
 
         return reportedReports.map(reportConverter::fromReportToReportReportedSummaryResponse);
     }
