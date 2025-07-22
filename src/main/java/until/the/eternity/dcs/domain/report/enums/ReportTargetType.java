@@ -11,9 +11,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ReportTargetType {
-    POST("post", "게시글"),
-    COMMENT("comment", "댓글"),
-    USER("user", "사용자");
+    POST("POST", "게시글"),
+    COMMENT("COMMENT", "댓글"),
+    USER("USER", "사용자");
 
     private final String code;
     private final String description;

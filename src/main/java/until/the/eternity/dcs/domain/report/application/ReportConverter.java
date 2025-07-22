@@ -4,15 +4,31 @@ import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
+import until.the.eternity.dcs.domain.report.enums.ReportCategory;
+import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
+import until.the.eternity.dcs.domain.report.exception.CategoryNotFoundException;
+import until.the.eternity.dcs.domain.report.exception.TargetNotFoundException;
 
 @Component
 public class ReportConverter {
     public Report fromReportCreateRequestToReport(ReportCreateRequest reportCreateRequest) {
+        ReportTargetType targetType =
+                ReportTargetType.fromCode(reportCreateRequest.targetType())
+                        .orElseThrow(
+                                () ->
+                                        new TargetNotFoundException(
+                                                reportCreateRequest.targetType()));
+        ReportCategory reportCategory =
+                ReportCategory.fromCode(reportCreateRequest.categoryCd())
+                        .orElseThrow(
+                                () ->
+                                        new CategoryNotFoundException(
+                                                reportCreateRequest.categoryCd()));
         return Report.builder()
                 .targetId(reportCreateRequest.targetId())
-                .targetType(reportCreateRequest.targetType())
+                .targetType(targetType)
                 .targetUserId(reportCreateRequest.targetUserId())
-                .categoryCd(reportCreateRequest.categoryCd())
+                .categoryCd(reportCategory)
                 .reason(reportCreateRequest.reason())
                 .build();
     }
@@ -20,11 +36,11 @@ public class ReportConverter {
     public ReportRevivedDetailResponse fromReportToReportRevivedDetailResponse(Report report) {
         return ReportRevivedDetailResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
                 .userId(report.getUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .revivedAt(report.getRevivedAt())
                 .revivedBy(report.getRevivedBy())
@@ -34,9 +50,9 @@ public class ReportConverter {
     public ReportRevivedSummaryResponse fromReportToReportRevivedSummaryResponse(Report report) {
         return ReportRevivedSummaryResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .revivedAt(report.getRevivedAt())
                 .revivedBy(report.getRevivedBy())
                 .build();
@@ -45,11 +61,11 @@ public class ReportConverter {
     public ReportRepliedDetailResponse fromReportToReportRepliedDetailResponse(Report report) {
         return ReportRepliedDetailResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
                 .userId(report.getUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .repliedAt(report.getRepliedAt())
                 .repliedBy(report.getRepliedBy())
@@ -59,9 +75,9 @@ public class ReportConverter {
     public ReportRepliedSummaryResponse fromReportToReportRepliedSummaryResponse(Report report) {
         return ReportRepliedSummaryResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .repliedAt(report.getRepliedAt())
                 .repliedBy(report.getRepliedBy())
                 .build();
@@ -70,11 +86,11 @@ public class ReportConverter {
     public ReportReportedDetailResponse fromReportToReportReportedDetailResponse(Report report) {
         return ReportReportedDetailResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
                 .userId(report.getUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .build();
     }
@@ -82,9 +98,9 @@ public class ReportConverter {
     public ReportReportedSummaryResponse fromReportToReportReportedSummaryResponse(Report report) {
         return ReportReportedSummaryResponse.builder()
                 .Id(report.getId())
-                .targetType(report.getTargetType())
+                .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .categoryCd(report.getCategoryCd())
+                .categoryCd(report.getCategoryCd().getCode())
                 .build();
     }
 
