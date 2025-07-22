@@ -4,15 +4,31 @@ import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
+import until.the.eternity.dcs.domain.report.enums.ReportCategory;
+import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
+import until.the.eternity.dcs.domain.report.exception.CategoryNotFoundException;
+import until.the.eternity.dcs.domain.report.exception.TargetNotFoundException;
 
 @Component
 public class ReportConverter {
     public Report fromReportCreateRequestToReport(ReportCreateRequest reportCreateRequest) {
+        ReportTargetType targetType =
+                ReportTargetType.fromCode(reportCreateRequest.targetType())
+                        .orElseThrow(
+                                () ->
+                                        new TargetNotFoundException(
+                                                reportCreateRequest.targetType()));
+        ReportCategory reportCategory =
+                ReportCategory.fromCode(reportCreateRequest.categoryCd())
+                        .orElseThrow(
+                                () ->
+                                        new CategoryNotFoundException(
+                                                reportCreateRequest.categoryCd()));
         return Report.builder()
                 .targetId(reportCreateRequest.targetId())
-                .targetType(reportCreateRequest.targetType())
+                .targetType(targetType)
                 .targetUserId(reportCreateRequest.targetUserId())
-                .categoryCd(reportCreateRequest.categoryCd())
+                .categoryCd(reportCategory)
                 .reason(reportCreateRequest.reason())
                 .build();
     }
