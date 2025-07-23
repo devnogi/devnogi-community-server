@@ -27,6 +27,8 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
+import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
+import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.user.application.UserService;
@@ -38,6 +40,7 @@ class CommentServiceTest {
     CommentConverter commentConverter = new CommentConverter(commentRepository);
     UserService userService = mock(UserService.class);
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
+    CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
 
     CommentService commentService =
             new CommentService(
@@ -45,12 +48,14 @@ class CommentServiceTest {
                     commentConverter,
                     userService,
                     commentLikeRepository,
-                    commentLikeConverter);
+                    commentLikeConverter,
+                    commentMetaRepository);
 
     Comment comment;
     Long id = 1L;
     String content = "content";
     UserSummary user;
+    CommentMeta commentMeta;
 
     @BeforeEach
     void init() {
@@ -66,6 +71,8 @@ class CommentServiceTest {
                         .build();
 
         user = UserSummary.builder().id(1L).grade(ADMIN).build();
+
+        commentMeta = CommentMeta.create(id);
     }
 
     @Test
@@ -144,34 +151,34 @@ class CommentServiceTest {
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
         when(userService.getCurrentUser()).thenReturn(user);
         when(userService.isAuthenticated()).thenReturn(true);
+        when(commentMetaRepository.findById(anyLong())).thenReturn(Optional.of(commentMeta));
         CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
         // when
         commentService.toggleLike(request);
 
         // then
-        Comment comment = commentRepository.findById(id).get();
-        //        assertEquals(1, comment.getLikeCount());
+        assertEquals(1, commentMeta.getLikeCount());
     }
 
     @Test
     @DisplayName("toggleLike 는 좋아요가 이미 눌려있을 때 Comment 에 좋아요를 취소한다. ")
     void toggleLike_Unlike() {
         // given
-        //        comment.like();
+        commentMeta.like();
         CommentLike commentLike = CommentLike.builder().id(id).commentId(id).userId(id).build();
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
         when(commentLikeRepository.findByCommentIdAndUserId(anyLong(), anyLong()))
                 .thenReturn(Optional.of(commentLike));
         when(userService.getCurrentUser()).thenReturn(user);
         when(userService.isAuthenticated()).thenReturn(true);
+        when(commentMetaRepository.findById(anyLong())).thenReturn(Optional.of(commentMeta));
         CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
         // when
         commentService.toggleLike(request);
 
         // then
-        Comment comment = commentRepository.findById(id).get();
-        //        assertEquals(0, comment.getLikeCount());
+        assertEquals(0, commentMeta.getLikeCount());
     }
 }
