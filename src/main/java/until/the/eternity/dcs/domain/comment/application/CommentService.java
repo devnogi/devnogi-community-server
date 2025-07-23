@@ -70,13 +70,13 @@ public class CommentService {
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
         // todo 추후 join 으로 조회
-        Map<Long, Integer> commentMataMap = new HashMap<>();
+        Map<Long, Integer> commentMetaMap = new HashMap<>();
         for (Comment comment : comments) {
             Optional<CommentMeta> commentMeta = commentMetaRepository.findById(comment.getId());
             if (commentMeta.isPresent()) {
-                commentMataMap.put(comment.getId(), commentMeta.get().getLikeCount());
+                commentMetaMap.put(comment.getId(), commentMeta.get().getLikeCount());
             } else {
-                commentMataMap.put(comment.getId(), 0);
+                commentMetaMap.put(comment.getId(), 0);
             }
         }
 
@@ -92,13 +92,13 @@ public class CommentService {
                             commentConverter.fromCommentToPageResponse(
                                     c,
                                     likedCommentIds.contains(c.getId()),
-                                    commentMataMap.get(c.getId())));
+                                    commentMetaMap.get(c.getId())));
         }
 
         return comments.map(
                 c ->
                         commentConverter.fromCommentToPageResponseNonAuth(
-                                c, commentMataMap.get(c.getId())));
+                                c, commentMetaMap.get(c.getId())));
     }
 
     @Transactional
