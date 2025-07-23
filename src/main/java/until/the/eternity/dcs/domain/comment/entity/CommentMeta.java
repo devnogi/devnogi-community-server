@@ -23,4 +23,16 @@ public class CommentMeta {
 
     @Column(name = "like_count", nullable = false)
     private Integer likeCount = 0;
+
+    public static CommentMeta create(Long commentId) {
+        return CommentMeta.builder().commentId(commentId).likeCount(0).build();
+    }
+
+    public void like() {
+        this.likeCount++;
+    }
+
+    public void unlike() {
+        this.likeCount--;
+    }
 }

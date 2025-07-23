@@ -16,9 +16,12 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
+import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
+import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.comment.exception.CommentModifyForbiddenException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
+import until.the.eternity.dcs.domain.comment.exception.CommentNotLikedYetException;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -30,6 +33,7 @@ public class CommentService {
     private final UserService userService;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentLikeConverter commentLikeConverter;
+    private final CommentMetaRepository commentMetaRepository;
 
     public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
         UserSummary user = getCurrentUser();
@@ -92,14 +96,22 @@ public class CommentService {
     private void likeComment(CommentLikeToggleRequest request, Long userId) {
         CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
         commentLikeRepository.save(commentLike);
-        Comment comment = findById(request.commentId());
-        //        comment.like();
+
+        Long commentId = request.commentId();
+        CommentMeta commentMeta =
+                commentMetaRepository.findById(commentId).orElse(CommentMeta.create(commentId));
+        commentMeta.like();
     }
 
     private void unlikeComment(CommentLikeToggleRequest request, Long userId) {
         commentLikeRepository.deleteByCommentIdAndUserId(request.commentId(), userId);
-        Comment comment = findById(request.commentId());
-        //        comment.unlike();
+
+        Long commentId = request.commentId();
+        CommentMeta commentMeta =
+                commentMetaRepository
+                        .findById(commentId)
+                        .orElseThrow(() -> new CommentNotLikedYetException(commentId));
+        commentMeta.unlike();
     }
 
     private UserSummary getCurrentUser() {
