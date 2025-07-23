@@ -70,7 +70,7 @@ class CommentConverterTest {
                         .userId(id)
                         .parentComment(null)
                         .content(content)
-                        .likeCount(0)
+                        //                        .likeCount(0)
                         .build();
 
         // when
@@ -83,6 +83,6 @@ class CommentConverterTest {
         assertEquals(id, response.userId());
         assertNull(response.parentComment());
         assertEquals(content, response.content());
-        assertEquals(0, response.likeCount());
+        //        assertEquals(0, response.likeCount());
     }
 }

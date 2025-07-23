@@ -39,9 +39,9 @@ public class Comment extends SoftDeleteEntity {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "like_count")
-    @Builder.Default
-    private Integer likeCount = 0;
+    //    @Column(name = "like_count")
+    //    @Builder.Default
+    //    private Integer likeCount = 0;
 
     @Column(name = "is_blocked")
     @Builder.Default
@@ -52,11 +52,11 @@ public class Comment extends SoftDeleteEntity {
         this.setUpdatedBy(userId);
     }
 
-    public void like() {
-        this.likeCount++;
-    }
-
-    public void unlike() {
-        this.likeCount--;
-    }
+    //    public void like() {
+    //        this.likeCount++;
+    //    }
+    //
+    //    public void unlike() {
+    //        this.likeCount--;
+    //    }
 }

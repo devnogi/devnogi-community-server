@@ -93,13 +93,13 @@ public class CommentService {
         CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
         commentLikeRepository.save(commentLike);
         Comment comment = findById(request.commentId());
-        comment.like();
+        //        comment.like();
     }
 
     private void unlikeComment(CommentLikeToggleRequest request, Long userId) {
         commentLikeRepository.deleteByCommentIdAndUserId(request.commentId(), userId);
         Comment comment = findById(request.commentId());
-        comment.unlike();
+        //        comment.unlike();
     }
 
     private UserSummary getCurrentUser() {
