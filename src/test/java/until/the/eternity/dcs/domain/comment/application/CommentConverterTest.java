@@ -69,7 +69,7 @@ class CommentConverterTest {
 
         // when
         CommentPageResponseItem response =
-                commentConverter.fromCommentToPageResponse(comment, false);
+                commentConverter.fromCommentToPageResponse(comment, false, 0);
 
         // then
         assertNotNull(response);
@@ -77,5 +77,6 @@ class CommentConverterTest {
         assertEquals(id, response.userId());
         assertNull(response.parentComment());
         assertEquals(content, response.content());
+        assertEquals(0, response.likeCount());
     }
 }

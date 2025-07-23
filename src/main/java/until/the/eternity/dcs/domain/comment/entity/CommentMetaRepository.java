@@ -14,4 +14,8 @@ public class CommentMetaRepository {
     public Optional<CommentMeta> findById(Long commentId) {
         return jpaCommentMetaRepository.findById(commentId);
     }
+
+    public CommentMeta save(CommentMeta commentMeta) {
+        return jpaCommentMetaRepository.save(commentMeta);
+    }
 }

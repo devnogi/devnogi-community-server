@@ -41,11 +41,13 @@ public class CommentConverter {
         return CommentPersistResponse.from(comment);
     }
 
-    public CommentPageResponseItem fromCommentToPageResponse(Comment comment, Boolean isLiked) {
-        return CommentPageResponseItem.from(comment, isLiked);
+    public CommentPageResponseItem fromCommentToPageResponse(
+            Comment comment, Boolean isLiked, Integer likeCount) {
+        return CommentPageResponseItem.from(comment, isLiked, likeCount);
     }
 
-    public CommentPageResponseItem fromCommentToPageResponseNonAuth(Comment comment) {
-        return CommentPageResponseItem.from(comment, false);
+    public CommentPageResponseItem fromCommentToPageResponseNonAuth(
+            Comment comment, Integer likeCount) {
+        return CommentPageResponseItem.from(comment, false, likeCount);
     }
 }

@@ -22,13 +22,14 @@ public record CommentPageResponseItem(
                 Boolean isBlocked,
         @Schema(description = "현재 로그인한 유저의 좋아요 여부", example = "false", requiredMode = REQUIRED)
                 Boolean isLiked) {
-    public static CommentPageResponseItem from(Comment comment, Boolean isLiked) {
+    public static CommentPageResponseItem from(
+            Comment comment, Boolean isLiked, Integer likeCount) {
         if (comment.getParentComment() == null) {
             return CommentPageResponseItem.builder()
                     .id(comment.getId())
                     .userId(comment.getUserId())
                     .content(comment.getContent())
-                    //                    .likeCount(comment.getLikeCount())
+                    .likeCount(likeCount)
                     .isDeleted(comment.getIsDeleted())
                     .isBlocked(comment.getIsBlocked())
                     .isLiked(isLiked)
@@ -40,7 +41,7 @@ public record CommentPageResponseItem(
                 .userId(comment.getUserId())
                 .parentComment(comment.getParentComment().getId())
                 .content(comment.getContent())
-                //                .likeCount(comment.getLikeCount())
+                .likeCount(likeCount)
                 .isDeleted(comment.getIsDeleted())
                 .isBlocked(comment.getIsBlocked())
                 .isLiked(isLiked)

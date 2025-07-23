@@ -1,6 +1,9 @@
 package until.the.eternity.dcs.domain.comment.application;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -66,6 +69,17 @@ public class CommentService {
 
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
+        // todo 추후 join 으로 조회
+        Map<Long, Integer> commentMataMap = new HashMap<>();
+        for (Comment comment : comments) {
+            Optional<CommentMeta> commentMeta = commentMetaRepository.findById(comment.getId());
+            if (commentMeta.isPresent()) {
+                commentMataMap.put(comment.getId(), commentMeta.get().getLikeCount());
+            } else {
+                commentMataMap.put(comment.getId(), 0);
+            }
+        }
+
         if (userService.isAuthenticated()) {
             UserSummary user = getCurrentUser();
             Long userId = user.getId();
@@ -76,10 +90,15 @@ public class CommentService {
             return comments.map(
                     c ->
                             commentConverter.fromCommentToPageResponse(
-                                    c, likedCommentIds.contains(c.getId())));
+                                    c,
+                                    likedCommentIds.contains(c.getId()),
+                                    commentMataMap.get(c.getId())));
         }
 
-        return comments.map(commentConverter::fromCommentToPageResponseNonAuth);
+        return comments.map(
+                c ->
+                        commentConverter.fromCommentToPageResponseNonAuth(
+                                c, commentMataMap.get(c.getId())));
     }
 
     @Transactional
@@ -101,6 +120,7 @@ public class CommentService {
         CommentMeta commentMeta =
                 commentMetaRepository.findById(commentId).orElse(CommentMeta.create(commentId));
         commentMeta.like();
+        commentMetaRepository.save(commentMeta);
     }
 
     private void unlikeComment(CommentLikeToggleRequest request, Long userId) {
