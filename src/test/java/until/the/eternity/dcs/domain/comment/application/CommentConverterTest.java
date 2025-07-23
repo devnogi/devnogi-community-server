@@ -15,10 +15,13 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseIte
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
+import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 
 class CommentConverterTest {
     CommentRepository commentRepository = mock(CommentRepository.class);
-    CommentConverter commentConverter = new CommentConverter(commentRepository);
+    PostRepository postRepository = mock(PostRepository.class);
+    CommentConverter commentConverter = new CommentConverter(commentRepository, postRepository);
 
     Comment comment;
     Long id = 1L;
@@ -31,9 +34,10 @@ class CommentConverterTest {
 
     @Test
     @DisplayName("CommentCreateRequest 에서 Comment 로 변환할 수 있다.")
-    void fromCreateRequestToComment() {
+    void fromCreateRequestToComment_Success() {
         // given
         when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
+        when(postRepository.findById(id)).thenReturn(Optional.of(Post.builder().id(id).build()));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
@@ -48,7 +52,7 @@ class CommentConverterTest {
 
     @Test
     @DisplayName("Comment 에서 CommentPersistResponse 로 변환할 수 있다.")
-    void fromCommentToPersistResponse() {
+    void fromCommentToPersistResponse_Success() {
         // given
         Comment comment = Comment.builder().id(id).content(content).build();
 

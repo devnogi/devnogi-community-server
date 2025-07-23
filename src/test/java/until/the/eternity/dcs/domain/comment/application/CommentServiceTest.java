@@ -31,13 +31,15 @@ import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class CommentServiceTest {
     CommentRepository commentRepository = mock(CommentRepository.class);
     CommentLikeRepository commentLikeRepository = mock(CommentLikeRepository.class);
-    CommentConverter commentConverter = new CommentConverter(commentRepository);
+    PostRepository postRepository = mock(PostRepository.class);
+    CommentConverter commentConverter = new CommentConverter(commentRepository, postRepository);
     UserService userService = mock(UserService.class);
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
@@ -81,6 +83,7 @@ class CommentServiceTest {
         // given
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(userService.getCurrentUser()).thenReturn(user);
+        when(postRepository.findById(id)).thenReturn(Optional.of(Post.builder().id(id).build()));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
