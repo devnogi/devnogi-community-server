@@ -65,13 +65,7 @@ class CommentConverterTest {
     void fromCommentToPageResponse_Success() {
         // given
         Comment comment =
-                Comment.builder()
-                        .id(id)
-                        .userId(id)
-                        .parentComment(null)
-                        .content(content)
-                        //                        .likeCount(0)
-                        .build();
+                Comment.builder().id(id).userId(id).parentComment(null).content(content).build();
 
         // when
         CommentPageResponseItem response =
@@ -83,6 +77,5 @@ class CommentConverterTest {
         assertEquals(id, response.userId());
         assertNull(response.parentComment());
         assertEquals(content, response.content());
-        //        assertEquals(0, response.likeCount());
     }
 }
