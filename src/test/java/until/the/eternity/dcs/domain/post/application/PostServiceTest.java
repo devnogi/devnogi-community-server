@@ -28,13 +28,15 @@ import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.entity.PostLike;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
+import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
@@ -55,6 +57,9 @@ class PostServiceTest {
 
     @InjectMocks private PostService postService;
 
+    @Mock private PostMetaRepository postMetaRepository;
+    private PostMeta postMeta;
+
     private UserSummary mockUser;
     private Post mockPost;
     private Post mockPost2;
@@ -62,6 +67,7 @@ class PostServiceTest {
     private PostUpdateRequest updateRequest;
     private PostSummaryResponse mockSummaryResponse;
     private PostDetailResponse mockDetailResponse;
+    private PostPersistResponse mockPersistResponse;
 
     @BeforeEach
     void setUp() {
@@ -111,14 +117,24 @@ class PostServiceTest {
                         false,
                         Arrays.asList("tag3", "tag4"));
 
-        mockSummaryResponse = PostSummaryResponse.builder().id(1L).title("Test Title").build();
+        mockSummaryResponse =
+                PostSummaryResponse.builder()
+                        .id(1L)
+                        .title("Test Title")
+                        .viewCount(0)
+                        .likeCount(0)
+                        .build();
 
         mockDetailResponse =
                 PostDetailResponse.builder()
                         .id(1L)
                         .title("Test Title")
                         .content("Test Content")
+                        .viewCount(1)
                         .build();
+        mockPersistResponse = PostPersistResponse.builder().id(1L).build();
+
+        postMeta = PostMeta.builder().postId(1L).viewCount(0).likeCount(0).build();
     }
 
     @Nested
@@ -133,18 +149,18 @@ class PostServiceTest {
             given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L), anyList()))
                     .willReturn(mockPost);
             given(postRepository.save(mockPost)).willReturn(mockPost);
-            given(postConverter.fromPostToPostSummaryResponse(mockPost))
-                    .willReturn(mockSummaryResponse);
+            given(postConverter.fromPostToPostPersistResponse(mockPost))
+                    .willReturn(mockPersistResponse);
 
             // When
-            PostSummaryResponse result = postService.createPost(createRequest);
+            PostPersistResponse result = postService.createPost(createRequest);
 
             // Then
-            assertThat(result).isEqualTo(mockSummaryResponse);
+            assertThat(result).isEqualTo(mockPersistResponse);
             verify(fakeUserService).getCurrentUser();
             verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L), anyList());
             verify(postRepository).save(mockPost);
-            verify(postConverter).fromPostToPostSummaryResponse(mockPost);
+            verify(postConverter).fromPostToPostPersistResponse(mockPost);
         }
 
         @Test
@@ -183,19 +199,21 @@ class PostServiceTest {
                             .userId(1L)
                             .comments(comments)
                             .build();
-
+            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
                     .willReturn(Optional.of(postWithComments));
-            given(postConverter.fromPostToPostDetailResponse(postWithComments))
+            given(postConverter.fromPostToPostDetailResponse(postWithComments, postMeta))
                     .willReturn(mockDetailResponse);
-
+            int cnt = postMeta.getViewCount();
             // When
             PostDetailResponse result = postService.findPost(postId);
 
             // Then
             assertThat(result).isEqualTo(mockDetailResponse);
+            assertThat(result.viewCount()).isEqualTo(cnt + 1);
+            assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
-            verify(postConverter).fromPostToPostDetailResponse(eq(postWithComments));
+            verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMeta);
         }
 
         @Test
@@ -226,8 +244,7 @@ class PostServiceTest {
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
-            given(postConverter.fromPostToPostSummaryResponse(mockPost))
-                    .willReturn(mockSummaryResponse);
+            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
@@ -252,14 +269,14 @@ class PostServiceTest {
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
                     .willReturn(Optional.of(mockPost));
             given(postRepository.save(mockPost)).willReturn(mockPost);
-            given(postConverter.fromPostToPostSummaryResponse(mockPost))
-                    .willReturn(mockSummaryResponse);
+            given(postConverter.fromPostToPostPersistResponse(mockPost))
+                    .willReturn(mockPersistResponse);
 
             // When
-            PostSummaryResponse result = postService.updatePost(postId, updateRequest);
+            PostPersistResponse result = postService.updatePost(postId, updateRequest);
 
             // Then
-            assertThat(result).isEqualTo(mockSummaryResponse);
+            assertThat(result).isEqualTo(mockPersistResponse);
             verify(fakeUserService).getCurrentUser();
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
             verify(postRepository).save(mockPost);
@@ -375,12 +392,12 @@ class PostServiceTest {
                     .willReturn(false);
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
                     .willReturn(Optional.of(mockPost));
-
+            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
             // when
             postService.togglePostLike(postLikeCreateRequest);
 
             // then
-            assertThat(mockPost.getLikeCount()).isEqualTo(1);
+            assertThat(postMeta.getLikeCount()).isEqualTo(1);
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }
 
@@ -388,9 +405,6 @@ class PostServiceTest {
         @DisplayName("게시글 좋아요 해제")
         public void unlikePost_Test() {
             // given
-
-            PostLike postLike = PostLike.builder().post(mockPost).userId(mockUser.getId()).build();
-
             PostLikeCreateRequest postLikeCreateRequest =
                     new PostLikeCreateRequest(mockPost.getId());
 
@@ -399,12 +413,13 @@ class PostServiceTest {
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
                     .willReturn(Optional.of(mockPost));
+            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
 
             // when
             postService.togglePostLike(postLikeCreateRequest);
 
             // then
-            assertThat(mockPost.getLikeCount()).isEqualTo(-1);
+            assertThat(postMeta.getLikeCount()).isEqualTo(-1);
             verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(1L);
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
             verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(), mockPost.getId());

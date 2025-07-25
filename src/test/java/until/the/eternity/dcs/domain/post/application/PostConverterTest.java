@@ -10,18 +10,23 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostConverter 테스트")
 public class PostConverterTest {
 
+    @Mock private PostMetaRepository postMetaRepository;
+    @Mock private PostMeta postMeta;
     @InjectMocks private PostConverter postConverter;
 
     @Test
@@ -67,26 +72,19 @@ public class PostConverterTest {
         String content = "테스트 게시글 내용";
         Boolean isDraft = false;
 
-        Post post =
-                Post.builder()
-                        .id(1L)
-                        .title(title)
-                        .viewCount(1)
-                        .likeCount(1)
-                        .commentCount(1)
-                        .build();
+        Post post = Post.builder().id(1L).title(title).build();
         post.setCreatedAt(LocalDateTime.now());
 
         // when
-        PostSummaryResponse result = postConverter.fromPostToPostSummaryResponse(post);
+        PostSummaryResponse result = postConverter.fromPostToPostSummaryResponse(post, postMeta);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(post.getId());
         assertThat(result.title()).isEqualTo(post.getTitle());
-        assertThat(result.viewCount()).isEqualTo(post.getViewCount());
-        assertThat(result.likeCount()).isEqualTo(post.getLikeCount());
-        assertThat(result.commentCount()).isEqualTo(post.getCommentCount());
+        assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
+        assertThat(result.likeCount()).isEqualTo(postMeta.getLikeCount());
+        assertThat(result.commentCount()).isEqualTo(postMeta.getCommentCount());
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
     }
 
@@ -108,9 +106,6 @@ public class PostConverterTest {
                         .board(board)
                         .title(title)
                         .content(content)
-                        .viewCount(1)
-                        .likeCount(1)
-                        .commentCount(1)
                         .isDraft(isDraft)
                         .isBlocked(false)
                         .postTags(postTags)
@@ -119,7 +114,7 @@ public class PostConverterTest {
         post.setUpdatedAt(LocalDateTime.now());
 
         // when
-        PostDetailResponse result = postConverter.fromPostToPostDetailResponse(post);
+        PostDetailResponse result = postConverter.fromPostToPostDetailResponse(post, postMeta);
 
         // then
         assertThat(result).isNotNull();
@@ -128,9 +123,9 @@ public class PostConverterTest {
         assertThat(result.userId()).isEqualTo(post.getUserId());
         assertThat(result.title()).isEqualTo(post.getTitle());
         assertThat(result.content()).isEqualTo(post.getContent());
-        assertThat(result.viewCount()).isEqualTo(post.getViewCount());
-        assertThat(result.likeCount()).isEqualTo(post.getLikeCount());
-        assertThat(result.commentCount()).isEqualTo(post.getCommentCount());
+        assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
+        assertThat(result.likeCount()).isEqualTo(postMeta.getLikeCount());
+        assertThat(result.commentCount()).isEqualTo(postMeta.getCommentCount());
         assertThat(result.isDraft()).isEqualTo(post.getIsDraft());
         assertThat(result.isBlocked()).isEqualTo(post.getIsBlocked());
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());

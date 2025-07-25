@@ -34,18 +34,6 @@ public class Post extends SoftDeleteEntity {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "view_count")
-    @Builder.Default
-    private Integer viewCount = 0;
-
-    @Column(name = "like_count")
-    @Builder.Default
-    private Integer likeCount = 0;
-
-    @Column(name = "comment_count")
-    @Builder.Default
-    private Integer commentCount = 0;
-
     @Column(name = "is_draft", nullable = false)
     @Builder.Default
     private Boolean isDraft = false;
@@ -88,13 +76,5 @@ public class Post extends SoftDeleteEntity {
         }
         this.postTags = (postTags != null) ? postTags : new ArrayList<>();
         this.setUpdatedBy(userId);
-    }
-
-    public void like() {
-        this.likeCount++;
-    }
-
-    public void unLike() {
-        this.likeCount--;
     }
 }

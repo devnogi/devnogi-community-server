@@ -5,8 +5,10 @@ import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
 @Component
@@ -25,11 +27,15 @@ public class PostConverter {
                 .build();
     }
 
-    public PostSummaryResponse fromPostToPostSummaryResponse(Post post) {
-        return PostSummaryResponse.from(post);
+    public PostSummaryResponse fromPostToPostSummaryResponse(Post post, PostMeta postMeta) {
+        return PostSummaryResponse.from(post, postMeta);
     }
 
-    public PostDetailResponse fromPostToPostDetailResponse(Post post) {
-        return PostDetailResponse.from(post);
+    public PostDetailResponse fromPostToPostDetailResponse(Post post, PostMeta postMeta) {
+        return PostDetailResponse.from(post, postMeta);
+    }
+
+    public PostPersistResponse fromPostToPostPersistResponse(Post post) {
+        return PostPersistResponse.from(post);
     }
 }
