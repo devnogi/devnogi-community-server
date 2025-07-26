@@ -39,5 +39,3 @@ out/
 ### Docker-Compose ###
 .env
 
-### Spring Boot
-application.yml
