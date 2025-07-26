@@ -18,14 +18,12 @@ import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostConverter 테스트")
 public class PostConverterTest {
 
-    @Mock private PostMetaRepository postMetaRepository;
     @Mock private PostMeta postMeta;
     @InjectMocks private PostConverter postConverter;
 
