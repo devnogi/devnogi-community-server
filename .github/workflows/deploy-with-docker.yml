@@ -60,4 +60,4 @@ jobs:
             docker stop dcs-server || true
             docker rm dcs-server || true
             docker pull snhng/dcs-server:latest
-            docker-compose up -d
+            docker compose up -d
