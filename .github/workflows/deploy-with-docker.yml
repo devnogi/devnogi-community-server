@@ -31,7 +31,6 @@ jobs:
 
       - name: Build and tag Docker image
         run: |
-          cd lms
           ./gradlew clean build -x test
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:${{ github.sha }} .
           docker tag ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest
