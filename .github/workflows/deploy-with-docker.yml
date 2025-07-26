@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
 
 jobs:
   build-docker-image:
@@ -59,5 +60,5 @@ jobs:
             docker-compose down
             docker stop dcs-server || true
             docker rm dcs-server || true
-            docker pull snhng/dcs-server:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest
             docker compose up -d
