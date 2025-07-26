@@ -16,10 +16,10 @@ VALUES (1, 'Alice', 'https://example.com/profiles/alice.jpg', 5, 'user'),
        (3, 'Charlie', 'https://example.com/profiles/charlie.jpg', 15, 'admin');
 
 -- post 더미 데이터
-INSERT INTO post (board_id, user_id, title, content, view_count, like_count, comment_count, is_draft, is_blocked)
-VALUES (1, 1, '안녕하세요!', '처음으로 글을 써봅니다!', 10, 2, 1, 0, 0),
-       (2, 2, '보스 공략법', '이 보스를 쉽게 이기는 방법을 공유합니다.', 200, 15, 5, 0, 0),
-       (3, 3, '레어 아이템 판매합니다.', '관심 있으시면 댓글 남겨주세요!', 50, 4, 2, 0, 0);
+INSERT INTO post (board_id, user_id, title, content, is_draft, is_blocked)
+VALUES (1, 1, '안녕하세요!', '처음으로 글을 써봅니다!', 0, 0),
+       (2, 2, '보스 공략법', '이 보스를 쉽게 이기는 방법을 공유합니다.', 0, 0),
+       (3, 3, '레어 아이템 판매합니다.', '관심 있으시면 댓글 남겨주세요!', 0, 0);
 
 -- comment 더미 데이터
 INSERT INTO comment (post_id, user_id, parent_comment_id, content, is_deleted, is_blocked)

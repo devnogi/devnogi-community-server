@@ -17,6 +17,7 @@ import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 
 @RestController
@@ -35,7 +36,7 @@ public class PostController {
     @ApiResponse(
             responseCode = "201",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
-    public ResponseEntity<PostSummaryResponse> createPost(
+    public ResponseEntity<PostPersistResponse> createPost(
             @Valid @RequestBody PostCreateRequest request) {
         return ResponseEntity.status(CREATED).body(postService.createPost(request));
     }
@@ -79,7 +80,7 @@ public class PostController {
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
-    public ResponseEntity<PostSummaryResponse> updatePost(
+    public ResponseEntity<PostPersistResponse> updatePost(
             @PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
         return ResponseEntity.status(OK).body(postService.updatePost(id, postUpdateRequest));
     }

@@ -1,8 +1,6 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,13 +11,16 @@ import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
+import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
@@ -35,36 +36,43 @@ public class PostService {
     private final UserService fakeUserService;
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
+    private final PostMetaRepository postMetaRepository;
 
     // todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     // todo postTag 관련 로직도 추후 필요
     @Transactional
-    public PostSummaryResponse createPost(PostCreateRequest request) {
+    public PostPersistResponse createPost(PostCreateRequest request) {
         UserSummary user = getCurrentUser();
         List<PostTag> postTagList = new ArrayList<>();
 
         Post post = postConverter.fromCreateRequestToPost(request, user.getId(), postTagList);
         Post savedPost = postRepository.save(post);
 
-        return postConverter.fromPostToPostSummaryResponse(savedPost);
+        return postConverter.fromPostToPostPersistResponse(savedPost);
     }
 
     public PostDetailResponse findPost(Long id) {
         Post post = findById(id);
-
-        return postConverter.fromPostToPostDetailResponse(post);
+        PostMeta postMeta = findPostMetaByPostId(id);
+        postMeta.viewPost(); // todo 차후 일정 기간 내 다시 조회는 조회수 카운트로 치지 않도록 변경
+        postMetaRepository.save(postMeta);
+        return postConverter.fromPostToPostDetailResponse(post, postMeta);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
-
-        return posts.map(postConverter::fromPostToPostSummaryResponse);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = findPostMetaByPostId(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
     @Transactional
-    public PostSummaryResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
+    public PostPersistResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
 
         UserSummary user = getCurrentUser();
 
@@ -83,8 +91,7 @@ public class PostService {
                 postUpdateRequest.isDraft(),
                 postTagList,
                 user.getId());
-
-        return postConverter.fromPostToPostSummaryResponse(postRepository.save(post));
+        return postConverter.fromPostToPostPersistResponse(postRepository.save(post));
     }
 
     @Transactional
@@ -104,16 +111,19 @@ public class PostService {
         Long userId = getCurrentUser().getId();
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
+        PostMeta postMeta = findPostMetaByPostId(postId);
 
         if (!postLikeRepository.existsByUserIdAndPostId(userId, postId)) {
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
-            post.like();
+            postMeta.like();
+            postMetaRepository.save(postMeta);
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
-        post.unLike();
+        postMeta.unlike();
+        postMetaRepository.save(postMeta);
     }
 
     private UserSummary getCurrentUser() {
@@ -138,5 +148,9 @@ public class PostService {
                 });
 
         return postTagList;
+    }
+
+    private PostMeta findPostMetaByPostId(Long postId) {
+        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
     }
 }

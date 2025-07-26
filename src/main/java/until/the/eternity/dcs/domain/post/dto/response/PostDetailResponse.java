@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
 @Builder
@@ -26,16 +27,16 @@ public record PostDetailResponse(
         @Schema(description = "수정일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime updatedAt,
         @Schema(description = "태그 목록") List<PostTag> tags) {
-    public static PostDetailResponse from(Post post) {
+    public static PostDetailResponse from(Post post, PostMeta postMeta) {
         return PostDetailResponse.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
                 .userId(post.getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .viewCount(post.getViewCount())
-                .likeCount(post.getLikeCount())
-                .commentCount(post.getCommentCount())
+                .viewCount(postMeta.getViewCount())
+                .likeCount(postMeta.getLikeCount())
+                .commentCount(postMeta.getCommentCount())
                 .isDraft(post.getIsDraft())
                 .isBlocked(post.getIsBlocked())
                 .createdAt(post.getCreatedAt())
