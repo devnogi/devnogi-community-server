@@ -36,7 +36,6 @@ class CommentConverterTest {
     @DisplayName("CommentCreateRequest 에서 Comment 로 변환할 수 있다.")
     void fromCreateRequestToComment_Success() {
         // given
-        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
@@ -49,6 +48,23 @@ class CommentConverterTest {
         assertEquals(content, comment.getContent());
         assertEquals(id, comment.getPost().getId());
         assertEquals(id, comment.getUserId());
+    }
+
+    @Test
+    @DisplayName("CommentCreateRequest 에서 Comment 로 parentId와 함께 변환할 수 있다.")
+    void fromCreateRequestToComment_parentId() {
+        // given
+        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
+        when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
+                .thenReturn(Optional.of(Post.builder().id(id).build()));
+        CommentCreateRequest request = new CommentCreateRequest(id, content);
+
+        // when
+        Comment comment = commentConverter.fromCreateRequestToComment(request, id, id);
+
+        // then
+        assertNotNull(comment);
+        assertEquals(id, comment.getParentComment().getId());
     }
 
     @Test

@@ -138,11 +138,35 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다.")
+    @DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다. (로그아웃)")
     void findByPostId_Success() {
         // given
         Page<Comment> page = new PageImpl<>(List.of(comment));
         when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
+        CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
+
+        // when
+        Page<CommentPageResponseItem> response = commentService.findByPostId(id, request);
+
+        // then
+        assertNotNull(response);
+        assertEquals(1, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(1, response.getNumberOfElements());
+        assertEquals(1, response.getContent().size());
+        assertEquals(content, response.getContent().get(0).content());
+    }
+
+    @Test
+    @DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다. (로그인)")
+    void findByPostId_Success_Login() {
+        // given
+        Page<Comment> page = new PageImpl<>(List.of(comment));
+        when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
+        when(commentMetaRepository.findById(anyLong()))
+                .thenReturn(Optional.of(CommentMeta.create(id)));
+        when(userService.isAuthenticated()).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(user);
         CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
         // when
