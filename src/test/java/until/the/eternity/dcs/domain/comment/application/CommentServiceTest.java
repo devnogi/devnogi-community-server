@@ -31,6 +31,7 @@ import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
@@ -87,7 +88,9 @@ class CommentServiceTest {
         // given
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(userService.getCurrentUser()).thenReturn(user);
-        when(postRepository.findById(id)).thenReturn(Optional.of(Post.builder().id(id).build()));
+        when(postRepository.findById(id))
+                .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
+        when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
@@ -121,6 +124,9 @@ class CommentServiceTest {
     void delete_Success() {
         // given
         when(userService.getCurrentUser()).thenReturn(user);
+        when(postRepository.findById(id))
+                .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
+        when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
 
         // when
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
