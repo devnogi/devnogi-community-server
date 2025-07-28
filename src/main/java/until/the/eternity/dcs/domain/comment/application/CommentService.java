@@ -73,6 +73,7 @@ public class CommentService {
         Comment comment = findById(id);
         isCurrentUserEqualsWriter(user.getId(), comment);
         comment.delete(user.getId());
+
         disconnectCommentWithPost(comment);
     }
 
@@ -95,10 +96,9 @@ public class CommentService {
 
         if (userService.isAuthenticated()) {
             UserSummary user = getCurrentUser();
-            Long userId = user.getId();
             List<Long> commentIds = comments.map(Comment::getId).toList();
             Set<Long> likedCommentIds =
-                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
+                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(user.getId(), commentIds);
 
             return comments.map(
                     c ->

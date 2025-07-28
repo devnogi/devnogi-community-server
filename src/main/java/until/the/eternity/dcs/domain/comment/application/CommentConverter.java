@@ -24,6 +24,7 @@ public class CommentConverter {
                 postRepository
                         .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
+
         Long parentId = request.parentComment();
         if (parentId == null) {
             return Comment.builder().post(post).userId(userId).content(request.content()).build();
