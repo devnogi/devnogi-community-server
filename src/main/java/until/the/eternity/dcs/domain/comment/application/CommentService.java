@@ -25,6 +25,11 @@ import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.comment.exception.CommentModifyForbiddenException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotLikedYetException;
+import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
+import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -37,12 +42,18 @@ public class CommentService {
     private final CommentLikeRepository commentLikeRepository;
     private final CommentLikeConverter commentLikeConverter;
     private final CommentMetaRepository commentMetaRepository;
+    private final PostRepository postRepository;
+    private final PostMetaRepository postMetaRepository;
 
+    @Transactional
     public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
         UserSummary user = getCurrentUser();
         Comment comment =
                 commentConverter.fromCreateRequestToComment(request, user.getId(), postId);
         Comment save = commentRepository.save(comment);
+
+        connectCommentWithPost(postId, save);
+
         return commentConverter.fromCommentToPersistResponse(save);
     }
 
@@ -62,8 +73,11 @@ public class CommentService {
         Comment comment = findById(id);
         isCurrentUserEqualsWriter(user.getId(), comment);
         comment.delete(user.getId());
+
+        disconnectCommentWithPost(comment);
     }
 
+    @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
@@ -82,10 +96,9 @@ public class CommentService {
 
         if (userService.isAuthenticated()) {
             UserSummary user = getCurrentUser();
-            Long userId = user.getId();
             List<Long> commentIds = comments.map(Comment::getId).toList();
             Set<Long> likedCommentIds =
-                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
+                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(user.getId(), commentIds);
 
             return comments.map(
                     c ->
@@ -110,6 +123,36 @@ public class CommentService {
             return;
         }
         unlikeComment(request, userId);
+    }
+
+    private void connectCommentWithPost(Long postId, Comment save) {
+        Post post = findPostById(postId);
+        post.getComments().add(save);
+        postRepository.save(post);
+
+        PostMeta postMeta = findPostMetaById(postId);
+        postMeta.addComment();
+        postMetaRepository.save(postMeta);
+    }
+
+    private void disconnectCommentWithPost(Comment comment) {
+        Long postId = comment.getPost().getId();
+
+        Post post = findPostById(postId);
+        post.getComments().remove(comment);
+
+        PostMeta postMeta = findPostMetaById(postId);
+        postMeta.deleteComment();
+    }
+
+    private Post findPostById(Long postId) {
+        return postRepository
+                .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
+    }
+
+    private PostMeta findPostMetaById(Long postId) {
+        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
     }
 
     private void likeComment(CommentLikeToggleRequest request, Long userId) {

@@ -22,7 +22,7 @@ public class CommentMeta {
     @Id private Long commentId;
 
     @Column(name = "like_count", nullable = false)
-    private Integer likeCount = 0;
+    private Integer likeCount;
 
     public static CommentMeta create(Long commentId) {
         return CommentMeta.builder().commentId(commentId).likeCount(0).build();

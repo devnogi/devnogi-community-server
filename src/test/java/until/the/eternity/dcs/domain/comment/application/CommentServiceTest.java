@@ -31,6 +31,8 @@ import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
@@ -43,6 +45,7 @@ class CommentServiceTest {
     UserService userService = mock(UserService.class);
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
+    PostMetaRepository postMetaRepository = mock(PostMetaRepository.class);
 
     CommentService commentService =
             new CommentService(
@@ -51,7 +54,9 @@ class CommentServiceTest {
                     userService,
                     commentLikeRepository,
                     commentLikeConverter,
-                    commentMetaRepository);
+                    commentMetaRepository,
+                    postRepository,
+                    postMetaRepository);
 
     Comment comment;
     Long id = 1L;
@@ -83,7 +88,9 @@ class CommentServiceTest {
         // given
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(userService.getCurrentUser()).thenReturn(user);
-        when(postRepository.findById(id)).thenReturn(Optional.of(Post.builder().id(id).build()));
+        when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
+                .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
+        when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
@@ -117,6 +124,9 @@ class CommentServiceTest {
     void delete_Success() {
         // given
         when(userService.getCurrentUser()).thenReturn(user);
+        when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
+                .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
+        when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
 
         // when
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
@@ -128,11 +138,35 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다.")
+    @DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다. (로그아웃)")
     void findByPostId_Success() {
         // given
         Page<Comment> page = new PageImpl<>(List.of(comment));
         when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
+        CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
+
+        // when
+        Page<CommentPageResponseItem> response = commentService.findByPostId(id, request);
+
+        // then
+        assertNotNull(response);
+        assertEquals(1, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(1, response.getNumberOfElements());
+        assertEquals(1, response.getContent().size());
+        assertEquals(content, response.getContent().get(0).content());
+    }
+
+    @Test
+    @DisplayName("findByPostId 는 postId 로 comment 를 페이징 조회한다. (로그인)")
+    void findByPostId_Success_Login() {
+        // given
+        Page<Comment> page = new PageImpl<>(List.of(comment));
+        when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
+        when(commentMetaRepository.findById(anyLong()))
+                .thenReturn(Optional.of(CommentMeta.create(id)));
+        when(userService.isAuthenticated()).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(user);
         CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
         // when
