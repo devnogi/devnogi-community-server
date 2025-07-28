@@ -37,7 +37,8 @@ class CommentConverterTest {
     void fromCreateRequestToComment_Success() {
         // given
         when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
-        when(postRepository.findById(id)).thenReturn(Optional.of(Post.builder().id(id).build()));
+        when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
+                .thenReturn(Optional.of(Post.builder().id(id).build()));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when

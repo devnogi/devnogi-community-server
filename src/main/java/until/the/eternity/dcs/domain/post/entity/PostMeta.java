@@ -17,13 +17,13 @@ public class PostMeta {
     @Id private Long postId;
 
     @Column(name = "like_count", nullable = false)
-    private Integer likeCount = 0;
+    private Integer likeCount;
 
     @Column(name = "view_count", nullable = false)
-    private Integer viewCount = 0;
+    private Integer viewCount;
 
     @Column(name = "comment_count", nullable = false)
-    private Integer commentCount = 0;
+    private Integer commentCount;
 
     public static PostMeta create(Long postId) {
         return PostMeta.builder().postId(postId).viewCount(0).likeCount(0).commentCount(0).build();

@@ -22,7 +22,7 @@ public class CommentConverter {
             CommentCreateRequest request, Long userId, Long postId) {
         Post post =
                 postRepository
-                        .findById(postId)
+                        .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
                         .orElseThrow(() -> new PostNotFoundException(postId));
         Long parentId = request.parentComment();
         if (parentId == null) {
