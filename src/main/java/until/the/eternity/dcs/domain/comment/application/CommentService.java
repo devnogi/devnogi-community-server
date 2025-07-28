@@ -146,13 +146,13 @@ public class CommentService {
     }
 
     private Post findPostById(Long postId) {
-        return postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
+        return postRepository
+                .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
     private PostMeta findPostMetaById(Long postId) {
-        return postMetaRepository
-                .findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(postId));
+        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
     }
 
     private void likeComment(CommentLikeToggleRequest request, Long userId) {
