@@ -31,6 +31,7 @@ import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
@@ -43,6 +44,7 @@ class CommentServiceTest {
     UserService userService = mock(UserService.class);
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
+    PostMetaRepository postMetaRepository = mock(PostMetaRepository.class);
 
     CommentService commentService =
             new CommentService(
@@ -51,7 +53,9 @@ class CommentServiceTest {
                     userService,
                     commentLikeRepository,
                     commentLikeConverter,
-                    commentMetaRepository);
+                    commentMetaRepository,
+                    postRepository,
+                    postMetaRepository);
 
     Comment comment;
     Long id = 1L;

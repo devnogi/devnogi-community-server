@@ -40,4 +40,12 @@ public class PostMeta {
     public void viewPost() {
         this.viewCount++;
     }
+
+    public void addComment() {
+        this.commentCount++;
+    }
+
+    public void deleteComment() {
+        this.commentCount--;
+    }
 }
