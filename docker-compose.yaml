@@ -39,6 +39,7 @@ services:
 
 volumes:
   mysql_data:
+  redis-data:
 
 networks:
   my-network:
