@@ -48,17 +48,18 @@ spring:
       # Accept 헤더 무시
       ignore-accept-header: true
   redis:
-    host: redis
-    port: 6379
+    host: localhost
+    port: ${REDIS_PORT:6379}
     lettuce:
       pool:
         max-active: 8
         max-idle: 8
         min-idle: 0
+        max-wait: -1ms
   cache:
     type: redis
     redis:
-      time-to-live: 600000  # 10분 (밀리초)
+      time-to-live: 3600000
       cache-null-values: false
 
 jwt:
@@ -107,3 +108,37 @@ spring:
 springdoc:
   swagger-ui:
     enabled: false
+
+
+# 환경별 redis 설정 분리
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker  # 전체를 Docker로 실행할 때
+  data:
+    redis:
+      host: devnogi-community-redis
+      port: 6379
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      ssl: true  # 운영환경에서는 SSL 사용
