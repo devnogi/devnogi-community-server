@@ -118,7 +118,7 @@ spring:
       on-profile: local
   data:
     redis:
-      host: localhost
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
 ---
