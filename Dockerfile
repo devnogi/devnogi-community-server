@@ -11,5 +11,6 @@ ENV DB_SCHEMA=placeholder
 ENV DB_USER=placeholder
 ENV DB_PASSWORD=placeholder
 ENV DB_PORT=placeholder
+ENV REDIS_HOST=placeholder
 
-ENTRYPOINT ["java", "-jar", "dcs.jar"]
+ENTRYPOINT ["java", "-jar", "dcs.jar", "--spring.profiles.active=local"]
