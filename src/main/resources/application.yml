@@ -47,6 +47,20 @@ spring:
       favor-path-extension: true
       # Accept 헤더 무시
       ignore-accept-header: true
+  redis:
+    host: localhost
+    port: ${REDIS_PORT:6379}
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
 
 jwt:
   secret-key: ${JWT_SECRET_KEY:e4f1a5c8d2b7e9f0a6c3d1b8e5f2c7a9d4e6f3b1a2c8d5e9f0b3a7c2d1e8f5a4}
@@ -94,3 +108,37 @@ spring:
 springdoc:
   swagger-ui:
     enabled: false
+
+
+# 환경별 redis 설정 분리
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker  # 전체를 Docker로 실행할 때
+  data:
+    redis:
+      host: devnogi-community-redis
+      port: 6379
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      ssl: true  # 운영환경에서는 SSL 사용
