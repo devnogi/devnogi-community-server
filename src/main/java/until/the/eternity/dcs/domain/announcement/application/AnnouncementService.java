@@ -59,8 +59,10 @@ public class AnnouncementService {
         return converter.fromEntityToToggleResponse(announcement);
     }
 
-    private PostMeta getPostMeta(Long postId) {
-        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
+    private void duplicateCheck(Long postId) {
+        if (repository.existsByPostId(postId)) {
+            throw new AnnouncementDuplicateException();
+        }
     }
 
     private Post getPost(Long postId) {
@@ -69,10 +71,8 @@ public class AnnouncementService {
                 .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
-    private void duplicateCheck(Long postId) {
-        if (repository.existsByPostId(postId)) {
-            throw new AnnouncementDuplicateException();
-        }
+    private PostMeta getPostMeta(Long postId) {
+        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
     }
 
     private Announcement findById(Long id) {
