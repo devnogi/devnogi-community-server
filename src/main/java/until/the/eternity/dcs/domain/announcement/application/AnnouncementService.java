@@ -2,6 +2,7 @@ package until.the.eternity.dcs.domain.announcement.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
@@ -20,6 +21,7 @@ public class AnnouncementService {
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
 
+    @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
         Post post =
                 postRepository
@@ -30,6 +32,7 @@ public class AnnouncementService {
         Announcement announcement = converter.fromCreateRequestAndPost(request, post, postMeta);
 
         Announcement saved = repository.save(announcement);
+        postMetaRepository.save(postMeta);
 
         return converter.fromEntityToPersistResponse(saved);
     }
