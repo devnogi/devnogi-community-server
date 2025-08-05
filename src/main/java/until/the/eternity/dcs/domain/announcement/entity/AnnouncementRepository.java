@@ -12,4 +12,8 @@ public class AnnouncementRepository {
     public Announcement save(Announcement announcement) {
         return jpaRepository.save(announcement);
     }
+
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
+    }
 }

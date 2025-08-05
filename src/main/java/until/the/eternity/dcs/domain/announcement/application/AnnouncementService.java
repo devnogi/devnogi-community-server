@@ -33,4 +33,8 @@ public class AnnouncementService {
 
         return converter.fromEntityToPersistResponse(saved);
     }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
 }
