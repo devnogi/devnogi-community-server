@@ -40,9 +40,8 @@ public class AnnouncementController {
             content =
                     @Content(schema = @Schema(implementation = AnnouncementPersistResponse.class)))
     public ResponseEntity<AnnouncementPersistResponse> create(
-            @PathVariable Long postId, @Valid @RequestBody AnnouncementCreateRequest announcement) {
-        return ResponseEntity.status(CREATED)
-                .body(announcementService.create(postId, announcement));
+            @PathVariable Long postId, @Valid @RequestBody AnnouncementCreateRequest request) {
+        return ResponseEntity.status(CREATED).body(announcementService.create(postId, request));
     }
 
     @DeleteMapping("/{id}")
