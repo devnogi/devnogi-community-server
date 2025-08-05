@@ -12,9 +12,13 @@ import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicat
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.user.application.UserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
 @Service
 @RequiredArgsConstructor
@@ -23,39 +27,64 @@ public class AnnouncementService {
     private final AnnouncementConverter converter;
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
+    private final UserService userService;
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
-        if (repository.existsByPostId(postId)) {
-            throw new AnnouncementDuplicateException();
-        }
+        duplicateCheck(postId);
 
-        Post post =
-                postRepository
-                        .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
-                        .orElseThrow(() -> new PostNotFoundException(postId));
-        PostMeta postMeta = postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
+        Post post = getPost(postId);
+        PostMeta postMeta = getPostMeta(postId);
 
         Announcement announcement = converter.fromCreateRequestAndPost(request, post, postMeta);
-
         Announcement saved = repository.save(announcement);
         postMetaRepository.save(postMeta);
 
         return converter.fromEntityToPersistResponse(saved);
     }
 
+    @Transactional
     public void delete(Long id) {
-        // todo 유저 확인
+        isAuthorizedUser(findById(id));
+
         repository.deleteById(id);
     }
 
     @Transactional
     public AnnouncementToggleResponse toggleGlobal(Long id) {
-        Announcement announcement =
-                repository.findById(id).orElseThrow(() -> new AnnouncementNotFoundException(id));
+        Announcement announcement = findById(id);
 
         announcement.toggleIsGlobal();
 
         return converter.fromEntityToToggleResponse(announcement);
+    }
+
+    private PostMeta getPostMeta(Long postId) {
+        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
+    }
+
+    private Post getPost(Long postId) {
+        return postRepository
+                .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
+    }
+
+    private void duplicateCheck(Long postId) {
+        if (repository.existsByPostId(postId)) {
+            throw new AnnouncementDuplicateException();
+        }
+    }
+
+    private Announcement findById(Long id) {
+        return repository.findById(id).orElseThrow(() -> new AnnouncementNotFoundException(id));
+    }
+
+    private void isAuthorizedUser(Announcement announcement) {
+        UserSummary currentUser = userService.getCurrentUser();
+        if (currentUser.getId().equals(announcement.getUserId())
+                || currentUser.getGrade().equals(UserGrade.ADMIN)) {
+            return;
+        }
+        throw new PostModifyForbiddenException();
     }
 }
