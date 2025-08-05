@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.announcement.entity;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.announcement.infrastructure.JpaAnnouncementRepository;
@@ -15,5 +16,13 @@ public class AnnouncementRepository {
 
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    public boolean existsByPostId(Long postId) {
+        return jpaRepository.existsByPostId(postId);
+    }
+
+    public Optional<Announcement> findById(Long id) {
+        return jpaRepository.findById(id);
     }
 }

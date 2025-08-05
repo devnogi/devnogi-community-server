@@ -5,8 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
+import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.announcement.entity.AnnouncementRepository;
+import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
+import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
@@ -23,6 +26,10 @@ public class AnnouncementService {
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
+        if (repository.existsByPostId(postId)) {
+            throw new AnnouncementDuplicateException();
+        }
+
         Post post =
                 postRepository
                         .findByIdAndIsDeletedFalseAndIsBlockedFalse(postId)
@@ -39,5 +46,15 @@ public class AnnouncementService {
 
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    @Transactional
+    public AnnouncementToggleResponse toggleGlobal(Long id) {
+        Announcement announcement =
+                repository.findById(id).orElseThrow(() -> new AnnouncementNotFoundException(id));
+
+        announcement.toggleIsGlobal();
+
+        return converter.fromEntityToToggleResponse(announcement);
     }
 }

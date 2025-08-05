@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.announcement.application;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
+import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
@@ -12,6 +13,7 @@ public class AnnouncementConverter {
     public Announcement fromCreateRequestAndPost(
             AnnouncementCreateRequest request, Post post, PostMeta postMeta) {
         return Announcement.builder()
+                .postId(post.getId())
                 .board(post.getBoard())
                 .userId(post.getUserId())
                 .title(post.getTitle())
@@ -26,5 +28,12 @@ public class AnnouncementConverter {
 
     public AnnouncementPersistResponse fromEntityToPersistResponse(Announcement announcement) {
         return AnnouncementPersistResponse.builder().id(announcement.getId()).build();
+    }
+
+    public AnnouncementToggleResponse fromEntityToToggleResponse(Announcement announcement) {
+        return AnnouncementToggleResponse.builder()
+                .id(announcement.getId())
+                .isGlobal(announcement.getIsGlobal())
+                .build();
     }
 }
