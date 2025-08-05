@@ -45,6 +45,7 @@ public class AnnouncementService {
     }
 
     public void delete(Long id) {
+        // todo 유저 확인
         repository.deleteById(id);
     }
 
