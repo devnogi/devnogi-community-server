@@ -8,4 +8,8 @@ import until.the.eternity.dcs.domain.announcement.infrastructure.JpaAnnouncement
 @RequiredArgsConstructor
 public class AnnouncementRepository {
     private final JpaAnnouncementRepository jpaRepository;
+
+    public Announcement save(Announcement announcement) {
+        return jpaRepository.save(announcement);
+    }
 }
