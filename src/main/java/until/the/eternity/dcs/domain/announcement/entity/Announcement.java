@@ -17,6 +17,9 @@ public class Announcement extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "post_id", nullable = false)
+    private Long postId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
@@ -49,4 +52,8 @@ public class Announcement extends AuditableEntity {
     @Column(name = "is_global")
     @Builder.Default
     private Boolean isGlobal = false;
+
+    public void toggleIsGlobal() {
+        this.isGlobal = !this.isGlobal;
+    }
 }
