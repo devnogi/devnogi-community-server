@@ -2,6 +2,8 @@ package until.the.eternity.dcs.domain.announcement.entity;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.announcement.infrastructure.JpaAnnouncementRepository;
 
@@ -24,5 +26,9 @@ public class AnnouncementRepository {
 
     public Optional<Announcement> findById(Long id) {
         return jpaRepository.findById(id);
+    }
+
+    public Page<Announcement> findByBoardIdAndGlobal(Long boardId, Pageable pageable) {
+        return jpaRepository.findByBoardIdOrGlobalTrue(boardId, pageable);
     }
 }
