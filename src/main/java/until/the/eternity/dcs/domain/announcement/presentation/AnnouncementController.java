@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import until.the.eternity.dcs.common.response.CustomPageResponse;
 import until.the.eternity.dcs.domain.announcement.application.AnnouncementService;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
@@ -86,8 +86,7 @@ public class AnnouncementController {
             responseCode = "200",
             content =
                     @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
-    public CustomPageResponse<AnnouncementPageResponseItem> getAnnouncements(
-            @PathVariable Long boardId) {
-        return CustomPageResponse.from(announcementService.getAnnouncementByBoardId(boardId));
+    public List<AnnouncementPageResponseItem> getAnnouncements(@PathVariable Long boardId) {
+        return announcementService.getAnnouncementByBoardId(boardId);
     }
 }

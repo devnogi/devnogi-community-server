@@ -1,9 +1,7 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
@@ -14,7 +12,6 @@ import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.announcement.entity.AnnouncementRepository;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
-import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
@@ -33,7 +30,6 @@ public class AnnouncementService {
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
     private final UserService userService;
-    private final BoardRepository boardRepository;
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
@@ -95,11 +91,9 @@ public class AnnouncementService {
         throw new PostModifyForbiddenException();
     }
 
-    public Page<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
-        Pageable pageable = PageRequest.of(0, 10);
+    public List<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
+        List<Announcement> announcements = repository.findByBoardIdAndGlobal(boardId);
 
-        Page<Announcement> announcements = repository.findByBoardIdAndGlobal(boardId, pageable);
-
-        return announcements.map(converter::fromEntityToPageResponse);
+        return announcements.stream().map(converter::fromEntityToPageResponse).toList();
     }
 }
