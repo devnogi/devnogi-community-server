@@ -12,6 +12,7 @@ import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.announcement.entity.AnnouncementRepository;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
+import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
@@ -33,7 +34,6 @@ public class AnnouncementService {
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
-        // todo board에 announcement리스트도 추가
         duplicateCheck(postId);
 
         Post post = getPost(postId);
@@ -42,6 +42,9 @@ public class AnnouncementService {
         Announcement announcement = converter.fromCreateRequestAndPost(request, post, postMeta);
         Announcement saved = repository.save(announcement);
         postMetaRepository.save(postMeta);
+
+        Board board = post.getBoard();
+        board.getAnnouncements().add(announcement);
 
         return converter.fromEntityToPersistResponse(saved);
     }
@@ -60,6 +63,13 @@ public class AnnouncementService {
         announcement.toggleIsGlobal();
 
         return converter.fromEntityToToggleResponse(announcement);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
+        List<Announcement> announcements = repository.findByBoardIdAndGlobal(boardId);
+
+        return announcements.stream().map(converter::fromEntityToPageResponse).toList();
     }
 
     private void duplicateCheck(Long postId) {
@@ -89,11 +99,5 @@ public class AnnouncementService {
             return;
         }
         throw new PostModifyForbiddenException();
-    }
-
-    public List<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
-        List<Announcement> announcements = repository.findByBoardIdAndGlobal(boardId);
-
-        return announcements.stream().map(converter::fromEntityToPageResponse).toList();
     }
 }
