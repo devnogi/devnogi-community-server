@@ -1,9 +1,11 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
+import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
@@ -86,5 +88,9 @@ public class AnnouncementService {
             return;
         }
         throw new PostModifyForbiddenException();
+    }
+
+    public Page<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
+        return null;
     }
 }
