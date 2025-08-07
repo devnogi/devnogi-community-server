@@ -22,6 +22,8 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.tag.application.PostTagService;
+import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
 import until.the.eternity.dcs.domain.user.application.UserService;
@@ -37,16 +39,30 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
     private final PostMetaRepository postMetaRepository;
+    private final TagService tagService;
+    private final PostTagService postTagService;
 
     // todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     // todo postTag 관련 로직도 추후 필요
     @Transactional
     public PostPersistResponse createPost(PostCreateRequest request) {
         UserSummary user = getCurrentUser();
-        List<PostTag> postTagList = new ArrayList<>();
 
-        Post post = postConverter.fromCreateRequestToPost(request, user.getId(), postTagList);
+        Post post = postConverter.fromCreateRequestToPost(request, user.getId());
         Post savedPost = postRepository.save(post);
+
+        List<PostTag> postTags =
+                request.tags().stream()
+                        .map(tagService::findOrCreateTag) // 태그를 찾거나 새로 생성
+                        .map(
+                                tag ->
+                                        PostTag.builder()
+                                                .post(savedPost)
+                                                .tag(tag)
+                                                .build()) // PostTag 엔티티 생성
+                        .toList();
+
+        postTagService.savePostTags(postTags);
 
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }

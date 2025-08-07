@@ -38,6 +38,8 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.tag.application.PostTagService;
+import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -54,6 +56,10 @@ class PostServiceTest {
     @Mock private PostLikeRepository postLikeRepository;
 
     @Mock private PostLikeConverter postLikeConverter;
+
+    @Mock private TagService tagService;
+
+    @Mock private PostTagService postTagService;
 
     @InjectMocks private PostService postService;
 
@@ -146,7 +152,7 @@ class PostServiceTest {
         void createPost_Success() {
             // Given
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L), anyList()))
+            given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L)))
                     .willReturn(mockPost);
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
@@ -158,7 +164,7 @@ class PostServiceTest {
             // Then
             assertThat(result).isEqualTo(mockPersistResponse);
             verify(fakeUserService).getCurrentUser();
-            verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L), anyList());
+            verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L));
             verify(postRepository).save(mockPost);
             verify(postConverter).fromPostToPostPersistResponse(mockPost);
         }
