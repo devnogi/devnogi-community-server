@@ -28,6 +28,6 @@ public class AnnouncementRepository {
     }
 
     public List<Announcement> findByBoardIdAndGlobal(Long boardId) {
-        return jpaRepository.findByBoardIdOrGlobalTrue(boardId);
+        return jpaRepository.findByBoardIdOrIsGlobalTrue(boardId);
     }
 }
