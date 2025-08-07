@@ -56,8 +56,6 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            cd dcs-server
-            docker-compose down
             docker stop dcs-server || true
             docker rm dcs-server || true
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest

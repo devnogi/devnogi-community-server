@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.announcement.entity;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -24,5 +25,9 @@ public class AnnouncementRepository {
 
     public Optional<Announcement> findById(Long id) {
         return jpaRepository.findById(id);
+    }
+
+    public List<Announcement> findByBoardIdAndGlobal(Long boardId) {
+        return jpaRepository.findByBoardIdOrIsGlobalTrue(boardId);
     }
 }

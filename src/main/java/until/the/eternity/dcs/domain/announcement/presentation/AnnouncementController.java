@@ -8,9 +8,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import until.the.eternity.dcs.domain.announcement.application.AnnouncementService;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
+import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
 
@@ -70,5 +73,20 @@ public class AnnouncementController {
             content = @Content(schema = @Schema(implementation = AnnouncementToggleResponse.class)))
     public AnnouncementToggleResponse toggleGlobal(@PathVariable Long id) {
         return announcementService.toggleGlobal(id);
+    }
+
+    @GetMapping("/{boardId}")
+    @Operation(
+            summary = "게시판 별 공지글 전체 조회 API",
+            description = """
+	- Description : 이 API는 해당 게시판의 공지글을 전체 조회합니다.
+	- Assignee : 이신행
+""")
+    @ApiResponse(
+            responseCode = "200",
+            content =
+                    @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
+    public List<AnnouncementPageResponseItem> getAnnouncements(@PathVariable Long boardId) {
+        return announcementService.getAnnouncementByBoardId(boardId);
     }
 }
