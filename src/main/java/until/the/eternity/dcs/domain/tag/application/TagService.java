@@ -1,9 +1,16 @@
 package until.the.eternity.dcs.domain.tag.application;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
+import until.the.eternity.dcs.domain.tag.infrastructure.PostTagRepository;
 import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 
 @Service
@@ -11,11 +18,24 @@ import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 @Transactional(readOnly = true)
 public class TagService {
     private final TagRepository tagRepository;
+    private final PostRepository postRepository;
+    private final PostTagRepository postTagRepository;
 
     @Transactional
     public Tag findOrCreateTag(String tagName) {
         return tagRepository
                 .findByName(tagName)
                 .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
+    }
+
+    public List<TagResponse> findByPostId(Long postId) {
+        Post post =
+                postRepository
+                        .findWithTagsById(postId)
+                        .orElseThrow(() -> new PostNotFoundException(postId));
+
+        return post.getPostTags().stream()
+                .map(postTag -> new TagResponse(postTag.getTag().getName()))
+                .collect(Collectors.toList());
     }
 }

@@ -28,3 +28,13 @@ VALUES (1, 1, 2, NULL, '첫 글 축하드려요!', 0, 0),
        (3, 2, 1, 2, '저도 이 방법으로 성공했습니다!', 0, 0), -- 대댓글
        (4, 3, 1, NULL, '구매 희망합니다!', 0, 0),
        (5, 3, 2, 4, '저도 관심 있어요.', 0, 0);
+
+-- tag 더미 데이터
+INSERT INTO tag (id, name)
+VALUES (1, '보스'),
+       (2, '공략');
+
+-- postTag 더미 데이터
+INSERT INTO post_tag(id, post_id, tag_id)
+VALUES (1,2,1),
+       (2,2,2);
