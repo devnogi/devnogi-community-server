@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -34,7 +35,21 @@ public class TagServiceTest {
 
     @Test
     @DisplayName("태그 생성 성공")
-    public void createTag_Success() {}
+    public void createTag_Success() {
+        // given
+
+        String tagName = "test";
+        Tag tag = Tag.builder().name(tagName).build();
+        when(tagRepository.save(Mockito.any(Tag.class))).thenReturn(tag);
+
+        // when
+
+        Tag newTag = tagService.createTag(tagName);
+
+        // then
+
+        assertThat(newTag.getName()).isEqualTo(tagName);
+    }
 
     @Test
     @DisplayName("태그 리스트 조회 성공")
@@ -47,25 +62,22 @@ public class TagServiceTest {
         Tag tag1 = Tag.builder().id(1L).name("java").build();
         Tag tag2 = Tag.builder().id(2L).name("spring").build();
 
-        // when
         PostTag postTag1 = PostTag.builder().id(1L).post(post).tag(tag1).build();
         PostTag postTag2 = PostTag.builder().id(2L).post(post).tag(tag2).build();
         post.getPostTags().add(postTag1);
         post.getPostTags().add(postTag2);
 
-        // then
         when(postRepository.findWithTagsById(postId)).thenReturn(Optional.of(post));
 
-        // When: 실제 메서드 호출
+        // When
+
         List<TagResponse> tagResponses = tagService.findByPostId(postId);
 
-        // Then: 결과 및 호출 검증
+        // Then
         assertThat(tagResponses).isNotNull();
         assertThat(tagResponses).hasSize(2);
         assertThat(tagResponses.stream().map(TagResponse::name).collect(Collectors.toList()))
                 .containsExactlyInAnyOrder("java", "spring");
-
-        // postRepository의 findWithTagsById 메서드가 1번 호출되었는지 확인
         verify(postRepository).findWithTagsById(postId);
     }
 }

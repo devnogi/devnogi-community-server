@@ -21,11 +21,13 @@ public class TagService {
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
 
-    @Transactional
     public Tag findOrCreateTag(String tagName) {
-        return tagRepository
-                .findByName(tagName)
-                .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
+        return tagRepository.findByName(tagName).orElseGet(() -> createTag(tagName));
+    }
+
+    @Transactional
+    public Tag createTag(String tagName) {
+        return tagRepository.save(Tag.builder().name(tagName).build());
     }
 
     public List<TagResponse> findByPostId(Long postId) {
