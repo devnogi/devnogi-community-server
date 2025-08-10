@@ -1,7 +1,6 @@
 package until.the.eternity.dcs.domain.tag.application;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,13 +30,16 @@ public class TagService {
     }
 
     public List<TagResponse> findByPostId(Long postId) {
-        Post post =
-                postRepository
-                        .findWithTagsById(postId)
-                        .orElseThrow(() -> new PostNotFoundException(postId));
+        Post post = getPost(postId);
 
         return post.getPostTags().stream()
                 .map(postTag -> new TagResponse(postTag.getTag().getName()))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    public Post getPost(Long postId) {
+        return postRepository
+                .findWithTagsById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
     }
 }

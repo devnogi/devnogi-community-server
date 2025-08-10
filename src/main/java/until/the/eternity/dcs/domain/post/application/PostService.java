@@ -25,7 +25,6 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
-import until.the.eternity.dcs.domain.tag.entity.Tag;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -99,14 +98,23 @@ public class PostService {
 
         Post post = findById(id);
 
-        List<PostTag> postTagList = convertStringToPostTag(post, postUpdateRequest.tags());
+        List<String> newTags = postUpdateRequest.tags();
+
+        List<PostTag> newPostTags =
+                newTags.stream()
+                        .map(tagService::findOrCreateTag) // 태그를 찾거나 새로 생성
+                        .map(tag -> PostTag.builder().post(post).tag(tag).build()) // PostTag 엔티티 생성
+                        .toList();
+
+        post.getPostTags().clear();
 
         post.update(
                 postUpdateRequest.title(),
                 postUpdateRequest.content(),
                 postUpdateRequest.isDraft(),
-                postTagList,
+                newPostTags,
                 user.getId());
+
         return postConverter.fromPostToPostPersistResponse(postRepository.save(post));
     }
 
@@ -147,23 +155,7 @@ public class PostService {
     }
 
     private Post findById(Long id) {
-        return postRepository
-                .findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
-                .orElseThrow(() -> new PostNotFoundException(id));
-    }
-
-    // todo Tag, PostTag service 구현 후 로직 수정 필요
-    private List<PostTag> convertStringToPostTag(Post post, List<String> stringList) {
-        List<PostTag> postTagList = new ArrayList<>();
-
-        // 당장은 중복검사가 안됨
-        stringList.forEach(
-                string -> {
-                    Tag tag = Tag.builder().name(string).build();
-                    postTagList.add(PostTag.builder().post(post).tag(tag).build());
-                });
-
-        return postTagList;
+        return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
     private PostMeta findPostMetaByPostId(Long postId) {
