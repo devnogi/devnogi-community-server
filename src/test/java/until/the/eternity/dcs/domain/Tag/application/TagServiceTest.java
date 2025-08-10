@@ -21,7 +21,6 @@ import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
-import until.the.eternity.dcs.domain.tag.infrastructure.PostTagRepository;
 import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +28,6 @@ import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 public class TagServiceTest {
     @Mock private TagRepository tagRepository;
     @Mock private PostRepository postRepository;
-    @Mock private PostTagRepository postTagRepository;
 
     @InjectMocks private TagService tagService;
 

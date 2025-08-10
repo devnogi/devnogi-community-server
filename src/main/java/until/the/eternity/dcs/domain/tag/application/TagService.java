@@ -9,7 +9,6 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
-import until.the.eternity.dcs.domain.tag.infrastructure.PostTagRepository;
 import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 
 @Service
@@ -18,7 +17,6 @@ import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 public class TagService {
     private final TagRepository tagRepository;
     private final PostRepository postRepository;
-    private final PostTagRepository postTagRepository;
 
     public Tag findOrCreateTag(String tagName) {
         return tagRepository.findByName(tagName).orElseGet(() -> createTag(tagName));
