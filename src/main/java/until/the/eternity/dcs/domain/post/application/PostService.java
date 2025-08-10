@@ -74,7 +74,7 @@ public class PostService {
     }
 
     public PostDetailResponse findPost(Long id) {
-        Post post = findById(id);
+        Post post = findByIdWithoutTags(id);
         PostMeta postMeta = findPostMetaByPostId(id);
         postMeta.viewPost(); // todo 차후 일정 기간 내 다시 조회는 조회수 카운트로 치지 않도록 변경
         postMetaRepository.save(postMeta);
@@ -163,6 +163,12 @@ public class PostService {
 
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
+    }
+
+    private Post findByIdWithoutTags(Long id) {
+        return postRepository
+                .findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
     }
 
     private PostMeta findPostMetaByPostId(Long postId) {

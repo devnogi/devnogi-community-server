@@ -206,7 +206,7 @@ class PostServiceTest {
                             .comments(comments)
                             .build();
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
-            given(postRepository.findWithTagsById(postId))
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
                     .willReturn(Optional.of(postWithComments));
             given(postConverter.fromPostToPostDetailResponse(postWithComments, postMeta))
                     .willReturn(mockDetailResponse);
@@ -218,7 +218,7 @@ class PostServiceTest {
             assertThat(result).isEqualTo(mockDetailResponse);
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
-            verify(postRepository).findWithTagsById(postId);
+            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
             verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMeta);
         }
 
@@ -227,13 +227,14 @@ class PostServiceTest {
         void findPost_NotFound() {
             // Given
             Long postId = 999L;
-            given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
+                    .willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> postService.findPost(postId))
                     .isInstanceOf(PostNotFoundException.class);
 
-            verify(postRepository).findWithTagsById(postId);
+            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
         }
 
         @Test

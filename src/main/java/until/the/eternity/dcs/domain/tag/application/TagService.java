@@ -4,8 +4,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
@@ -28,16 +26,8 @@ public class TagService {
     }
 
     public List<TagResponse> findByPostId(Long postId) {
-        Post post = getPost(postId);
-
-        return post.getPostTags().stream()
-                .map(postTag -> new TagResponse(postTag.getTag().getName()))
+        return tagRepository.findAllByPostId(postId).stream()
+                .map(tag -> TagResponse.builder().name(tag.getName()).build())
                 .toList();
-    }
-
-    public Post getPost(Long postId) {
-        return postRepository
-                .findWithTagsById(postId)
-                .orElseThrow(() -> new PostNotFoundException(postId));
     }
 }

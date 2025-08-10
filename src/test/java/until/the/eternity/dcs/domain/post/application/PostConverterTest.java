@@ -126,7 +126,5 @@ public class PostConverterTest {
         assertThat(result.isBlocked()).isEqualTo(post.getIsBlocked());
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
         assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
-        assertThat(result.tags()).hasSize(0);
-        assertThat(result.tags()).containsExactlyElementsOf(post.getPostTags());
     }
 }
