@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
@@ -27,7 +25,6 @@ import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 @DisplayName("TagServiceTest 단위 테스트")
 public class TagServiceTest {
     @Mock private TagRepository tagRepository;
-    @Mock private PostRepository postRepository;
 
     @InjectMocks private TagService tagService;
 
@@ -65,7 +62,11 @@ public class TagServiceTest {
         post.getPostTags().add(postTag1);
         post.getPostTags().add(postTag2);
 
-        when(postRepository.findWithTagsById(postId)).thenReturn(Optional.of(post));
+        List<Tag> tagList = new ArrayList<>();
+        tagList.add(tag1);
+        tagList.add(tag2);
+
+        when(tagRepository.findAllByPostId(postId)).thenReturn(tagList);
 
         // When
 
@@ -76,6 +77,6 @@ public class TagServiceTest {
         assertThat(tagResponses).hasSize(2);
         assertThat(tagResponses.stream().map(TagResponse::name).collect(Collectors.toList()))
                 .containsExactlyInAnyOrder("java", "spring");
-        verify(postRepository).findWithTagsById(postId);
+        verify(tagRepository).findAllByPostId(postId);
     }
 }

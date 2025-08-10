@@ -4,7 +4,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
 import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
@@ -14,7 +13,6 @@ import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
 @Transactional(readOnly = true)
 public class TagService {
     private final TagRepository tagRepository;
-    private final PostRepository postRepository;
 
     public Tag findOrCreateTag(String tagName) {
         return tagRepository.findByName(tagName).orElseGet(() -> createTag(tagName));
