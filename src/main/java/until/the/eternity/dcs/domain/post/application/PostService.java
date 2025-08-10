@@ -57,19 +57,6 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
 
-        //        List<PostTag> postTags =
-        //                request.tags().stream()
-        //                        .map(tagService::findOrCreateTag) // 태그를 찾거나 새로 생성
-        //                        .map(
-        //                                tag ->
-        //                                        PostTag.builder()
-        //                                                .post(savedPost)
-        //                                                .tag(tag)
-        //                                                .build()) // PostTag 엔티티 생성
-        //                        .toList();
-        //
-        //        postTagService.savePostTags(postTags);
-
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }
 
