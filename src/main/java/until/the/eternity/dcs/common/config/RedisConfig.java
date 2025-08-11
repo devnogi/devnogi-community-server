@@ -33,7 +33,7 @@ public class RedisConfig {
         // 직렬화 설정
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         GenericJackson2JsonRedisSerializer jsonSerializer =
-                new GenericJackson2JsonRedisSerializer(redisObjectMapper());
+                new GenericJackson2JsonRedisSerializer(objectMapper);
 
         // Key는 String, Value는 JSON으로 직렬화
         template.setKeySerializer(stringSerializer);
@@ -71,8 +71,7 @@ public class RedisConfig {
                                         new StringRedisSerializer()))
                         .serializeValuesWith(
                                 RedisSerializationContext.SerializationPair.fromSerializer(
-                                        new GenericJackson2JsonRedisSerializer(
-                                                redisObjectMapper())));
+                                        new GenericJackson2JsonRedisSerializer(objectMapper)));
 
         return RedisCacheManager.builder(connectionFactory).cacheDefaults(config).build();
     }
