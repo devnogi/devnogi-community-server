@@ -17,4 +17,9 @@ public class PostTagService {
     public void savePostTags(List<PostTag> postTags) {
         postTagRepository.saveAll(postTags);
     }
+
+    @Transactional
+    public void deletePostTags(List<PostTag> postTags) {
+        postTagRepository.deleteAll(postTags);
+    }
 }

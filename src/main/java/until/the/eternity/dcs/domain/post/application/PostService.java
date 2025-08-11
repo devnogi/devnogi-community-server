@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,15 +48,15 @@ public class PostService {
         UserSummary user = getCurrentUser();
 
         Post post = postConverter.fromCreateRequestToPost(request, user.getId());
+        Post savedPost = postRepository.save(post);
+
         List<PostTag> postTags =
                 request.tags().stream()
                         .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().tag(tag).build())
-                        .toList();
+                        .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
+                        .collect(Collectors.toList());
 
-        post.update(null, null, null, postTags, null);
-
-        Post savedPost = postRepository.save(post);
+        postTagService.savePostTags(postTags);
 
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }
@@ -92,13 +93,36 @@ public class PostService {
 
         Post post = findById(id);
 
+        List<String> currentList =
+                post.getPostTags().stream()
+                        .map(postTag -> postTag.getTag().getName())
+                        .collect(Collectors.toList());
+
         List<String> newTags = postUpdateRequest.tags();
+
+        List<PostTag> toDeleteTags =
+                currentList.stream()
+                        .filter(name -> !newTags.contains(name))
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                        .toList();
+
+        postTagService.deletePostTags(toDeleteTags);
+
+        List<PostTag> toAddTags =
+                newTags.stream()
+                        .filter(name -> !currentList.contains(name))
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                        .toList();
+
+        postTagService.savePostTags(toAddTags);
 
         List<PostTag> newPostTags =
                 newTags.stream()
                         .map(tagService::findOrCreateTag) // 태그를 찾거나 새로 생성
                         .map(tag -> PostTag.builder().post(post).tag(tag).build()) // PostTag 엔티티 생성
-                        .toList();
+                        .collect(Collectors.toList());
 
         post.getPostTags().clear();
 
@@ -106,10 +130,12 @@ public class PostService {
                 postUpdateRequest.title(),
                 postUpdateRequest.content(),
                 postUpdateRequest.isDraft(),
-                newPostTags,
+                null,
                 user.getId());
 
-        return postConverter.fromPostToPostPersistResponse(postRepository.save(post));
+        Post updatedPost = postRepository.save(post); // todo 이 부분 에러발생
+
+        return postConverter.fromPostToPostPersistResponse(updatedPost);
     }
 
     @Transactional

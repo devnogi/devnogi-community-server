@@ -1,7 +1,6 @@
 package until.the.eternity.dcs.domain.post.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
@@ -74,7 +73,12 @@ public class Post extends SoftDeleteEntity {
         if (isDraft != null) {
             this.isDraft = isDraft;
         }
-        this.postTags = (postTags != null) ? postTags : new ArrayList<>();
-        this.setUpdatedBy(userId);
+        if (postTags != null) {
+            this.postTags.addAll(postTags);
+        }
+
+        if (userId != null) {
+            this.setUpdatedBy(userId);
+        }
     }
 }
