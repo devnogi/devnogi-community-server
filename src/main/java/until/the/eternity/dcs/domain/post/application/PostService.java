@@ -25,7 +25,6 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
-import until.the.eternity.dcs.domain.tag.entity.Tag;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -48,11 +47,12 @@ public class PostService {
         UserSummary user = getCurrentUser();
 
         Post post = postConverter.fromCreateRequestToPost(request, user.getId());
-        List<PostTag> postTags = new ArrayList<>();
-        for (String tagName : request.tags()) {
-            Tag tag = tagService.findOrCreateTag(tagName);
-            postTags.add(PostTag.builder().tag(tag).build());
-        }
+        List<PostTag> postTags =
+                request.tags().stream()
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().tag(tag).build())
+                        .toList();
+
         post.update(null, null, null, postTags, null);
 
         Post savedPost = postRepository.save(post);
@@ -61,7 +61,7 @@ public class PostService {
     }
 
     public PostDetailResponse findPost(Long id) {
-        Post post = findByIdWithoutTags(id);
+        Post post = findById(id);
         PostMeta postMeta = findPostMetaByPostId(id);
         postMeta.viewPost(); // todo 차후 일정 기간 내 다시 조회는 조회수 카운트로 치지 않도록 변경
         postMetaRepository.save(postMeta);
@@ -150,12 +150,6 @@ public class PostService {
 
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
-    }
-
-    private Post findByIdWithoutTags(Long id) {
-        return postRepository
-                .findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
-                .orElseThrow(() -> new PostNotFoundException(id));
     }
 
     private PostMeta findPostMetaByPostId(Long postId) {
