@@ -94,9 +94,7 @@ public class PostService {
         Post post = findById(id);
 
         List<String> currentList =
-                post.getPostTags().stream()
-                        .map(postTag -> postTag.getTag().getName())
-                        .collect(Collectors.toList());
+                post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
 
         List<String> newTags = postUpdateRequest.tags();
 
@@ -117,12 +115,6 @@ public class PostService {
                         .toList();
 
         postTagService.savePostTags(toAddTags);
-
-        List<PostTag> newPostTags =
-                newTags.stream()
-                        .map(tagService::findOrCreateTag) // 태그를 찾거나 새로 생성
-                        .map(tag -> PostTag.builder().post(post).tag(tag).build()) // PostTag 엔티티 생성
-                        .collect(Collectors.toList());
 
         post.getPostTags().clear();
 
