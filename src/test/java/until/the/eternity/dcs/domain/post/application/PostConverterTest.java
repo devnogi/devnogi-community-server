@@ -47,7 +47,7 @@ public class PostConverterTest {
                 new PostCreateRequest(boardId, title, content, isDraft, stringTagList);
 
         // when
-        Post result = postConverter.fromCreateRequestToPost(request, userId, postTagList);
+        Post result = postConverter.fromCreateRequestToPost(request, userId);
 
         // then
         assertThat(result).isNotNull();
@@ -56,8 +56,6 @@ public class PostConverterTest {
         assertThat(result.getTitle()).isEqualTo(title);
         assertThat(result.getContent()).isEqualTo(content);
         assertThat(result.getIsDraft()).isEqualTo(isDraft);
-        assertThat(result.getPostTags()).hasSize(2);
-        assertThat(result.getPostTags()).containsExactlyElementsOf(postTagList);
     }
 
     @Test
@@ -128,7 +126,5 @@ public class PostConverterTest {
         assertThat(result.isBlocked()).isEqualTo(post.getIsBlocked());
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
         assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
-        assertThat(result.tags()).hasSize(0);
-        assertThat(result.tags()).containsExactlyElementsOf(post.getPostTags());
     }
 }

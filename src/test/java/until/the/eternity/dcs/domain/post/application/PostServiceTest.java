@@ -38,6 +38,8 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.tag.application.PostTagService;
+import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -54,6 +56,10 @@ class PostServiceTest {
     @Mock private PostLikeRepository postLikeRepository;
 
     @Mock private PostLikeConverter postLikeConverter;
+
+    @Mock private TagService tagService;
+
+    @Mock private PostTagService postTagService;
 
     @InjectMocks private PostService postService;
 
@@ -146,7 +152,7 @@ class PostServiceTest {
         void createPost_Success() {
             // Given
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L), anyList()))
+            given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L)))
                     .willReturn(mockPost);
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
@@ -158,7 +164,7 @@ class PostServiceTest {
             // Then
             assertThat(result).isEqualTo(mockPersistResponse);
             verify(fakeUserService).getCurrentUser();
-            verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L), anyList());
+            verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L));
             verify(postRepository).save(mockPost);
             verify(postConverter).fromPostToPostPersistResponse(mockPost);
         }
@@ -200,7 +206,7 @@ class PostServiceTest {
                             .comments(comments)
                             .build();
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
+            given(postRepository.findWithTagsById(postId))
                     .willReturn(Optional.of(postWithComments));
             given(postConverter.fromPostToPostDetailResponse(postWithComments, postMeta))
                     .willReturn(mockDetailResponse);
@@ -212,7 +218,7 @@ class PostServiceTest {
             assertThat(result).isEqualTo(mockDetailResponse);
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
             verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMeta);
         }
 
@@ -221,14 +227,13 @@ class PostServiceTest {
         void findPost_NotFound() {
             // Given
             Long postId = 999L;
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
-                    .willReturn(Optional.empty());
+            given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> postService.findPost(postId))
                     .isInstanceOf(PostNotFoundException.class);
 
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
         }
 
         @Test
@@ -266,8 +271,7 @@ class PostServiceTest {
             // Given
             Long postId = 1L;
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
-                    .willReturn(Optional.of(mockPost));
+            given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
                     .willReturn(mockPersistResponse);
@@ -278,7 +282,7 @@ class PostServiceTest {
             // Then
             assertThat(result).isEqualTo(mockPersistResponse);
             verify(fakeUserService).getCurrentUser();
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
             verify(postRepository).save(mockPost);
         }
 
@@ -305,14 +309,13 @@ class PostServiceTest {
             // Given
             Long postId = 999L;
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
-                    .willReturn(Optional.empty());
+            given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> postService.updatePost(postId, updateRequest))
                     .isInstanceOf(PostNotFoundException.class);
 
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
             verify(postRepository, never()).save(any());
         }
     }
@@ -327,15 +330,14 @@ class PostServiceTest {
             // Given
             Long postId = 1L;
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
-                    .willReturn(Optional.of(mockPost));
+            given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
 
             // When
             postService.deletePost(postId);
 
             // Then
             verify(fakeUserService).getCurrentUser();
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
             verify(postRepository).delete(mockPost);
         }
 
@@ -347,15 +349,14 @@ class PostServiceTest {
             UserSummary anotherUser = UserSummary.builder().id(2L).nickname("anotherUser").build();
 
             given(fakeUserService.getCurrentUser()).willReturn(anotherUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
-                    .willReturn(Optional.of(mockPost));
+            given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
 
             // When & Then
             assertThatThrownBy(() -> postService.deletePost(postId))
                     .isInstanceOf(PostDeletionNotAllowedException.class);
 
             verify(fakeUserService).getCurrentUser();
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
             verify(postRepository, never()).delete(any());
         }
 
@@ -365,14 +366,13 @@ class PostServiceTest {
             // Given
             Long postId = 999L;
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(postId))
-                    .willReturn(Optional.empty());
+            given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> postService.deletePost(postId))
                     .isInstanceOf(PostNotFoundException.class);
 
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(postId);
+            verify(postRepository).findWithTagsById(postId);
             verify(postRepository, never()).delete(any());
         }
     }
@@ -390,8 +390,7 @@ class PostServiceTest {
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(false);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
-                    .willReturn(Optional.of(mockPost));
+            given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
             // when
             postService.togglePostLike(postLikeCreateRequest);
@@ -411,8 +410,7 @@ class PostServiceTest {
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
-                    .willReturn(Optional.of(mockPost));
+            given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
 
             // when
@@ -420,7 +418,7 @@ class PostServiceTest {
 
             // then
             assertThat(postMeta.getLikeCount()).isEqualTo(-1);
-            verify(postRepository).findByIdAndIsDeletedFalseAndIsBlockedFalse(1L);
+            verify(postRepository).findWithTagsById(1L);
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
             verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }

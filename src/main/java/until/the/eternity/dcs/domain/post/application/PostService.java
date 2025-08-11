@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +23,9 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.tag.application.PostTagService;
+import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
-import until.the.eternity.dcs.domain.tag.entity.Tag;
 import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
@@ -37,16 +39,24 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
     private final PostMetaRepository postMetaRepository;
+    private final TagService tagService;
+    private final PostTagService postTagService;
 
     // todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
-    // todo postTag 관련 로직도 추후 필요
     @Transactional
     public PostPersistResponse createPost(PostCreateRequest request) {
         UserSummary user = getCurrentUser();
-        List<PostTag> postTagList = new ArrayList<>();
 
-        Post post = postConverter.fromCreateRequestToPost(request, user.getId(), postTagList);
+        Post post = postConverter.fromCreateRequestToPost(request, user.getId());
         Post savedPost = postRepository.save(post);
+
+        List<PostTag> postTags =
+                request.tags().stream()
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
+                        .collect(Collectors.toList());
+
+        postTagService.savePostTags(postTags);
 
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }
@@ -83,15 +93,41 @@ public class PostService {
 
         Post post = findById(id);
 
-        List<PostTag> postTagList = convertStringToPostTag(post, postUpdateRequest.tags());
+        List<String> currentList =
+                post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
+
+        List<String> newTags = postUpdateRequest.tags();
+
+        List<PostTag> toDeleteTags =
+                currentList.stream()
+                        .filter(name -> !newTags.contains(name))
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                        .toList();
+
+        postTagService.deletePostTags(toDeleteTags);
+
+        List<PostTag> toAddTags =
+                newTags.stream()
+                        .filter(name -> !currentList.contains(name))
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                        .toList();
+
+        postTagService.savePostTags(toAddTags);
+
+        post.getPostTags().clear();
 
         post.update(
                 postUpdateRequest.title(),
                 postUpdateRequest.content(),
                 postUpdateRequest.isDraft(),
-                postTagList,
+                null,
                 user.getId());
-        return postConverter.fromPostToPostPersistResponse(postRepository.save(post));
+
+        Post updatedPost = postRepository.save(post); // todo 이 부분 에러발생
+
+        return postConverter.fromPostToPostPersistResponse(updatedPost);
     }
 
     @Transactional
@@ -131,23 +167,7 @@ public class PostService {
     }
 
     private Post findById(Long id) {
-        return postRepository
-                .findByIdAndIsDeletedFalseAndIsBlockedFalse(id)
-                .orElseThrow(() -> new PostNotFoundException(id));
-    }
-
-    // todo Tag, PostTag service 구현 후 로직 수정 필요
-    private List<PostTag> convertStringToPostTag(Post post, List<String> stringList) {
-        List<PostTag> postTagList = new ArrayList<>();
-
-        // 당장은 중복검사가 안됨
-        stringList.forEach(
-                string -> {
-                    Tag tag = Tag.builder().name(string).build();
-                    postTagList.add(PostTag.builder().post(post).tag(tag).build());
-                });
-
-        return postTagList;
+        return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
     private PostMeta findPostMetaByPostId(Long postId) {
