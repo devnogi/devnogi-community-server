@@ -98,13 +98,13 @@ public class CommentService {
                             commentConverter.fromCommentToPageResponse(
                                     c,
                                     likedCommentIds.contains(c.getId()),
-                                    commentMetaMap.get(c.getId())));
+                                    commentMetaMap.getOrDefault(c.getId(), 0)));
         }
 
         return comments.map(
                 c ->
                         commentConverter.fromCommentToPageResponseNonAuth(
-                                c, commentMetaMap.get(c.getId())));
+                                c, commentMetaMap.getOrDefault(c.getId(), 0)));
     }
 
     @Transactional
