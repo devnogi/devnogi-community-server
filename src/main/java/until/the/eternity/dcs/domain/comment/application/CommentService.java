@@ -1,9 +1,9 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,19 +79,20 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
-
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
         List<Long> commentIds = comments.stream().map(Comment::getId).toList();
-        List<CommentMeta> commentMetaList = commentMetaRepository.findByCommentIdIn(commentIds);
 
-        Map<Long, Integer> commentMetaMap = new HashMap<>();
-        commentMetaList.forEach(cm -> commentMetaMap.put(cm.getCommentId(), cm.getLikeCount()));
+        Map<Long, Integer> commentMetaMap =
+                commentMetaRepository.findByCommentIdIn(commentIds).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        CommentMeta::getCommentId, CommentMeta::getLikeCount));
 
         if (userService.isAuthenticated()) {
-            UserSummary user = getCurrentUser();
             Set<Long> likedCommentIds =
-                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(user.getId(), commentIds);
+                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(
+                            getCurrentUser().getId(), commentIds);
 
             return comments.map(
                     c ->
