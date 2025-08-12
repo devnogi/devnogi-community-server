@@ -1,10 +1,9 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -80,38 +79,33 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
-
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
-        // todo 추후 join 으로 조회
-        Map<Long, Integer> commentMetaMap = new HashMap<>();
-        for (Comment comment : comments) {
-            Optional<CommentMeta> commentMeta = commentMetaRepository.findById(comment.getId());
-            if (commentMeta.isPresent()) {
-                commentMetaMap.put(comment.getId(), commentMeta.get().getLikeCount());
-            } else {
-                commentMetaMap.put(comment.getId(), 0);
-            }
-        }
+        List<Long> commentIds = comments.stream().map(Comment::getId).toList();
+
+        Map<Long, Integer> commentMetaMap =
+                commentMetaRepository.findByCommentIdIn(commentIds).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        CommentMeta::getCommentId, CommentMeta::getLikeCount));
 
         if (userService.isAuthenticated()) {
-            UserSummary user = getCurrentUser();
-            List<Long> commentIds = comments.map(Comment::getId).toList();
             Set<Long> likedCommentIds =
-                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(user.getId(), commentIds);
+                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(
+                            getCurrentUser().getId(), commentIds);
 
             return comments.map(
                     c ->
                             commentConverter.fromCommentToPageResponse(
                                     c,
                                     likedCommentIds.contains(c.getId()),
-                                    commentMetaMap.get(c.getId())));
+                                    commentMetaMap.getOrDefault(c.getId(), 0)));
         }
 
         return comments.map(
                 c ->
                         commentConverter.fromCommentToPageResponseNonAuth(
-                                c, commentMetaMap.get(c.getId())));
+                                c, commentMetaMap.getOrDefault(c.getId(), 0)));
     }
 
     @Transactional
