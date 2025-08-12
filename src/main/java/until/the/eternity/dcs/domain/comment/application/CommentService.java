@@ -3,7 +3,6 @@ package until.the.eternity.dcs.domain.comment.application;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -83,20 +82,14 @@ public class CommentService {
 
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
-        // todo 추후 join 으로 조회
+        List<Long> commentIds = comments.stream().map(Comment::getId).toList();
+        List<CommentMeta> commentMetaList = commentMetaRepository.findByCommentIdIn(commentIds);
+
         Map<Long, Integer> commentMetaMap = new HashMap<>();
-        for (Comment comment : comments) {
-            Optional<CommentMeta> commentMeta = commentMetaRepository.findById(comment.getId());
-            if (commentMeta.isPresent()) {
-                commentMetaMap.put(comment.getId(), commentMeta.get().getLikeCount());
-            } else {
-                commentMetaMap.put(comment.getId(), 0);
-            }
-        }
+        commentMetaList.forEach(cm -> commentMetaMap.put(cm.getCommentId(), cm.getLikeCount()));
 
         if (userService.isAuthenticated()) {
             UserSummary user = getCurrentUser();
-            List<Long> commentIds = comments.map(Comment::getId).toList();
             Set<Long> likedCommentIds =
                     commentLikeRepository.findIdsByUserIdAndCommentIdIn(user.getId(), commentIds);
 

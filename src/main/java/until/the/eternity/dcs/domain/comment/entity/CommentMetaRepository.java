@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.comment.entity;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,5 +18,9 @@ public class CommentMetaRepository {
 
     public CommentMeta save(CommentMeta commentMeta) {
         return jpaCommentMetaRepository.save(commentMeta);
+    }
+
+    public List<CommentMeta> findByCommentIdIn(List<Long> commentIds) {
+        return jpaCommentMetaRepository.findByCommentIdIn(commentIds);
     }
 }
