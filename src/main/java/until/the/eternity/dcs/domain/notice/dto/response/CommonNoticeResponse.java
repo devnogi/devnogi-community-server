@@ -15,13 +15,11 @@ public record CommonNoticeResponse(
         LocalDateTime createdAt,
         Boolean isRead) {
     public static CommonNoticeResponse from(Notice notice) {
-        String contents = buildContents(notice.getNoticeType());
-
         return CommonNoticeResponse.builder()
                 .id(notice.getId())
                 .userId(notice.getUserId())
                 .title(notice.getTitle())
-                .contents(contents)
+                .contents(buildContents(notice.getNoticeType()))
                 .url(notice.getUrl())
                 .createdAt(notice.getCreatedAt())
                 .isRead(notice.getIsRead())
