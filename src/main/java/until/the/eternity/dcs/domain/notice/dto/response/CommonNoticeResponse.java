@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.notice.dto.response;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
+import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Builder
 public record CommonNoticeResponse(
@@ -14,7 +15,7 @@ public record CommonNoticeResponse(
         LocalDateTime createdAt,
         Boolean isRead) {
     public static CommonNoticeResponse from(Notice notice) {
-        String contents = buildContents(notice);
+        String contents = buildContents(notice.getNoticeType());
 
         return CommonNoticeResponse.builder()
                 .id(notice.getId())
@@ -27,49 +28,18 @@ public record CommonNoticeResponse(
                 .build();
     }
 
-    private static String buildContents(Notice notice) {
-        switch (notice.getNoticeType()) {
-            case POST_LIKE:
-                {
-                    return "회원님의 게시글에 좋아요가 달렸습니다.";
-                }
-            case POST_COMMENT:
-                {
-                    return "회원님의 게시글에 댓글이 달렸습니다.";
-                }
-            case COMMENT_REPLY:
-                {
-                    return "회원님의 댓글에 답글이 달렸습니다.";
-                }
-            case COMMENT_LIKE:
-                {
-                    return "회원님의 댓글에 좋아요가 달렸습니다.";
-                }
-            case ANNOUNCEMENT:
-                {
-                    return "새로운 공지가 게시되었습니다.";
-                }
-            case SYSTEM:
-                {
-                    return "시스템 알림입니다.";
-                }
-            case EVENT:
-                {
-                    return "새로운 이벤트가 게시되었습니다.";
-                }
-            case REPORT_RESULT:
-                {
-                    return "회원님의 신고가 처리되었습니다.";
-                }
-            case POST_BLOCKED:
-                {
-                    return "회원님의 게시글이 제재되었습니다.";
-                }
-            case COMMENT_BLOCKED:
-                {
-                    return "회원님의 댓글이 제재되었습니다.";
-                }
-        }
-        return "기타 알림";
+    private static String buildContents(NoticeType noticeType) {
+        return switch (noticeType) {
+            case POST_LIKE -> "회원님의 게시글에 좋아요가 달렸습니다.";
+            case POST_COMMENT -> "회원님의 게시글에 댓글이 달렸습니다.";
+            case COMMENT_REPLY -> "회원님의 댓글에 답글이 달렸습니다.";
+            case COMMENT_LIKE -> "회원님의 댓글에 좋아요가 달렸습니다.";
+            case ANNOUNCEMENT -> "새로운 공지가 게시되었습니다.";
+            case SYSTEM -> "시스템 알림입니다.";
+            case EVENT -> "새로운 이벤트가 게시되었습니다.";
+            case REPORT_RESULT -> "회원님의 신고가 처리되었습니다.";
+            case POST_BLOCKED -> "회원님의 게시글이 제재되었습니다.";
+            case COMMENT_BLOCKED -> "회원님의 댓글이 제재되었습니다.";
+        };
     }
 }
