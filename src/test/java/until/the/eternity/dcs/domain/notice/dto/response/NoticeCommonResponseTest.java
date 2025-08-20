@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
-class CommonNoticeResponseTest {
+class NoticeCommonResponseTest {
 
     @Test
     void from_Success() {
@@ -21,7 +21,7 @@ class CommonNoticeResponseTest {
                         .isRead(false)
                         .build();
 
-        CommonNoticeResponse noticeResponse = CommonNoticeResponse.from(notice);
+        NoticeCommonResponse noticeResponse = NoticeCommonResponse.from(notice);
 
         assertThat(noticeResponse).isNotNull();
         assertThat(noticeResponse.title()).isEqualTo(notice.getTitle());

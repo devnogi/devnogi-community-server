@@ -6,7 +6,7 @@ import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Builder
-public record CommonNoticeResponse(
+public record NoticeCommonResponse(
         Long id,
         Long userId,
         String title,
@@ -14,8 +14,8 @@ public record CommonNoticeResponse(
         String url,
         LocalDateTime createdAt,
         Boolean isRead) {
-    public static CommonNoticeResponse from(Notice notice) {
-        return CommonNoticeResponse.builder()
+    public static NoticeCommonResponse from(Notice notice) {
+        return NoticeCommonResponse.builder()
                 .id(notice.getId())
                 .userId(notice.getUserId())
                 .title(notice.getTitle())
