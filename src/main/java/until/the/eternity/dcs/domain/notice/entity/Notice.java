@@ -35,4 +35,7 @@ public class Notice {
 
     @Column(name = "URL", nullable = false, columnDefinition = "TEXT")
     private String url;
+
+    @Column(name = "is_read", nullable = false)
+    private Boolean isRead = false;
 }
