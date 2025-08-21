@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.notice.application;
 
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,6 @@ public class NoticeService {
 
         // 리턴
 
-        return null;
+        return Collections.emptyList();
     }
 }

@@ -42,8 +42,8 @@ class NoticeServiceTest {
     }
 
     @Test
-    @DisplayName("createNotice는 notice 를 생성, 저장한다.")
-    void createNotice() {
+    @DisplayName("createNotice는 notice를 생성 저장한다.")
+    void createNotice_Success() {
         // given
         Mockito.when(noticeRepository.save(Mockito.any(Notice.class))).thenReturn(notice);
         NoticeSendRequest request = new NoticeSendRequest(id, noticeType, url);

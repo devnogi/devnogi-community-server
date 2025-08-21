@@ -25,7 +25,7 @@ public record NoticeCommonResponse(
         @Schema(description = "알림 발생 시각", requiredMode = REQUIRED)
                 @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime createdAt,
-        @Schema(description = "얼람 확인 여부", example = "false", requiredMode = REQUIRED)
+        @Schema(description = "알림 확인 여부", example = "false", requiredMode = REQUIRED)
                 Boolean isRead) {
     public static NoticeCommonResponse from(Notice notice) {
         return NoticeCommonResponse.builder()
