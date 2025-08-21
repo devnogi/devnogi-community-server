@@ -8,4 +8,8 @@ import until.the.eternity.dcs.domain.notice.infrastructure.JpaNoticeRepository;
 @RequiredArgsConstructor
 public class NoticeRepository {
     private final JpaNoticeRepository jpaNoticeRepository;
+
+    public Notice save(Notice notice) {
+        return jpaNoticeRepository.save(notice);
+    }
 }

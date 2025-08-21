@@ -6,19 +6,19 @@ import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
+import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.entity.NoticeRepository;
 
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
     private final NoticeRepository noticeRepository;
+    private final NoticeConverter noticeConverter;
 
     public NoticePersistResponse createNotice(NoticeSendRequest noticeSendRequest) {
-        // 생성
+        Notice notice = noticeConverter.fromSendRequest(noticeSendRequest);
 
-        // 저장
-
-        return null;
+        return noticeConverter.toNoticePersistResponse(noticeRepository.save(notice));
     }
 
     public NoticeCommonResponse getDetailNotice(Long id) {
