@@ -1,21 +1,34 @@
 package until.the.eternity.dcs.domain.notice.dto.response;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Builder
-public record CommonNoticeResponse(
-        Long id,
-        Long userId,
-        String title,
-        String contents,
-        String url,
-        LocalDateTime createdAt,
-        Boolean isRead) {
-    public static CommonNoticeResponse from(Notice notice) {
-        return CommonNoticeResponse.builder()
+public record NoticeCommonResponse(
+        @Schema(description = "알림 아이디", example = "1", requiredMode = REQUIRED) Long id,
+        @Schema(description = "수신자 아이디", example = "1", requiredMode = REQUIRED) Long userId,
+        @Schema(description = "알림 제목", example = "게시글 좋아요", requiredMode = REQUIRED) String title,
+        @Schema(
+                        description = "알림 내용",
+                        example = "회원님의 게시글에 좋아요가 달렸습니다.",
+                        requiredMode = NOT_REQUIRED)
+                String contents,
+        @Schema(description = "알림이 발생하게 된 위치", example = "/api/posts/1", requiredMode = REQUIRED)
+                String url,
+        @Schema(description = "알림 발생 시각", requiredMode = REQUIRED)
+                @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+                LocalDateTime createdAt,
+        @Schema(description = "알림 확인 여부", example = "false", requiredMode = REQUIRED)
+                Boolean isRead) {
+    public static NoticeCommonResponse from(Notice notice) {
+        return NoticeCommonResponse.builder()
                 .id(notice.getId())
                 .userId(notice.getUserId())
                 .title(notice.getTitle())
