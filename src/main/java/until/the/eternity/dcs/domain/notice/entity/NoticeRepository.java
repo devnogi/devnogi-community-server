@@ -1,5 +1,7 @@
 package until.the.eternity.dcs.domain.notice.entity;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -16,5 +18,9 @@ public class NoticeRepository {
 
     public Optional<Notice> findById(Long id) {
         return jpaNoticeRepository.findById(id);
+    }
+
+    public List<Notice> findByCreatedAt(LocalDateTime date) {
+        return jpaNoticeRepository.findByCreatedAtGreaterThanEqualOrderByCreatedAtDesc(date);
     }
 }

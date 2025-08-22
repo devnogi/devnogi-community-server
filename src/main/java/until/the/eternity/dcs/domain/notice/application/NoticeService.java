@@ -1,6 +1,6 @@
 package until.the.eternity.dcs.domain.notice.application;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,10 +35,11 @@ public class NoticeService {
     }
 
     public List<NoticeCommonResponse> getNoticeList(Integer day) {
-        // 조회 (최근 day일 데이터만)
+        // 최근 day일 데이터
+        LocalDateTime date = LocalDateTime.now().minusDays(day).toLocalDate().atStartOfDay();
 
-        // 리턴
+        List<Notice> noticeList = noticeRepository.findByCreatedAt(date);
 
-        return Collections.emptyList();
+        return noticeList.stream().map(noticeConverter::toNoticeCommonResponse).toList();
     }
 }
