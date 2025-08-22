@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.notice.entity;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.notice.infrastructure.JpaNoticeRepository;
@@ -11,5 +12,9 @@ public class NoticeRepository {
 
     public Notice save(Notice notice) {
         return jpaNoticeRepository.save(notice);
+    }
+
+    public Optional<Notice> findById(Long id) {
+        return jpaNoticeRepository.findById(id);
     }
 }

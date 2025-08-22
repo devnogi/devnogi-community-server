@@ -38,4 +38,8 @@ public class Notice {
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
+
+    public void read() {
+        this.isRead = true;
+    }
 }
