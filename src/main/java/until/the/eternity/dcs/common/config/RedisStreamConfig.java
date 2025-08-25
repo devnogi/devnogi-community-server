@@ -1,0 +1,38 @@
+package until.the.eternity.dcs.common.config;
+
+import jakarta.annotation.PostConstruct;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamRecords;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
+@Configuration
+@RequiredArgsConstructor
+public class RedisStreamConfig {
+    private final RedisConnectionFactory connectionFactory;
+    private final StringRedisTemplate rt;
+
+    @Value("${app.notif.stream:notif-stream}")
+    private String stream;
+
+    @Value("${app.notif.group:notif-workers}")
+    private String group;
+
+    @PostConstruct
+    public void initStreamAndGroup() {
+        // 스트림 없으면 더미 레코드로 생성
+        if (!rt.hasKey(stream)) {
+            rt.opsForStream().add(StreamRecords.mapBacked(Map.of("mk", "1")).withStreamKey(stream));
+        }
+
+        try {
+            rt.opsForStream().createGroup(stream, ReadOffset.from("0-0"), group);
+        } catch (Exception e) {
+            if (e.getMessage() == null || !e.getMessage().contains("BUSYGROUP")) throw e;
+        }
+    }
+}
