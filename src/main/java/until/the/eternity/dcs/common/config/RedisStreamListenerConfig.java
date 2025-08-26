@@ -17,15 +17,14 @@ import org.springframework.data.redis.connection.stream.StreamOffset;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import until.the.eternity.dcs.domain.notice.application.NoticeWorker;
+import until.the.eternity.dcs.domain.notice.application.NoticeListener;
 
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class RedisStreamListenerConfig {
-
     private final RedisConnectionFactory cf;
-    private final NoticeWorker worker;
+    private final NoticeListener worker;
 
     @Value("${app.notification.stream}")
     private String stream;

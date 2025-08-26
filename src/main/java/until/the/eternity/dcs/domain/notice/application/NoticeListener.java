@@ -15,8 +15,7 @@ import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NoticeWorker {
-
+public class NoticeListener {
     private final StringRedisTemplate redisTemplate;
     private final NoticeService noticeService;
 
@@ -24,14 +23,12 @@ public class NoticeWorker {
     String group;
 
     public void handle(MapRecord<String, String, String> message) {
-        Map<String, String> v = message.getValue();
-        String notifId = v.get("notificationId");
-        String channel = v.get("channel");
+        Map<String, String> value = message.getValue();
 
         try {
-            if (alreadyProcessed(notifId)) return;
+            if (alreadyProcessed(value.get("notificationId"))) return;
 
-            sendNoticeByChannel(channel, v);
+            sendNoticeByChannel(value);
         } catch (Exception e) {
             log.error("Permanent failure id={} -> DLQ", message.getId(), e);
         } finally {
@@ -39,14 +36,14 @@ public class NoticeWorker {
         }
     }
 
-    private boolean alreadyProcessed(String notifId) {
-        String key = "notif:processed:" + notifId;
+    private boolean alreadyProcessed(String notificationId) {
+        String key = "notif:processed:" + notificationId;
         Boolean set = redisTemplate.opsForValue().setIfAbsent(key, "1", Duration.ofDays(7));
         return Boolean.FALSE.equals(set); // 이미 존재하면 처리된 것
     }
 
-    private void sendNoticeByChannel(String channel, Map<String, String> data) {
-        if (channel.equals("email")) {
+    private void sendNoticeByChannel(Map<String, String> data) {
+        if (data.get("channel").equals("email")) {
             // 이메일 전송
         }
 
