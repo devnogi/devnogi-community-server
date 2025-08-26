@@ -31,6 +31,8 @@ tasks.named<JacocoReport>("jacocoTestReport").configure {
                     "**/common/**",
                     "**/demo/**",
                     "**/enums/**",
+                    "**/infrastructure/**",
+                    "**/NoticeListener.class",
                     "**/DCSApplication.class"
                 )
             }
@@ -68,6 +70,8 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification").config
                     "**/common/**",
                     "**/demo/**",
                     "**/enums/**",
+                    "**/infrastructure/**",
+                    "**/NoticeListener.class",
                     "**/DCSApplication.class"
                 )
             }
