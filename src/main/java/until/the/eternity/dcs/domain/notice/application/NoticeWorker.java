@@ -1,4 +1,4 @@
-package until.the.eternity.dcs.domain.notice.infrastructure;
+package until.the.eternity.dcs.domain.notice.application;
 
 import java.time.Duration;
 import java.util.Map;
@@ -9,13 +9,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
+import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationWorker {
+public class NoticeWorker {
 
     private final StringRedisTemplate redisTemplate;
+    private final NoticeService noticeService;
 
     @Value("${app.notification.group}")
     String group;
@@ -43,7 +46,15 @@ public class NotificationWorker {
     }
 
     private void sendNoticeByChannel(String channel, Map<String, String> data) {
-        // TODO
+        if (channel.equals("email")) {
+            // 이메일 전송
+        }
+
+        Long userId = Long.parseLong(data.get("userId"));
+        NoticeType type = NoticeType.fromCode(data.get("noticeType")).orElseThrow();
+        String url = data.get("url");
+        NoticeSendRequest request = new NoticeSendRequest(userId, type, url);
+        noticeService.createNotice(request);
     }
 
     private void ack(MapRecord<String, String, String> message) {

@@ -30,20 +30,12 @@ public class RedisSender {
         f.put("notificationId", job.notificationId());
         f.put("userId", String.valueOf(job.userId()));
         f.put("channel", job.channel());
-        f.put("templateCode", job.templateCode());
-        f.put("vars", writeJson(job.vars()));
+        f.put("noticeType", job.noticeType().getCode());
+        f.put("url", job.url());
 
         XAddOptions opts = XAddOptions.maxlen(maxLen).approximateTrimming(true);
         return redisTemplate
                 .opsForStream()
                 .add(StreamRecords.mapBacked(f).withStreamKey(stream), opts);
-    }
-
-    private String writeJson(Object o) {
-        try {
-            return om.writeValueAsString(o);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 }
