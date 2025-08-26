@@ -2,8 +2,10 @@ package until.the.eternity.dcs.common.notification.dto;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Builder;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
+@Builder
 public record NotificationJob(
         String notificationId, Long userId, String channel, NoticeType noticeType, String url) {
 

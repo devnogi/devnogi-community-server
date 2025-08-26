@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,16 +18,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import until.the.eternity.dcs.common.notification.RedisSender;
+import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.domain.notice.application.NoticeService;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
+import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notices")
 public class NoticeController {
     private final NoticeService noticeService;
+    private final RedisSender redisSender;
 
     @PostMapping
     @Operation(
@@ -41,6 +47,20 @@ public class NoticeController {
             @RequestBody NoticeSendRequest noticeSendRequest) {
         NoticePersistResponse response = noticeService.createNotice(noticeSendRequest);
         return ResponseEntity.status(CREATED).body(response);
+    }
+
+    @PostMapping("/test")
+    public ResponseEntity<RecordId> sendNoticeTest() {
+        NotificationJob job =
+                NotificationJob.builder()
+                        .notificationId(LocalDateTime.now().toString())
+                        .userId(1L)
+                        .channel("email")
+                        .noticeType(NoticeType.ANNOUNCEMENT)
+                        .url("http://localhost:8080/api/notice/test")
+                        .build();
+        RecordId enqueue = redisSender.enqueue(job);
+        return ResponseEntity.status(CREATED).body(enqueue);
     }
 
     @GetMapping("/{id}")
