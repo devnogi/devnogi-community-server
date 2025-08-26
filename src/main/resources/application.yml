@@ -99,6 +99,13 @@ logging:
   level:
     until.the.eternity: DEBUG
 
+app:
+  notification:
+    stream: notif-stream
+    group: notif-workers
+    pollTimeoutSec: 30        # 블로킹 대기 시간 (롱폴링)
+    maxLen: 100000            # 스트림 길이
+
 ---
 spring:
   config:
@@ -142,13 +149,3 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
       ssl: true  # 운영환경에서는 SSL 사용
-
-app:
-  notif:
-    stream: notif-stream
-    dlqStream: notif-stream-dlq
-    group: notif-workers
-    pollTimeoutSec: 30        # 블로킹 대기 시간 (롱폴링)
-    maxLen: 100000            # 스트림 길이
-    claimIdleMs: 60000        # PEL에 60초 이상 방치되면 재청구
-    maxDeliveries: 5          # 5회 이상 실패 시 DLQ 격리
