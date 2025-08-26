@@ -28,13 +28,19 @@ public class RedisStreamConfig {
     public void initStreamAndGroup() {
         // 스트림 없으면 더미 레코드로 생성
         if (!redisTemplate.hasKey(stream)) {
+            String dummyRecordKey = "mk";
+            String dummyRecordValue = "1";
+
             redisTemplate
                     .opsForStream()
-                    .add(StreamRecords.mapBacked(Map.of("mk", "1")).withStreamKey(stream));
+                    .add(
+                            StreamRecords.mapBacked(Map.of(dummyRecordKey, dummyRecordValue))
+                                    .withStreamKey(stream));
         }
 
         try {
-            redisTemplate.opsForStream().createGroup(stream, ReadOffset.from("0-0"), group);
+            String offset = "0-0";
+            redisTemplate.opsForStream().createGroup(stream, ReadOffset.from(offset), group);
         } catch (RedisSystemException e) {
             Throwable root = e.getRootCause();
             if (!(root instanceof RedisBusyException)) {

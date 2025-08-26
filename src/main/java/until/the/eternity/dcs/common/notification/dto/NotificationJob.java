@@ -20,4 +20,14 @@ public record NotificationJob(
 
         return record;
     }
+
+    public static NotificationJob fromMap(Map<String, String> map) {
+        return NotificationJob.builder()
+                .notificationId(map.get("notificationId"))
+                .userId(Long.valueOf(map.get("userId")))
+                .channel(map.get("channel"))
+                .noticeType(NoticeType.fromCode(map.get("noticeType")).orElseThrow())
+                .url(map.get("url"))
+                .build();
+    }
 }
