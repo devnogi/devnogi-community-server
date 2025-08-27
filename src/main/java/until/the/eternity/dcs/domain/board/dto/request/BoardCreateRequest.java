@@ -22,4 +22,7 @@ public record BoardCreateRequest(
                 String topCategory,
         @Schema(description = "하위 카테고리", example = "길드 게시판", requiredMode = NOT_REQUIRED)
                 @Size(max = 20, message = "게시판의 하위 카테고리의 길이는 20자 보다 길 수 없습니다.")
-                String subCategory) {}
+                String subCategory,
+        @Schema(description = "사용자 ID", example = "1L", requiredMode = REQUIRED)
+                @NotBlank(message = "사용자 ID값은 공란일 수 없습니다.")
+                Long userId) {}
