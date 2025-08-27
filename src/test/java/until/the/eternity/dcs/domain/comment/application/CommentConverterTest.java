@@ -26,6 +26,7 @@ class CommentConverterTest {
     Comment comment;
     Long id = 1L;
     String content = "content";
+    Long userId = 1L;
 
     @BeforeEach
     void init() {
@@ -38,7 +39,7 @@ class CommentConverterTest {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
-        CommentCreateRequest request = new CommentCreateRequest(null, content);
+        CommentCreateRequest request = new CommentCreateRequest(null, content, userId);
 
         // when
         Comment comment = commentConverter.fromCreateRequestToComment(request, id, id);
@@ -57,7 +58,7 @@ class CommentConverterTest {
         when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
-        CommentCreateRequest request = new CommentCreateRequest(id, content);
+        CommentCreateRequest request = new CommentCreateRequest(id, content, userId);
 
         // when
         Comment comment = commentConverter.fromCreateRequestToComment(request, id, id);

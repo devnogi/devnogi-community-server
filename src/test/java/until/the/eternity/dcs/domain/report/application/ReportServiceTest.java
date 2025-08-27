@@ -46,6 +46,7 @@ class ReportServiceTest {
     private Report mockReport;
     private UserSummary mockUser;
     private UserSummary mockAdmin;
+    Long userId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -239,7 +240,7 @@ class ReportServiceTest {
             // given
             Long reportId = 1L;
             String acceptStatusCode = "ACCEPT";
-            ReportUpdateRequest request = new ReportUpdateRequest(acceptStatusCode);
+            ReportUpdateRequest request = new ReportUpdateRequest(acceptStatusCode, userId);
             ReportPersistResponse expectedResponse = mock(ReportPersistResponse.class);
 
             given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
@@ -262,7 +263,7 @@ class ReportServiceTest {
             // given
             Long reportId = 1L;
             String rejectStatusCode = "REJECT";
-            ReportUpdateRequest request = new ReportUpdateRequest(rejectStatusCode);
+            ReportUpdateRequest request = new ReportUpdateRequest(rejectStatusCode, userId);
             ReportPersistResponse expectedResponse = mock(ReportPersistResponse.class);
 
             given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
@@ -284,7 +285,7 @@ class ReportServiceTest {
         void updatePost_ForbiddenForNonAdmin() {
             // given
             Long reportId = 1L;
-            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT");
+            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT", userId);
 
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
 
@@ -301,7 +302,7 @@ class ReportServiceTest {
             // given
             Long reportId = 1L;
             String invalidStatusCode = "INVALID";
-            ReportUpdateRequest request = new ReportUpdateRequest(invalidStatusCode);
+            ReportUpdateRequest request = new ReportUpdateRequest(invalidStatusCode, userId);
 
             given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
 
@@ -315,7 +316,7 @@ class ReportServiceTest {
         void updatePost_ReportNotFound() {
             // given
             Long reportId = 999L;
-            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT");
+            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT", userId);
 
             given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
             given(reportRepository.findById(reportId)).willReturn(Optional.empty());

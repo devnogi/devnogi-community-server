@@ -24,6 +24,7 @@ class ReportConverterTest {
 
     private ReportCreateRequest reportCreateRequest;
     private Report report;
+    Long userId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -35,7 +36,8 @@ class ReportConverterTest {
                         1L, // targetId
                         100L, // targetUserId
                         "SPAM", // categoryCd
-                        "스팸 게시물입니다" // reason
+                        "스팸 게시물입니다", // reason
+                        userId // 신고자ID
                         );
 
         report =

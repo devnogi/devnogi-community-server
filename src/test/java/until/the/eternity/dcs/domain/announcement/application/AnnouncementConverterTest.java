@@ -16,6 +16,7 @@ import until.the.eternity.dcs.domain.post.entity.PostMeta;
 class AnnouncementConverterTest {
     AnnouncementConverter announcementConverter;
     Long id = 1L;
+    Long userId = 1L;
 
     @BeforeEach
     void init() {
@@ -27,7 +28,7 @@ class AnnouncementConverterTest {
             "fromCreateRequestAndPost은 AnnouncementCreateRequest, Post, PostMeta로 Announcement를 생성한다.")
     void fromCreateRequestAndPost() {
         // given
-        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
+        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true, userId);
         Post post =
                 Post.builder()
                         .id(id)

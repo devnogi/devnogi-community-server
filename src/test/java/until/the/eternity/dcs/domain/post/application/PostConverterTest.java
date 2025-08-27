@@ -24,6 +24,8 @@ import until.the.eternity.dcs.domain.tag.entity.PostTag;
 @DisplayName("PostConverter 테스트")
 public class PostConverterTest {
 
+    Long userId = 1L;
+
     @Mock private PostMeta postMeta;
     @InjectMocks private PostConverter postConverter;
 
@@ -44,7 +46,7 @@ public class PostConverterTest {
                 Arrays.asList(PostTag.builder().id(1L).build(), PostTag.builder().id(2L).build());
 
         PostCreateRequest request =
-                new PostCreateRequest(boardId, title, content, isDraft, stringTagList);
+                new PostCreateRequest(boardId, title, content, isDraft, stringTagList, userId);
 
         // when
         Post result = postConverter.fromCreateRequestToPost(request, userId);
