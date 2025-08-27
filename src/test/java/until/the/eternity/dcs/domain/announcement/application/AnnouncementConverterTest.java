@@ -33,7 +33,7 @@ class AnnouncementConverterTest {
                 Post.builder()
                         .id(id)
                         .board(new Board())
-                        .userId(id)
+                        .userId(userId)
                         .title("title")
                         .content("content")
                         .isDraft(false)

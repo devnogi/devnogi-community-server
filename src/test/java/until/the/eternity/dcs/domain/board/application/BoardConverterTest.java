@@ -26,7 +26,6 @@ class BoardConverterTest {
         // given
         BoardCreateRequest request =
                 new BoardCreateRequest(name, description, topCategory, subCategory, userId);
-        Long userId = 1L;
 
         // when
         Board board = boardConverter.fromCreateRequestToBoard(request, userId);

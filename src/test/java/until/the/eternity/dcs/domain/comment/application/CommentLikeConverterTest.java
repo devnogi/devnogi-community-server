@@ -20,11 +20,11 @@ class CommentLikeConverterTest {
         CommentLikeToggleRequest request = new CommentLikeToggleRequest(id, userId);
 
         // when
-        CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, id);
+        CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
 
         // then
         assertNotNull(commentLike);
         assertEquals(id, commentLike.getCommentId());
-        assertEquals(id, commentLike.getUserId());
+        assertEquals(userId, commentLike.getUserId());
     }
 }

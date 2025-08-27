@@ -24,8 +24,6 @@ import until.the.eternity.dcs.domain.tag.entity.PostTag;
 @DisplayName("PostConverter 테스트")
 public class PostConverterTest {
 
-    Long userId = 1L;
-
     @Mock private PostMeta postMeta;
     @InjectMocks private PostConverter postConverter;
 

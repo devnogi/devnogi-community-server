@@ -53,7 +53,7 @@ class AnnouncementServiceTest {
                         postMetaRepository,
                         userService);
 
-        announcement = Announcement.builder().id(id).userId(id).isGlobal(true).build();
+        announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();
         post =
                 Post.builder()
                         .id(id)

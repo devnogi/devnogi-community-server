@@ -38,6 +38,6 @@ public class PostLikeConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getPost()).isEqualTo(mockPost);
-        assertThat(result.getUserId()).isEqualTo(1L);
+        assertThat(result.getUserId()).isEqualTo(userId);
     }
 }
