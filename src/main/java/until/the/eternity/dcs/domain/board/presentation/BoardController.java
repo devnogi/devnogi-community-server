@@ -25,7 +25,7 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board")
+@RequestMapping("/api/boards")
 public class BoardController {
     private final BoardService boardService;
 
