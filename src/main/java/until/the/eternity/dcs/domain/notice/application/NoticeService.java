@@ -23,6 +23,7 @@ public class NoticeService {
     private final NoticeConverter noticeConverter;
     private final UserService userService;
 
+    // todo receiverId == 0이면 브로드캐스팅
     public NoticePersistResponse createNotice(NoticeSendRequest noticeSendRequest) {
         if (noticeSendRequest.noticeType().isManualNotice()) {
             if (userService.getCurrentUser().getGrade() != ADMIN) {

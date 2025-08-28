@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
@@ -46,6 +47,7 @@ class CommentServiceTest {
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
     PostMetaRepository postMetaRepository = mock(PostMetaRepository.class);
+    RedisSender redisSender = mock(RedisSender.class);
 
     CommentService commentService =
             new CommentService(
@@ -56,7 +58,8 @@ class CommentServiceTest {
                     commentLikeConverter,
                     commentMetaRepository,
                     postRepository,
-                    postMetaRepository);
+                    postMetaRepository,
+                    redisSender);
 
     Comment comment;
     Long id = 1L;

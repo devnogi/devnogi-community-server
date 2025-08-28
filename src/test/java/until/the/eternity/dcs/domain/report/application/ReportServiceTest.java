@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportUpdateRequest;
@@ -40,6 +41,8 @@ class ReportServiceTest {
     @Mock private ReportConverter reportConverter;
 
     @Mock private UserService fakeUserService;
+
+    @Mock private RedisSender redisSender;
 
     @InjectMocks private ReportService reportService;
 
@@ -248,7 +251,7 @@ class ReportServiceTest {
                     .willReturn(expectedResponse);
 
             // when
-            ReportPersistResponse result = reportService.updatePost(reportId, request);
+            ReportPersistResponse result = reportService.updateReport(reportId, request);
 
             // then
             assertThat(result).isEqualTo(expectedResponse);
@@ -271,7 +274,7 @@ class ReportServiceTest {
                     .willReturn(expectedResponse);
 
             // when
-            ReportPersistResponse result = reportService.updatePost(reportId, request);
+            ReportPersistResponse result = reportService.updateReport(reportId, request);
 
             // then
             assertThat(result).isEqualTo(expectedResponse);
@@ -289,7 +292,7 @@ class ReportServiceTest {
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
 
             // when & then
-            assertThatThrownBy(() -> reportService.updatePost(reportId, request))
+            assertThatThrownBy(() -> reportService.updateReport(reportId, request))
                     .isInstanceOf(ReportModifyForbiddenException.class);
 
             verify(reportRepository, never()).findById(any());
@@ -306,7 +309,7 @@ class ReportServiceTest {
             given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
 
             // when & then
-            assertThatThrownBy(() -> reportService.updatePost(reportId, request))
+            assertThatThrownBy(() -> reportService.updateReport(reportId, request))
                     .isInstanceOf(StatusNotFoundException.class);
         }
 
@@ -321,7 +324,7 @@ class ReportServiceTest {
             given(reportRepository.findById(reportId)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> reportService.updatePost(reportId, request))
+            assertThatThrownBy(() -> reportService.updateReport(reportId, request))
                     .isInstanceOf(ReportNotFoundException.class);
         }
     }

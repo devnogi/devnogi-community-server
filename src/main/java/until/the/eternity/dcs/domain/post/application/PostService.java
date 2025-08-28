@@ -1,6 +1,11 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import java.util.*;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -8,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
+import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
@@ -157,9 +163,8 @@ public class PostService {
             postLikeRepository.save(newPostLike);
             postMeta.like();
             postMetaRepository.save(postMeta);
-            //			redisSender.enqueue(
-            //				NotificationJob.of(, POST_LIKE, )
-            //			)
+
+            redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
