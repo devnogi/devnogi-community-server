@@ -44,7 +44,7 @@ public class PostConverterTest {
                 Arrays.asList(PostTag.builder().id(1L).build(), PostTag.builder().id(2L).build());
 
         PostCreateRequest request =
-                new PostCreateRequest(boardId, title, content, isDraft, stringTagList);
+                new PostCreateRequest(boardId, title, content, isDraft, stringTagList, userId);
 
         // when
         Post result = postConverter.fromCreateRequestToPost(request, userId);

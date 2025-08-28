@@ -74,6 +74,7 @@ class PostServiceTest {
     private PostSummaryResponse mockSummaryResponse;
     private PostDetailResponse mockDetailResponse;
     private PostPersistResponse mockPersistResponse;
+    Long userId = 1L;
 
     @BeforeEach
     void setUp() {
@@ -113,7 +114,12 @@ class PostServiceTest {
 
         createRequest =
                 new PostCreateRequest(
-                        1L, "New Post", "New Content", false, Arrays.asList("tag1", "tag2"));
+                        1L,
+                        "New Post",
+                        "New Content",
+                        false,
+                        Arrays.asList("tag1", "tag2"),
+                        userId);
 
         updateRequest =
                 new PostUpdateRequest(
@@ -386,7 +392,7 @@ class PostServiceTest {
             // given
 
             PostLikeCreateRequest postLikeCreateRequest =
-                    new PostLikeCreateRequest(mockPost.getId());
+                    new PostLikeCreateRequest(mockPost.getId(), userId);
             given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(false);
@@ -405,7 +411,7 @@ class PostServiceTest {
         public void unlikePost_Test() {
             // given
             PostLikeCreateRequest postLikeCreateRequest =
-                    new PostLikeCreateRequest(mockPost.getId());
+                    new PostLikeCreateRequest(mockPost.getId(), userId);
 
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);

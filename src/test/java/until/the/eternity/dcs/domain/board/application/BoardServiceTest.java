@@ -38,6 +38,7 @@ class BoardServiceTest {
     String topCategory = "top category";
     String subCategory = "sub category";
     UserSummary user;
+    Long userId = 1L;
 
     @BeforeEach
     void init() {
@@ -76,7 +77,7 @@ class BoardServiceTest {
         when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
         when(userService.getCurrentUser()).thenReturn(user);
         BoardCreateRequest request =
-                new BoardCreateRequest(name, description, topCategory, subCategory);
+                new BoardCreateRequest(name, description, topCategory, subCategory, userId);
 
         // when
         BoardPersistResponse response = boardService.createBoard(request);
@@ -126,7 +127,8 @@ class BoardServiceTest {
         String newTopCategory = "new top category";
         String newSubCategory = "new sub category";
         BoardUpdateRequest request =
-                new BoardUpdateRequest(newName, newDescription, newTopCategory, newSubCategory);
+                new BoardUpdateRequest(
+                        newName, newDescription, newTopCategory, newSubCategory, userId);
 
         // when
         BoardPersistResponse response = boardService.updateBoard(boardId, request);

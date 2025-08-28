@@ -34,6 +34,7 @@ class AnnouncementServiceTest {
     Long id = 1L;
     Post post;
     Announcement announcement;
+    Long userId = 1L;
 
     @BeforeEach
     void init() {
@@ -52,7 +53,7 @@ class AnnouncementServiceTest {
                         postMetaRepository,
                         userService);
 
-        announcement = Announcement.builder().id(id).userId(id).isGlobal(true).build();
+        announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();
         post =
                 Post.builder()
                         .id(id)
@@ -67,7 +68,7 @@ class AnnouncementServiceTest {
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
-        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
+        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true, userId);
 
         // when
         AnnouncementPersistResponse response = announcementService.create(id, request);
@@ -86,7 +87,7 @@ class AnnouncementServiceTest {
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
         when(announcementRepository.existsByPostId(post.getId())).thenReturn(true);
-        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
+        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true, userId);
 
         // when
         // then
