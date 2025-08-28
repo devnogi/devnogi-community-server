@@ -60,12 +60,7 @@ public class CommentService {
 
         connectCommentWithPost(postId, save);
 
-        if (request.parentComment() == null) {
-            redisSender.enqueue(
-                    NotificationJob.of(findPostById(postId).getUserId(), POST_COMMENT, postId));
-        } else {
-            redisSender.enqueue(NotificationJob.of(user.getId(), COMMENT_REPLY, postId));
-        }
+        sendCommentCreatedNotice(postId, request.parentComment());
 
         return commentConverter.fromCommentToPersistResponse(save);
     }
@@ -154,6 +149,19 @@ public class CommentService {
 
         PostMeta postMeta = findPostMetaById(postId);
         postMeta.deleteComment();
+    }
+
+    private void sendCommentCreatedNotice(Long postId, Long parentId) {
+        if (parentId != null) {
+            Comment parent =
+                    commentRepository
+                            .findById(parentId)
+                            .orElseThrow(() -> new CommentNotFoundException(parentId));
+            redisSender.enqueue(NotificationJob.of(parent.getUserId(), COMMENT_REPLY, parentId));
+        } else {
+            Post post = findPostById(postId);
+            redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_COMMENT, postId));
+        }
     }
 
     private Post findPostById(Long postId) {

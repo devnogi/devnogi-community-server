@@ -51,6 +51,7 @@ public class AnnouncementService {
         Board board = post.getBoard();
         board.getAnnouncements().add(announcement);
 
+        // 0L로 설정 -> 전체 유저에게 전송
         redisSender.enqueue(NotificationJob.of(0L, ANNOUNCEMENT, postId));
 
         return converter.fromEntityToPersistResponse(saved);

@@ -110,6 +110,14 @@ public class ReportService {
         return reportConverter.fromReportToReportPersistResponse(report);
     }
 
+    @Transactional
+    public void deleteReport(Long id) {
+        UserSummary user = getCurrentUser();
+        checkManagerAuthority(user.getGrade());
+        findById(id);
+        reportRepository.deleteById(id);
+    }
+
     private void sendNotice(Report report) {
         redisSender.enqueue(NotificationJob.of(report.getUserId(), REPORT_RESULT, report.getId()));
         if (report.getTargetType() == ReportTargetType.POST) {
@@ -121,14 +129,6 @@ public class ReportService {
                     NotificationJob.of(
                             report.getTargetUserId(), COMMENT_BLOCKED, report.getTargetId()));
         }
-    }
-
-    @Transactional
-    public void deleteReport(Long id) {
-        UserSummary user = getCurrentUser();
-        checkManagerAuthority(user.getGrade());
-        findById(id);
-        reportRepository.deleteById(id);
     }
 
     private UserSummary getCurrentUser() {

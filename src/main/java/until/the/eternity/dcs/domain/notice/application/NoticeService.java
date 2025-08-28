@@ -24,7 +24,10 @@ public class NoticeService {
     private final UserService userService;
 
     // todo receiverId == 0이면 브로드캐스팅
+
+    @Transactional
     public NoticePersistResponse createNotice(NoticeSendRequest noticeSendRequest) {
+        // 수동 알림 전송일 경우 관리자인지 확인
         if (noticeSendRequest.noticeType().isManualNotice()) {
             if (userService.getCurrentUser().getGrade() != ADMIN) {
                 throw new NoticeSendForbiddenException();
