@@ -1,5 +1,7 @@
 package until.the.eternity.dcs.domain.notice.application;
 
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -11,14 +13,23 @@ import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.entity.NoticeRepository;
 import until.the.eternity.dcs.domain.notice.exception.NoticeNotFoundException;
+import until.the.eternity.dcs.domain.notice.exception.NoticeSendForbiddenException;
+import until.the.eternity.dcs.domain.user.application.UserService;
 
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final NoticeConverter noticeConverter;
+    private final UserService userService;
 
     public NoticePersistResponse createNotice(NoticeSendRequest noticeSendRequest) {
+        if (noticeSendRequest.noticeType().isManualNotice()) {
+            if (userService.getCurrentUser().getGrade() != ADMIN) {
+                throw new NoticeSendForbiddenException();
+            }
+        }
+
         Notice notice = noticeConverter.fromSendRequest(noticeSendRequest);
 
         return noticeConverter.toNoticePersistResponse(noticeRepository.save(notice));
