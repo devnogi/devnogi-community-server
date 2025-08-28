@@ -48,7 +48,7 @@ public record NotificationJob(
             case POST_LIKE, POST_COMMENT, POST_BLOCKED, ANNOUNCEMENT, EVENT -> "/api/posts/" + id;
             case COMMENT_LIKE, COMMENT_REPLY, COMMENT_BLOCKED -> "/api/comments/" + id;
             case REPORT_RESULT -> "/api/reports/replied/" + id;
-            default -> null;
+            default -> "NOT_EXISTS";
         };
     }
 }
