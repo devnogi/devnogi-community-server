@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -51,14 +50,7 @@ public class NoticeController {
 
     @PostMapping("/test")
     public ResponseEntity<RecordId> sendNoticeTest() {
-        NotificationJob job =
-                NotificationJob.builder()
-                        .notificationId(LocalDateTime.now().toString())
-                        .userId(1L)
-                        .channel("email")
-                        .noticeType(NoticeType.ANNOUNCEMENT)
-                        .url("http://localhost:8080/api/notice/test")
-                        .build();
+        NotificationJob job = NotificationJob.of(1L, NoticeType.ANNOUNCEMENT, 1L);
         RecordId enqueue = redisSender.enqueue(job);
         return ResponseEntity.status(CREATED).body(enqueue);
     }

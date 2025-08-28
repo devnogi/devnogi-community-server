@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
@@ -41,6 +42,7 @@ public class PostService {
     private final PostMetaRepository postMetaRepository;
     private final TagService tagService;
     private final PostTagService postTagService;
+    private final RedisSender redisSender;
 
     // todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     @Transactional
@@ -155,6 +157,9 @@ public class PostService {
             postLikeRepository.save(newPostLike);
             postMeta.like();
             postMetaRepository.save(postMeta);
+            //			redisSender.enqueue(
+            //				NotificationJob.of(, POST_LIKE, )
+            //			)
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
