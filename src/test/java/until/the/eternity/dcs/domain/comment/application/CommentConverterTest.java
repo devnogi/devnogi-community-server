@@ -26,6 +26,7 @@ class CommentConverterTest {
     Comment comment;
     Long id = 1L;
     String content = "content";
+    Long userId = 2L;
 
     @BeforeEach
     void init() {
@@ -38,16 +39,16 @@ class CommentConverterTest {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
-        CommentCreateRequest request = new CommentCreateRequest(null, content);
+        CommentCreateRequest request = new CommentCreateRequest(null, content, userId);
 
         // when
-        Comment comment = commentConverter.fromCreateRequestToComment(request, id, id);
+        Comment comment = commentConverter.fromCreateRequestToComment(request, userId, id);
 
         // then
         assertNotNull(comment);
         assertEquals(content, comment.getContent());
         assertEquals(id, comment.getPost().getId());
-        assertEquals(id, comment.getUserId());
+        assertEquals(userId, comment.getUserId());
     }
 
     @Test
@@ -57,10 +58,10 @@ class CommentConverterTest {
         when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
-        CommentCreateRequest request = new CommentCreateRequest(id, content);
+        CommentCreateRequest request = new CommentCreateRequest(id, content, userId);
 
         // when
-        Comment comment = commentConverter.fromCreateRequestToComment(request, id, id);
+        Comment comment = commentConverter.fromCreateRequestToComment(request, userId, id);
 
         // then
         assertNotNull(comment);
@@ -86,7 +87,12 @@ class CommentConverterTest {
     void fromCommentToPageResponse_Success() {
         // given
         Comment comment =
-                Comment.builder().id(id).userId(id).parentComment(null).content(content).build();
+                Comment.builder()
+                        .id(id)
+                        .userId(userId)
+                        .parentComment(null)
+                        .content(content)
+                        .build();
 
         // when
         CommentPageResponseItem response =
@@ -95,7 +101,7 @@ class CommentConverterTest {
         // then
         assertNotNull(response);
         assertEquals(id, response.id());
-        assertEquals(id, response.userId());
+        assertEquals(userId, response.userId());
         assertNull(response.parentComment());
         assertEquals(content, response.content());
         assertEquals(0, response.likeCount());

@@ -16,7 +16,7 @@ import until.the.eternity.dcs.domain.post.entity.PostLike;
 public class PostLikeConverterTest {
 
     private PostLikeConverter postLikeConverter;
-
+    Long userId = 1L;
     private Post mockPost;
 
     @BeforeEach
@@ -30,7 +30,7 @@ public class PostLikeConverterTest {
     @DisplayName("requestToPostLike 테스트")
     void toEntity_Success() {
         // given
-        PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(1L);
+        PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(1L, userId);
 
         // when
         PostLike result = postLikeConverter.toEntity(1L, mockPost);
@@ -38,6 +38,6 @@ public class PostLikeConverterTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getPost()).isEqualTo(mockPost);
-        assertThat(result.getUserId()).isEqualTo(1L);
+        assertThat(result.getUserId()).isEqualTo(userId);
     }
 }

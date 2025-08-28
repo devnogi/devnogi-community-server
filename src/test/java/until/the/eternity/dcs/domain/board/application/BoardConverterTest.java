@@ -18,14 +18,14 @@ class BoardConverterTest {
     String description = "board description";
     String topCategory = "top category";
     String subCategory = "sub category";
+    Long userId = 1L;
 
     @Test
     @DisplayName("BoardCreateRequest 에서 Board 로 변경할 수 있다.")
     void fromCreateRequestToBoard_Success() {
         // given
         BoardCreateRequest request =
-                new BoardCreateRequest(name, description, topCategory, subCategory);
-        Long userId = 1L;
+                new BoardCreateRequest(name, description, topCategory, subCategory, userId);
 
         // when
         Board board = boardConverter.fromCreateRequestToBoard(request, userId);

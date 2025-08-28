@@ -47,6 +47,7 @@ class CommentServiceTest {
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
     PostMetaRepository postMetaRepository = mock(PostMetaRepository.class);
+    Long userId = 1L;
     RedisSender redisSender = mock(RedisSender.class);
 
     CommentService commentService =
@@ -94,7 +95,7 @@ class CommentServiceTest {
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
         when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
-        CommentCreateRequest request = new CommentCreateRequest(null, content);
+        CommentCreateRequest request = new CommentCreateRequest(null, content, userId);
 
         // when
         CommentPersistResponse response = commentService.create(id, request);
@@ -110,7 +111,7 @@ class CommentServiceTest {
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
         when(userService.getCurrentUser()).thenReturn(user);
         String newContent = "new content";
-        CommentUpdateRequest request = new CommentUpdateRequest(newContent);
+        CommentUpdateRequest request = new CommentUpdateRequest(newContent, userId);
 
         // when
         CommentPersistResponse response = commentService.update(id, request);
@@ -192,7 +193,7 @@ class CommentServiceTest {
         when(userService.getCurrentUser()).thenReturn(user);
         when(userService.isAuthenticated()).thenReturn(true);
         when(commentMetaRepository.findById(anyLong())).thenReturn(Optional.of(commentMeta));
-        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
+        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id, userId);
 
         // when
         commentService.toggleLike(request);
@@ -213,7 +214,7 @@ class CommentServiceTest {
         when(userService.getCurrentUser()).thenReturn(user);
         when(userService.isAuthenticated()).thenReturn(true);
         when(commentMetaRepository.findById(anyLong())).thenReturn(Optional.of(commentMeta));
-        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
+        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id, userId);
 
         // when
         commentService.toggleLike(request);
