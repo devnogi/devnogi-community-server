@@ -3,7 +3,9 @@ package until.the.eternity.dcs.domain.notice.application;
 import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ public class NoticeService {
     private final NoticeConverter noticeConverter;
     private final UserService userService;
     private final NoticeUserRepository noticeUserRepository;
+    private final NoticeUserConverter noticeUserConverter;
 
     @Transactional
     public NoticePersistResponse createNotice(NoticeSendRequest request) {
@@ -36,9 +39,11 @@ public class NoticeService {
         }
 
         Notice notice = noticeConverter.fromSendRequest(request);
-        // todo noticeuser 추가
+        Notice save = noticeRepository.save(notice);
+        NoticeUser noticeUser = noticeUserConverter.fromSendRequest(request, save.getId());
+        noticeUserRepository.save(noticeUser);
 
-        return noticeConverter.toNoticePersistResponse(noticeRepository.save(notice));
+        return noticeConverter.toNoticePersistResponse(save);
     }
 
     @Transactional
@@ -55,15 +60,26 @@ public class NoticeService {
         return noticeConverter.toNoticeCommonResponse(notice, noticeUser);
     }
 
-    public List<NoticeCommonResponse> getNoticeList(Integer day) {
+    public List<NoticeCommonResponse> getNoticeList(Long userId, Integer day) {
         // 최근 day일 데이터
         LocalDateTime date = LocalDateTime.now().minusDays(day).toLocalDate().atStartOfDay();
+        List<NoticeUser> myNoticeList = noticeUserRepository.findByCreatedAtAndUserId(date, userId);
 
-        List<Notice> noticeList = noticeRepository.findByCreatedAt(date);
+        List<Notice> noticeList =
+                noticeRepository.findByIdIn(
+                        myNoticeList.stream().map(NoticeUser::getNoticeId).toList());
 
-        // todo
-        //		return noticeList.stream().map(noticeConverter::toNoticeCommonResponse).toList();
-        return null;
+        Map<Long, NoticeUser> map = new HashMap<>();
+        for (NoticeUser noticeUser : myNoticeList) {
+            map.put(noticeUser.getNoticeId(), noticeUser);
+        }
+
+        return noticeList.stream()
+                .map(
+                        notice ->
+                                noticeConverter.toNoticeCommonResponse(
+                                        notice, map.get(notice.getId())))
+                .toList();
     }
 
     /** 수동 알림 전송일 경우 관리자인지 확인 */

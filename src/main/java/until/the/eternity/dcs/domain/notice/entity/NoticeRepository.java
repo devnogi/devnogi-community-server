@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.notice.entity;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ public class NoticeRepository {
         return jpaNoticeRepository.findById(id);
     }
 
-    public List<Notice> findByCreatedAt(LocalDateTime date) {
-        return jpaNoticeRepository.findByCreatedAtGreaterThanEqualOrderByCreatedAtDesc(date);
+    public List<Notice> findByIdIn(List<Long> noticeIdList) {
+        return jpaNoticeRepository.findByIdIn(noticeIdList);
     }
 }
