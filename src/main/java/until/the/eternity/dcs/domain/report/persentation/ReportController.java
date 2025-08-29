@@ -147,7 +147,7 @@ public class ReportController {
             content = @Content(schema = @Schema(implementation = ReportPersistResponse.class)))
     public ResponseEntity<ReportPersistResponse> updatePost(
             @PathVariable Long id, @Valid @RequestBody ReportUpdateRequest ReportUpdateRequest) {
-        return ResponseEntity.status(OK).body(reportService.updatePost(id, ReportUpdateRequest));
+        return ResponseEntity.status(OK).body(reportService.updateReport(id, ReportUpdateRequest));
     }
 
     @DeleteMapping("/{id}")

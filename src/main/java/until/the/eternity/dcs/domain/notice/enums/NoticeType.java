@@ -32,4 +32,9 @@ public enum NoticeType {
     public static Optional<NoticeType> fromCode(String code) {
         return Optional.ofNullable(CODE_MAP.get(code));
     }
+
+    /** 관리자의 수동 알림인지 확인 */
+    public Boolean isManualNotice() {
+        return this == EVENT;
+    }
 }

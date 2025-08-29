@@ -1,5 +1,9 @@
 package until.the.eternity.dcs.domain.comment.application;
 
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_LIKE;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_REPLY;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_COMMENT;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.common.notification.RedisSender;
+import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
@@ -43,6 +49,7 @@ public class CommentService {
     private final CommentMetaRepository commentMetaRepository;
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
+    private final RedisSender redisSender;
 
     @Transactional
     public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
@@ -52,6 +59,8 @@ public class CommentService {
         Comment save = commentRepository.save(comment);
 
         connectCommentWithPost(postId, save);
+
+        sendCommentCreatedNotice(postId, request.parentComment());
 
         return commentConverter.fromCommentToPersistResponse(save);
     }
@@ -114,6 +123,9 @@ public class CommentService {
 
         if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
             likeComment(request, userId);
+
+            redisSender.enqueue(NotificationJob.of(userId, COMMENT_LIKE, request.commentId()));
+
             return;
         }
         unlikeComment(request, userId);
@@ -137,6 +149,19 @@ public class CommentService {
 
         PostMeta postMeta = findPostMetaById(postId);
         postMeta.deleteComment();
+    }
+
+    private void sendCommentCreatedNotice(Long postId, Long parentId) {
+        if (parentId != null) {
+            Comment parent =
+                    commentRepository
+                            .findById(parentId)
+                            .orElseThrow(() -> new CommentNotFoundException(parentId));
+            redisSender.enqueue(NotificationJob.of(parent.getUserId(), COMMENT_REPLY, parentId));
+        } else {
+            Post post = findPostById(postId);
+            redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_COMMENT, postId));
+        }
     }
 
     private Post findPostById(Long postId) {

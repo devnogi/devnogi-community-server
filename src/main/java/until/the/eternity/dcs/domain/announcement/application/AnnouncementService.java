@@ -1,9 +1,13 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.ANNOUNCEMENT;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.common.notification.RedisSender;
+import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
@@ -31,6 +35,7 @@ public class AnnouncementService {
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
     private final UserService userService;
+    private final RedisSender redisSender;
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
@@ -45,6 +50,9 @@ public class AnnouncementService {
 
         Board board = post.getBoard();
         board.getAnnouncements().add(announcement);
+
+        // 0L로 설정 -> 전체 유저에게 전송
+        redisSender.enqueue(NotificationJob.of(0L, ANNOUNCEMENT, postId));
 
         return converter.fromEntityToPersistResponse(saved);
     }

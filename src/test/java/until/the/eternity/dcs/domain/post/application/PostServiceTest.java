@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
@@ -60,6 +61,8 @@ class PostServiceTest {
     @Mock private TagService tagService;
 
     @Mock private PostTagService postTagService;
+
+    @Mock private RedisSender redisSender;
 
     @InjectMocks private PostService postService;
 

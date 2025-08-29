@@ -16,6 +16,7 @@ class NoticeConverterTest {
     NoticeConverter noticeConverter = new NoticeConverter();
 
     Long id = 1L;
+    Long userId = 1L;
     NoticeType noticeType = POST_LIKE;
     String url = "api/posts/1";
 
@@ -23,7 +24,7 @@ class NoticeConverterTest {
     @DisplayName("fromSendRequest는 NoticeSendRequest를 Notice로 변환한다.")
     void fromSendRequest_Success() {
         // given
-        NoticeSendRequest request = new NoticeSendRequest(id, noticeType, url);
+        NoticeSendRequest request = new NoticeSendRequest(id, noticeType, url, userId);
 
         // when
         Notice notice = noticeConverter.fromSendRequest(request);

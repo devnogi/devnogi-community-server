@@ -1,5 +1,8 @@
 package until.the.eternity.dcs.domain.report.application;
 
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_BLOCKED;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_BLOCKED;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.REPORT_RESULT;
 import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 import java.time.LocalDateTime;
@@ -8,12 +11,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.common.notification.RedisSender;
+import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportUpdateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportStatus;
+import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
 import until.the.eternity.dcs.domain.report.exception.ReportModifyForbiddenException;
 import until.the.eternity.dcs.domain.report.exception.ReportNotFoundException;
 import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
@@ -29,6 +35,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final ReportConverter reportConverter;
     private final UserService fakeUserService;
+    private final RedisSender redisSender;
 
     @Transactional
     public ReportPersistResponse createReport(ReportCreateRequest request) {
@@ -79,7 +86,7 @@ public class ReportService {
     }
 
     @Transactional
-    public ReportPersistResponse updatePost(Long id, ReportUpdateRequest reportUpdateRequest) {
+    public ReportPersistResponse updateReport(Long id, ReportUpdateRequest reportUpdateRequest) {
         UserSummary user = getCurrentUser();
 
         checkManagerAuthority(user.getGrade());
@@ -95,6 +102,7 @@ public class ReportService {
 
         if (status.equals(ReportStatus.ACCEPT)) {
             report.update(status, time, userId, null, null);
+            sendNotice(report);
         } else if (status.equals(ReportStatus.REJECT)) {
             report.update(status, null, null, time, userId);
         }
@@ -108,6 +116,19 @@ public class ReportService {
         checkManagerAuthority(user.getGrade());
         findById(id);
         reportRepository.deleteById(id);
+    }
+
+    private void sendNotice(Report report) {
+        redisSender.enqueue(NotificationJob.of(report.getUserId(), REPORT_RESULT, report.getId()));
+        if (report.getTargetType() == ReportTargetType.POST) {
+            redisSender.enqueue(
+                    NotificationJob.of(
+                            report.getTargetUserId(), POST_BLOCKED, report.getTargetId()));
+        } else if (report.getTargetType() == ReportTargetType.COMMENT) {
+            redisSender.enqueue(
+                    NotificationJob.of(
+                            report.getTargetUserId(), COMMENT_BLOCKED, report.getTargetId()));
+        }
     }
 
     private UserSummary getCurrentUser() {

@@ -17,7 +17,7 @@ public class NoticeConverter {
         NoticeType noticeType = request.noticeType();
 
         return Notice.builder()
-                .userId(request.userId())
+                .userId(request.receiverId())
                 .title(noticeType.getDescription())
                 .noticeType(noticeType)
                 .createdAt(LocalDateTime.now())

@@ -2,6 +2,7 @@ package until.the.eternity.dcs.domain.announcement.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
@@ -38,10 +40,11 @@ class AnnouncementServiceTest {
 
     @BeforeEach
     void init() {
-        announcementRepository = Mockito.mock(AnnouncementRepository.class);
-        postRepository = Mockito.mock(PostRepository.class);
-        postMetaRepository = Mockito.mock(PostMetaRepository.class);
-        userService = Mockito.mock(UserService.class);
+        announcementRepository = mock(AnnouncementRepository.class);
+        postRepository = mock(PostRepository.class);
+        postMetaRepository = mock(PostMetaRepository.class);
+        userService = mock(UserService.class);
+        RedisSender redisSender = mock(RedisSender.class);
 
         AnnouncementConverter converter = new AnnouncementConverter();
 
@@ -51,7 +54,8 @@ class AnnouncementServiceTest {
                         converter,
                         postRepository,
                         postMetaRepository,
-                        userService);
+                        userService,
+                        redisSender);
 
         announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();
         post =

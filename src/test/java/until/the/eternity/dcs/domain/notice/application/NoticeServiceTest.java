@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.EVENT;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.USER;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,25 +21,30 @@ import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.entity.NoticeRepository;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 import until.the.eternity.dcs.domain.notice.exception.NoticeNotFoundException;
+import until.the.eternity.dcs.domain.notice.exception.NoticeSendForbiddenException;
+import until.the.eternity.dcs.domain.user.application.UserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class NoticeServiceTest {
     NoticeRepository noticeRepository = mock(NoticeRepository.class);
+    UserService userService = mock(UserService.class);
     NoticeConverter noticeConverter = new NoticeConverter();
 
     NoticeService noticeService;
 
     Long id = 1L;
+    Long userId = 1L;
     NoticeType noticeType = POST_LIKE;
     String url = "api/posts/1";
     Notice notice;
 
     @BeforeEach
     void init() {
-        noticeService = new NoticeService(noticeRepository, noticeConverter);
+        noticeService = new NoticeService(noticeRepository, noticeConverter, userService);
         notice =
                 Notice.builder()
                         .id(id)
-                        .userId(id)
+                        .userId(userId)
                         .title(noticeType.getDescription())
                         .noticeType(noticeType)
                         .createdAt(LocalDateTime.now())
@@ -51,7 +58,7 @@ class NoticeServiceTest {
     void createNotice_Success() {
         // given
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
-        NoticeSendRequest request = new NoticeSendRequest(id, noticeType, url);
+        NoticeSendRequest request = new NoticeSendRequest(id, noticeType, url, userId);
 
         // when
         NoticePersistResponse notice = noticeService.createNotice(request);
@@ -59,6 +66,20 @@ class NoticeServiceTest {
         // then
         assertThat(notice).isNotNull();
         assertThat(notice.id()).isEqualTo(id);
+    }
+
+    @Test
+    @DisplayName("createNotice는 관리자 전송 notice를 다른 유저가 전송 시 NoticeSendForbiddenException를 반환한다.")
+    void createNotice_throws_NoticeSendForbiddenException() {
+        // given
+        when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
+        when(userService.getCurrentUser()).thenReturn(UserSummary.builder().grade(USER).build());
+        NoticeSendRequest request = new NoticeSendRequest(id, EVENT, url, userId);
+
+        // when
+        // then
+        assertThatThrownBy(() -> noticeService.createNotice(request))
+                .isInstanceOf(NoticeSendForbiddenException.class);
     }
 
     @Test

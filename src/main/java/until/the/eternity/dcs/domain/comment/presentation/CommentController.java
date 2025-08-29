@@ -29,7 +29,7 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/comment")
+@RequestMapping("/api/comments")
 public class CommentController {
     private final CommentService commentService;
 
