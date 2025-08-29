@@ -81,7 +81,7 @@ public class NoticeController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = NoticeCommonResponse.class)))
     public List<NoticeCommonResponse> getNoticeList(
-            @RequestParam Long userId, @RequestParam Integer day) {
+            @RequestParam("userId") Long userId, @RequestParam("day") Integer day) {
         return noticeService.getNoticeList(userId, day);
     }
 }

@@ -19,6 +19,6 @@ public class FakeUserService implements UserService {
 
     @Override
     public Long getLastUserId() {
-        return 10L;
+        return 3L;
     }
 }

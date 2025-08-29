@@ -40,10 +40,7 @@ public class NoticeService {
         if (request.receiverId().equals(0L)) {
             connectEveryUser(notice.getId());
         } else {
-            NoticeUser noticeUser =
-                    noticeUserConverter.fromNoticeAndReceiverId(
-                            notice.getId(), request.receiverId());
-            noticeUserRepository.save(noticeUser);
+            connectToUser(notice.getId(), request.receiverId());
         }
 
         return noticeConverter.toNoticePersistResponse(notice);
@@ -51,7 +48,6 @@ public class NoticeService {
 
     @Transactional
     public NoticeCommonResponse getDetailNotice(Long id) {
-        // todo 권한확인
         Notice notice =
                 noticeRepository.findById(id).orElseThrow(() -> new NoticeNotFoundException(id));
 
@@ -69,9 +65,8 @@ public class NoticeService {
         LocalDateTime date = LocalDateTime.now().minusDays(day).toLocalDate().atStartOfDay();
         List<NoticeUser> myNoticeList = noticeUserRepository.findByCreatedAtAndUserId(date, userId);
 
-        List<Notice> noticeList =
-                noticeRepository.findByIdIn(
-                        myNoticeList.stream().map(NoticeUser::getNoticeId).toList());
+        List<Long> idList = myNoticeList.stream().map(NoticeUser::getNoticeId).toList();
+        List<Notice> noticeList = noticeRepository.findByIdIn(idList);
 
         Map<Long, NoticeUser> map = new HashMap<>();
         for (NoticeUser noticeUser : myNoticeList) {
@@ -86,13 +81,19 @@ public class NoticeService {
                 .toList();
     }
 
-    // todo 벌크
+    // todo 배치 or DBMS에서 생성하도록 수정 필요
     @Transactional
     public void connectEveryUser(Long noticeId) {
         Long lastUserId = userService.getLastUserId();
         for (long i = 1; i <= lastUserId; i++) {
             noticeUserRepository.save(noticeUserConverter.fromNoticeAndReceiverId(noticeId, i));
         }
+    }
+
+    @Transactional
+    public void connectToUser(Long noticeId, Long receiverId) {
+        NoticeUser noticeUser = noticeUserConverter.fromNoticeAndReceiverId(noticeId, receiverId);
+        noticeUserRepository.save(noticeUser);
     }
 
     /** 수동 알림 전송일 경우 관리자인지 확인 */
