@@ -38,8 +38,7 @@ public class UserSummaryService {
         if (!existsUserSummaryById(userId)) {
             throw new UserNotFoundException(userId);
         }
-        UserSummary userSummary =
-                userSummaryRepository.findById(userId).orElseThrow(RuntimeException::new);
+        UserSummary userSummary = findUserSummaryById(userId);
         return userSummaryConverter.userSummaryToUserSummaryDetailResponse(userSummary);
     }
 
@@ -47,9 +46,6 @@ public class UserSummaryService {
     public UserSummaryPersistResponse updateUserSummary(
             UserSummaryUpdateRequest userSummaryUpdateRequest) {
         Long userId = userSummaryUpdateRequest.userId();
-        if (!existsUserSummaryById(userId)) {
-            throw new UserNotFoundException(userId);
-        }
         UserSummary user = findUserSummaryById(userId);
         UserGrade userGrade =
                 UserGrade.fromCode(userSummaryUpdateRequest.grade())
@@ -72,7 +68,7 @@ public class UserSummaryService {
     }
 
     private UserSummary findUserSummaryById(Long id) {
-        return userSummaryRepository.findById(id).orElseThrow(RuntimeException::new);
+        return userSummaryRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     private boolean existsUserSummaryById(Long userId) {
