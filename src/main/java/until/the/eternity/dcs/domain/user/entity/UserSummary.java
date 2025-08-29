@@ -31,4 +31,16 @@ public class UserSummary {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserGrade grade = USER;
+
+    public void update(String nickname, Integer level, UserGrade grade) {
+        if (nickname != null && !nickname.isEmpty()) {
+            this.nickname = nickname;
+        }
+        if (grade != null) {
+            this.grade = grade;
+        }
+        if (level != null) {
+            this.level = level;
+        }
+    }
 }
