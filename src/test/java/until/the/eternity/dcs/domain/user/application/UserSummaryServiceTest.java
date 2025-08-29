@@ -151,7 +151,6 @@ class UserSummaryServiceTest {
         @DisplayName("성공: 존재하는 UserSummary를 수정한다")
         void updateUserSummary_Success() {
             // given
-            given(userSummaryRepository.existsById(1L)).willReturn(true);
             given(userSummaryRepository.findById(1L)).willReturn(Optional.of(userSummary));
             given(userSummaryRepository.save(userSummary)).willReturn(userSummary);
             given(userSummaryConverter.userSummaryToUserSummaryPersistResponse(userSummary))
@@ -164,7 +163,6 @@ class UserSummaryServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.userId()).isEqualTo(1L);
 
-            verify(userSummaryRepository).existsById(1L);
             verify(userSummaryRepository).findById(1L);
             assertThat(userSummary.getNickname()).isEqualTo("updatedUser");
             assertThat(userSummary.getGrade()).isEqualTo(UserGrade.ADMIN);
@@ -177,15 +175,15 @@ class UserSummaryServiceTest {
         @DisplayName("실패: 존재하지 않는 사용자인 경우 UserNotFoundException 발생")
         void updateUserSummary_ThrowsUserNotFoundException_WhenUserNotExists() {
             // given
-            given(userSummaryRepository.existsById(1L)).willReturn(false);
+            given(userSummaryRepository.findById(1L)).willReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> userSummaryService.updateUserSummary(updateRequest))
                     .isInstanceOf(UserNotFoundException.class);
 
-            verify(userSummaryRepository).existsById(1L);
-            verify(userSummaryRepository, never()).findById(any());
+            verify(userSummaryRepository).findById(1L);
             verify(userSummaryRepository, never()).save(any());
+            verify(userSummaryConverter, never()).userSummaryToUserSummaryPersistResponse(any());
         }
 
         @Test
@@ -194,14 +192,12 @@ class UserSummaryServiceTest {
             // given
             UserSummaryUpdateRequest invalidGradeRequest =
                     new UserSummaryUpdateRequest(1L, "updatedUser", 20, "INVALID_GRADE");
-            given(userSummaryRepository.existsById(1L)).willReturn(true);
             given(userSummaryRepository.findById(1L)).willReturn(Optional.of(userSummary));
 
             // when & then
             assertThatThrownBy(() -> userSummaryService.updateUserSummary(invalidGradeRequest))
                     .isInstanceOf(UserGradeNotFoundException.class);
 
-            verify(userSummaryRepository).existsById(1L);
             verify(userSummaryRepository).findById(1L);
             verify(userSummaryRepository, never()).save(any());
         }
