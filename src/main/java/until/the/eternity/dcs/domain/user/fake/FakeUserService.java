@@ -16,4 +16,9 @@ public class FakeUserService implements UserService {
     public Boolean isAuthenticated() {
         return true;
     }
+
+    @Override
+    public Long getLastUserId() {
+        return 10L;
+    }
 }

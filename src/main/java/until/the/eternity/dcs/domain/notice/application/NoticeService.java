@@ -34,20 +34,24 @@ public class NoticeService {
     public NoticePersistResponse createNotice(NoticeSendRequest request) {
         authCheck(request.noticeType());
 
+        Notice notice = noticeRepository.save(noticeConverter.fromSendRequest(request));
+
+        // 0L로 전송시 모든 유저와 연결
         if (request.receiverId().equals(0L)) {
-            return broadcastNotice(request);
+            connectEveryUser(notice.getId());
+        } else {
+            NoticeUser noticeUser =
+                    noticeUserConverter.fromNoticeAndReceiverId(
+                            notice.getId(), request.receiverId());
+            noticeUserRepository.save(noticeUser);
         }
 
-        Notice notice = noticeConverter.fromSendRequest(request);
-        Notice save = noticeRepository.save(notice);
-        NoticeUser noticeUser = noticeUserConverter.fromSendRequest(request, save.getId());
-        noticeUserRepository.save(noticeUser);
-
-        return noticeConverter.toNoticePersistResponse(save);
+        return noticeConverter.toNoticePersistResponse(notice);
     }
 
     @Transactional
     public NoticeCommonResponse getDetailNotice(Long id) {
+        // todo 권한확인
         Notice notice =
                 noticeRepository.findById(id).orElseThrow(() -> new NoticeNotFoundException(id));
 
@@ -82,6 +86,15 @@ public class NoticeService {
                 .toList();
     }
 
+    // todo 벌크
+    @Transactional
+    public void connectEveryUser(Long noticeId) {
+        Long lastUserId = userService.getLastUserId();
+        for (long i = 1; i <= lastUserId; i++) {
+            noticeUserRepository.save(noticeUserConverter.fromNoticeAndReceiverId(noticeId, i));
+        }
+    }
+
     /** 수동 알림 전송일 경우 관리자인지 확인 */
     private void authCheck(NoticeType noticeType) {
         if (noticeType.isManualNotice()) {
@@ -89,10 +102,5 @@ public class NoticeService {
                 throw new NoticeSendForbiddenException();
             }
         }
-    }
-
-    // todo
-    private NoticePersistResponse broadcastNotice(NoticeSendRequest request) {
-        return null;
     }
 }
