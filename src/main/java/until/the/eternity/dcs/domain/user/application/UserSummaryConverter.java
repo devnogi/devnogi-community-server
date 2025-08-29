@@ -5,16 +5,24 @@ import until.the.eternity.dcs.domain.user.dto.request.UserSummaryCreateRequest;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryPersistResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.enums.UserGrade;
+import until.the.eternity.dcs.domain.user.exception.UserGradeNotFoundException;
 
 @Component
 public class UserSummaryConverter {
     public UserSummary createUserSummaryToUserSummary(
             UserSummaryCreateRequest userSummaryCreateRequest) {
+        UserGrade userGrade =
+                UserGrade.fromCode(userSummaryCreateRequest.grade())
+                        .orElseThrow(
+                                () ->
+                                        new UserGradeNotFoundException(
+                                                userSummaryCreateRequest.grade()));
         return UserSummary.builder()
                 .id(userSummaryCreateRequest.userId())
                 .nickname(userSummaryCreateRequest.nickname())
                 .level(userSummaryCreateRequest.level())
-                .grade(userSummaryCreateRequest.grade())
+                .grade(userGrade)
                 .build();
     }
 

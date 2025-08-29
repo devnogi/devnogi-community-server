@@ -8,7 +8,9 @@ import until.the.eternity.dcs.domain.user.dto.request.UserSummaryUpdateRequest;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryPersistResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.enums.UserGrade;
 import until.the.eternity.dcs.domain.user.exception.UserAlreadyExistsException;
+import until.the.eternity.dcs.domain.user.exception.UserGradeNotFoundException;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
@@ -49,10 +51,14 @@ public class UserSummaryService {
             throw new UserNotFoundException(userId);
         }
         UserSummary user = findUserSummaryById(userId);
+        UserGrade userGrade =
+                UserGrade.fromCode(userSummaryUpdateRequest.grade())
+                        .orElseThrow(
+                                () ->
+                                        new UserGradeNotFoundException(
+                                                userSummaryUpdateRequest.grade()));
         user.update(
-                userSummaryUpdateRequest.nickname(),
-                userSummaryUpdateRequest.level(),
-                userSummaryUpdateRequest.grade());
+                userSummaryUpdateRequest.nickname(), userSummaryUpdateRequest.level(), userGrade);
         userSummaryRepository.save(user);
         return userSummaryConverter.userSummaryToUserSummaryPersistResponse(user);
     }
