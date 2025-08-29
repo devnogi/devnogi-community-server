@@ -9,6 +9,7 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 import static until.the.eternity.dcs.domain.user.enums.UserGrade.USER;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -122,21 +123,21 @@ class NoticeServiceTest {
                 .isInstanceOf(NoticeNotFoundException.class);
     }
 
-    // todo
-    //    @Test
+    @Test
     @DisplayName("getNoticeList는 day일간의 notice를 리스트로 조회한다.")
     void getNoticeList_Success() {
         // given
         int day = 1;
-        //        when(noticeRepository.findByCreatedAtAndIdIn(any(),
-        // anyList())).thenReturn(List.of(notice));
+        when(noticeRepository.findByIdIn(anyList())).thenReturn(List.of(notice));
+        when(noticeUserRepository.findByCreatedAtAndUserId(any(), anyLong()))
+                .thenReturn(List.of(noticeUser));
 
         // when
-        //        List<NoticeCommonResponse> response = noticeService.getNoticeList(day);
-        //
-        //        // then
-        //        assertThat(response).isNotNull();
-        //        assertThat(response.size()).isEqualTo(1);
-        //        assertThat(response.get(0).id()).isEqualTo(id);
+        List<NoticeCommonResponse> response = noticeService.getNoticeList(userId, day);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.size()).isEqualTo(1);
+        assertThat(response.get(0).id()).isEqualTo(id);
     }
 }
