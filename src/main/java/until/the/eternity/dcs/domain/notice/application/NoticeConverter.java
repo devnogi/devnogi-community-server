@@ -7,6 +7,7 @@ import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
+import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Component
@@ -17,17 +18,15 @@ public class NoticeConverter {
         NoticeType noticeType = request.noticeType();
 
         return Notice.builder()
-                .userId(request.receiverId())
                 .title(noticeType.getDescription())
                 .noticeType(noticeType)
                 .createdAt(LocalDateTime.now())
                 .url(request.url())
-                .isRead(false)
                 .build();
     }
 
-    public NoticeCommonResponse toNoticeCommonResponse(Notice notice) {
-        return NoticeCommonResponse.from(notice);
+    public NoticeCommonResponse toNoticeCommonResponse(Notice notice, NoticeUser noticeUser) {
+        return NoticeCommonResponse.from(notice, noticeUser);
     }
 
     public NoticePersistResponse toNoticePersistResponse(Notice notice) {

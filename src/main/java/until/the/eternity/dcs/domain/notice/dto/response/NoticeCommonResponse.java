@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
+import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Builder
@@ -27,15 +28,15 @@ public record NoticeCommonResponse(
                 LocalDateTime createdAt,
         @Schema(description = "알림 확인 여부", example = "false", requiredMode = REQUIRED)
                 Boolean isRead) {
-    public static NoticeCommonResponse from(Notice notice) {
+    public static NoticeCommonResponse from(Notice notice, NoticeUser noticeUser) {
         return NoticeCommonResponse.builder()
                 .id(notice.getId())
-                .userId(notice.getUserId())
+                .userId(noticeUser.getUserId())
                 .title(notice.getTitle())
                 .contents(buildContents(notice.getNoticeType()))
                 .url(notice.getUrl())
                 .createdAt(notice.getCreatedAt())
-                .isRead(notice.getIsRead())
+                .isRead(noticeUser.getIsRead())
                 .build();
     }
 
