@@ -8,6 +8,8 @@ import until.the.eternity.dcs.domain.user.dto.request.UserSummaryUpdateRequest;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryPersistResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.exception.UserAlreadyExistsException;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Service
@@ -22,7 +24,7 @@ public class UserSummaryService {
             UserSummaryCreateRequest userSummaryCreateRequest) {
         Long userId = userSummaryCreateRequest.userId();
         if (existsUserSummaryById(userId)) {
-            throw new RuntimeException();
+            throw new UserAlreadyExistsException(userId);
         }
         UserSummary userSummary =
                 userSummaryConverter.createUserSummaryToUserSummary(userSummaryCreateRequest);
@@ -30,9 +32,9 @@ public class UserSummaryService {
         return userSummaryConverter.userSummaryToUserSummaryPersistResponse(savedUserSummary);
     }
 
-    public UserSummaryDetailResponse findUser(Long userId) {
+    public UserSummaryDetailResponse findUserSummary(Long userId) {
         if (!existsUserSummaryById(userId)) {
-            throw new RuntimeException();
+            throw new UserNotFoundException(userId);
         }
         UserSummary userSummary =
                 userSummaryRepository.findById(userId).orElseThrow(RuntimeException::new);
@@ -44,7 +46,7 @@ public class UserSummaryService {
             UserSummaryUpdateRequest userSummaryUpdateRequest) {
         Long userId = userSummaryUpdateRequest.userId();
         if (!existsUserSummaryById(userId)) {
-            throw new RuntimeException();
+            throw new UserNotFoundException(userId);
         }
         UserSummary user = findUserSummaryById(userId);
         user.update(
@@ -58,7 +60,7 @@ public class UserSummaryService {
     @Transactional
     public void deleteUserSummary(Long userId) {
         if (!existsUserSummaryById(userId)) {
-            throw new RuntimeException();
+            throw new UserNotFoundException(userId);
         }
         userSummaryRepository.deleteById(userId);
     }
