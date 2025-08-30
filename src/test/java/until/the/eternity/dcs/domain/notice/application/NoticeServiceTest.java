@@ -24,15 +24,15 @@ import until.the.eternity.dcs.domain.notice.entity.NoticeUserRepository;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 import until.the.eternity.dcs.domain.notice.exception.NoticeNotFoundException;
 import until.the.eternity.dcs.domain.notice.exception.NoticeSendForbiddenException;
-import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 class NoticeServiceTest {
     NoticeRepository noticeRepository = mock(NoticeRepository.class);
-    UserService userService = mock(UserService.class);
     NoticeConverter noticeConverter = new NoticeConverter();
     NoticeUserRepository noticeUserRepository = mock(NoticeUserRepository.class);
     NoticeUserConverter noticeUserConverter = new NoticeUserConverter();
+    UserSummaryRepository userSummaryRepository = mock(UserSummaryRepository.class);
 
     NoticeService noticeService;
 
@@ -49,9 +49,9 @@ class NoticeServiceTest {
                 new NoticeService(
                         noticeRepository,
                         noticeConverter,
-                        userService,
                         noticeUserRepository,
-                        noticeUserConverter);
+                        noticeUserConverter,
+                        userSummaryRepository);
         notice =
                 Notice.builder()
                         .id(id)
@@ -82,8 +82,12 @@ class NoticeServiceTest {
     @DisplayName("createNotice는 관리자 전송 notice를 다른 유저가 전송 시 NoticeSendForbiddenException를 반환한다.")
     void createNotice_throws_NoticeSendForbiddenException() {
         // given
+        UserSummary userSummary = UserSummary.builder().grade(USER).build();
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
-        when(userService.getCurrentUser()).thenReturn(UserSummary.builder().grade(USER).build());
+        when(userSummaryRepository.findFirstByOrderByIdDesc())
+                .thenReturn(Optional.ofNullable(userSummary));
+        when(userSummaryRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(userSummary));
         NoticeSendRequest request = new NoticeSendRequest(id, EVENT, url, userId);
 
         // when

@@ -10,4 +10,8 @@ public class UserNotFoundException extends CustomException {
                 USER_NOT_FOUND_EXCEPTION,
                 USER_NOT_FOUND_EXCEPTION.getMessage() + " userId : " + userId);
     }
+
+    public UserNotFoundException() {
+        super(USER_NOT_FOUND_EXCEPTION, USER_NOT_FOUND_EXCEPTION.getMessage());
+    }
 }

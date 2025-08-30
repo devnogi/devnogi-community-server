@@ -19,20 +19,22 @@ import until.the.eternity.dcs.domain.notice.entity.NoticeUserRepository;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 import until.the.eternity.dcs.domain.notice.exception.NoticeNotFoundException;
 import until.the.eternity.dcs.domain.notice.exception.NoticeSendForbiddenException;
-import until.the.eternity.dcs.domain.user.application.UserService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
+import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final NoticeConverter noticeConverter;
-    private final UserService userService;
     private final NoticeUserRepository noticeUserRepository;
     private final NoticeUserConverter noticeUserConverter;
+    private final UserSummaryRepository userSummaryRepository;
 
     @Transactional
     public NoticePersistResponse createNotice(NoticeSendRequest request) {
-        authCheck(request.noticeType());
+        authCheck(request.noticeType(), request.senderId());
 
         Notice notice = noticeRepository.save(noticeConverter.fromSendRequest(request));
 
@@ -84,7 +86,12 @@ public class NoticeService {
     // todo 배치 or DBMS에서 생성하도록 수정 필요
     @Transactional
     public void connectEveryUser(Long noticeId) {
-        Long lastUserId = userService.getLastUserId();
+        UserSummary user =
+                userSummaryRepository
+                        .findFirstByOrderByIdDesc()
+                        .orElseThrow(UserNotFoundException::new);
+        Long lastUserId = user.getId();
+
         for (long i = 1; i <= lastUserId; i++) {
             noticeUserRepository.save(noticeUserConverter.fromNoticeAndReceiverId(noticeId, i));
         }
@@ -97,9 +104,13 @@ public class NoticeService {
     }
 
     /** 수동 알림 전송일 경우 관리자인지 확인 */
-    private void authCheck(NoticeType noticeType) {
+    private void authCheck(NoticeType noticeType, Long userId) {
         if (noticeType.isManualNotice()) {
-            if (userService.getCurrentUser().getGrade() != ADMIN) {
+            UserSummary userSummary =
+                    userSummaryRepository
+                            .findById(userId)
+                            .orElseThrow(() -> new UserNotFoundException(userId));
+            if (userSummary.getGrade() != ADMIN) {
                 throw new NoticeSendForbiddenException();
             }
         }
