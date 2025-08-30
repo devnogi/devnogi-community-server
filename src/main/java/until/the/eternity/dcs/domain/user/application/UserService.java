@@ -6,4 +6,7 @@ public interface UserService {
     UserSummary getCurrentUser();
 
     Boolean isAuthenticated();
+
+    /** user_summary 테이블의 저장된 아이디 중 마지막 아이디 */
+    Long getLastUserId();
 }

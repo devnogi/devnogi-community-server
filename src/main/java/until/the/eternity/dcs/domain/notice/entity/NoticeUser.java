@@ -1,12 +1,11 @@
 package until.the.eternity.dcs.domain.notice.entity;
 
+import static jakarta.persistence.GenerationType.IDENTITY;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -16,31 +15,34 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Entity
-@Table(name = "notice")
+@Table(name = "notice_user")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notice {
-
+public class NoticeUser {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Column(name = "title", nullable = false, length = 25)
-    private String title;
+    @Column(name = "notice_id", nullable = false)
+    private Long noticeId;
 
-    @Enumerated(EnumType.STRING)
-    private NoticeType noticeType;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Builder.Default
+    @Column(name = "is_read", nullable = false)
+    private Boolean isRead = false;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "URL", nullable = false, columnDefinition = "TEXT")
-    private String url;
+    public void read() {
+        this.isRead = true;
+    }
 }

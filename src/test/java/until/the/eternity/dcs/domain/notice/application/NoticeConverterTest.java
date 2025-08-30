@@ -10,6 +10,7 @@ import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
+import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 class NoticeConverterTest {
@@ -31,7 +32,6 @@ class NoticeConverterTest {
 
         // then
         assertThat(notice).isNotNull();
-        assertThat(notice.getUserId()).isEqualTo(id);
         assertThat(notice.getNoticeType()).isEqualTo(noticeType);
         assertThat(notice.getUrl()).isEqualTo(url);
     }
@@ -43,16 +43,22 @@ class NoticeConverterTest {
         Notice notice =
                 Notice.builder()
                         .id(id)
-                        .userId(id)
                         .title(noticeType.getDescription())
                         .noticeType(noticeType)
                         .createdAt(LocalDateTime.now())
                         .url(url)
+                        .build();
+
+        NoticeUser noticeUser =
+                NoticeUser.builder()
+                        .noticeId(1L)
+                        .userId(1L)
                         .isRead(false)
+                        .createdAt(notice.getCreatedAt())
                         .build();
 
         // when
-        NoticeCommonResponse response = noticeConverter.toNoticeCommonResponse(notice);
+        NoticeCommonResponse response = noticeConverter.toNoticeCommonResponse(notice, noticeUser);
 
         // then
         assertThat(response).isNotNull();

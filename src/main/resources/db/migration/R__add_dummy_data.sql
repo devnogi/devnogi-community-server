@@ -1,4 +1,6 @@
 DELETE from comment;
+DELETE from post_tag;
+DELETE from tag;
 DELETE from post;
 DELETE from board;
 DELETE from user_summary;
@@ -11,9 +13,9 @@ VALUES (1, '자유게시판', '자유로운 이야기를 나누는 게시판입�
 
 -- user_summary 더미 데이터
 INSERT INTO user_summary (id, nickname, profile_image_url, level, grade)
-VALUES (1, 'Alice', 'https://example.com/profiles/alice.jpg', 5, 'user'),
-       (2, 'Bob', 'https://example.com/profiles/bob.jpg', 10, 'manager'),
-       (3, 'Charlie', 'https://example.com/profiles/charlie.jpg', 15, 'admin');
+VALUES (1, 'Alice', 'https://example.com/profiles/alice.jpg', 5, 'USER'),
+       (2, 'Bob', 'https://example.com/profiles/bob.jpg', 10, 'USER'),
+       (3, 'Charlie', 'https://example.com/profiles/charlie.jpg', 15, 'ADMIN');
 
 -- post 더미 데이터
 INSERT INTO post (id, board_id, user_id, title, content, is_draft, is_blocked)
