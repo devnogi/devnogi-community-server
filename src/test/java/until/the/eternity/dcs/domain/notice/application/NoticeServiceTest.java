@@ -68,7 +68,25 @@ class NoticeServiceTest {
     void createNotice_Success() {
         // given
         when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
-        NoticeSendRequest request = new NoticeSendRequest(id, noticeType, url, userId);
+        NoticeSendRequest request = new NoticeSendRequest(userId, noticeType, url, userId);
+
+        // when
+        NoticePersistResponse notice = noticeService.createNotice(request);
+
+        // then
+        assertThat(notice).isNotNull();
+        assertThat(notice.id()).isEqualTo(id);
+    }
+
+    @Test
+    @DisplayName("receiverId==0이면, createNotice는 전체유저에 대해 notice를 생성 저장한다.")
+    void createNotice_Broadcast() {
+        // given
+        UserSummary userSummary = UserSummary.builder().id(3L).grade(USER).build();
+        NoticeSendRequest request = new NoticeSendRequest(0L, noticeType, url, userId);
+        when(noticeRepository.save(any(Notice.class))).thenReturn(notice);
+        when(userSummaryRepository.findFirstByOrderByIdDesc())
+                .thenReturn(Optional.ofNullable(userSummary));
 
         // when
         NoticePersistResponse notice = noticeService.createNotice(request);
