@@ -67,11 +67,11 @@ public class UserSummaryService {
         userSummaryRepository.deleteById(userId);
     }
 
-    private UserSummary findUserSummaryById(Long id) {
+    public UserSummary findUserSummaryById(Long id) {
         return userSummaryRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
-    private boolean existsUserSummaryById(Long userId) {
+    public boolean existsUserSummaryById(Long userId) {
         return userSummaryRepository.existsById(userId);
     }
 }
