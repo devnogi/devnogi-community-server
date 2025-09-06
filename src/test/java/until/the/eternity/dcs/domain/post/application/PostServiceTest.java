@@ -117,12 +117,7 @@ class PostServiceTest {
 
         createRequest =
                 new PostCreateRequest(
-                        1L,
-                        "New Post",
-                        "New Content",
-                        false,
-                        Arrays.asList("tag1", "tag2"),
-                        userId);
+                        1L, "New Post", "New Content", false, Arrays.asList("tag1", "tag2"));
 
         updateRequest =
                 new PostUpdateRequest(

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.common.response.CustomPageResponse;
@@ -81,8 +82,11 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public ResponseEntity<PostPersistResponse> updatePost(
-            @PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
-        return ResponseEntity.status(OK).body(postService.updatePost(id, postUpdateRequest));
+            @PathVariable Long id,
+            @Valid @RequestBody PostUpdateRequest postUpdateRequest,
+            @AuthenticationPrincipal Long userId) {
+        return ResponseEntity.status(OK)
+                .body(postService.updatePost(id, postUpdateRequest, userId));
     }
 
     @DeleteMapping("/{id}")
@@ -93,7 +97,8 @@ public class PostController {
 			- Assignee : 고범수
 		""")
     @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> delete(
+            @PathVariable("id") Long id, @AuthenticationPrincipal Long userId) {
         postService.deletePost(id);
         return ResponseEntity.status(NO_CONTENT).build();
     }
@@ -106,8 +111,10 @@ public class PostController {
 			- Assignee : 고범수
 		""")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Void> like(@RequestBody PostLikeCreateRequest postLikeCreateRequest) {
-        postService.togglePostLike(postLikeCreateRequest);
+    public ResponseEntity<Void> like(
+            @RequestBody PostLikeCreateRequest postLikeCreateRequest,
+            @AuthenticationPrincipal Long userId) {
+        postService.togglePostLike(postLikeCreateRequest, userId);
         return ResponseEntity.status(NO_CONTENT).build();
     }
 }

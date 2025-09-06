@@ -30,14 +30,16 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // 1. 헤더에서 사용자 정보 추출
-        String userId = request.getHeader("X-USER-ID");
+        String userIdCode = request.getHeader("X-USER-ID");
         String userGradeCode = request.getHeader("X-USER-GRADE");
 
         // 헤더 정보가 없으면 익명 사용자로 처리
-        if (userId == null || userGradeCode == null) {
+        if (userIdCode == null || userGradeCode == null) {
             filterChain.doFilter(request, response);
             return;
         }
+
+        Long userId = Long.parseLong(userIdCode);
 
         UserGrade userGrade =
                 UserGrade.fromCode(userGradeCode)
