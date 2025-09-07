@@ -54,6 +54,14 @@ public class PostPermissionEvaluator {
         return currentPost.getUserId().equals(currentUserId);
     }
 
+    public boolean canTogglePostLike(Authentication auth) {
+        if (!isAuthenticated(auth)) {
+            return false;
+        }
+        Long userId = getCurrentUserId(auth);
+        return userSummaryRepository.existsById(userId);
+    }
+
     private boolean isAuthenticated(Authentication auth) {
         return auth != null && auth.isAuthenticated();
     }

@@ -30,7 +30,7 @@ public class PostLikeConverterTest {
     @DisplayName("requestToPostLike 테스트")
     void toEntity_Success() {
         // given
-        PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(1L, userId);
+        PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(1L);
 
         // when
         PostLike result = postLikeConverter.toEntity(1L, mockPost);

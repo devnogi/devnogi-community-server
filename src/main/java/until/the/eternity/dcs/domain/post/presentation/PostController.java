@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.common.response.CustomPageResponse;
@@ -107,10 +106,8 @@ public class PostController {
 			- Assignee : 고범수
 		""")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Void> like(
-            @RequestBody PostLikeCreateRequest postLikeCreateRequest,
-            @AuthenticationPrincipal Long userId) {
-        postService.togglePostLike(postLikeCreateRequest, userId);
+    public ResponseEntity<Void> like(@RequestBody PostLikeCreateRequest postLikeCreateRequest) {
+        postService.togglePostLike(postLikeCreateRequest);
         return ResponseEntity.status(NO_CONTENT).build();
     }
 }

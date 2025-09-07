@@ -337,15 +337,17 @@ class PostServiceTest {
         @DisplayName("게시글 좋아요")
         public void likePost_Test() {
             // given
-
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
             PostLikeCreateRequest postLikeCreateRequest =
-                    new PostLikeCreateRequest(mockPost.getId(), userId);
+                    new PostLikeCreateRequest(mockPost.getId());
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(false);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
             // when
-            postService.togglePostLike(postLikeCreateRequest, userId);
+            postService.togglePostLike(postLikeCreateRequest);
 
             // then
             assertThat(postMeta.getLikeCount()).isEqualTo(1);
@@ -356,8 +358,11 @@ class PostServiceTest {
         @DisplayName("게시글 좋아요 해제")
         public void unlikePost_Test() {
             // given
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
             PostLikeCreateRequest postLikeCreateRequest =
-                    new PostLikeCreateRequest(mockPost.getId(), userId);
+                    new PostLikeCreateRequest(mockPost.getId());
 
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);
@@ -365,7 +370,7 @@ class PostServiceTest {
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
 
             // when
-            postService.togglePostLike(postLikeCreateRequest, userId);
+            postService.togglePostLike(postLikeCreateRequest);
 
             // then
             assertThat(postMeta.getLikeCount()).isEqualTo(-1);

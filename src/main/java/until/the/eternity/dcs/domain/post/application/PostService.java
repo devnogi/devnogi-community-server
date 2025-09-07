@@ -142,8 +142,11 @@ public class PostService {
     }
 
     @Transactional
-    //    @PreAuthorize()
-    public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest, Long userId) {
+    @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
+    public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = postPermissionEvaluator.getCurrentUserId(auth);
+
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
         PostMeta postMeta = findPostMetaByPostId(postId);
