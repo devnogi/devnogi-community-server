@@ -91,6 +91,8 @@ public class PostService {
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canUpdate(authentication,#id)")
     public PostPersistResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = postPermissionEvaluator.getCurrentUserId(auth);
 
         Post post = findById(id);
 
@@ -124,7 +126,7 @@ public class PostService {
                 postUpdateRequest.content(),
                 postUpdateRequest.isDraft(),
                 null,
-                postUpdateRequest.userId());
+                userId);
 
         Post updatedPost = postRepository.save(post);
 

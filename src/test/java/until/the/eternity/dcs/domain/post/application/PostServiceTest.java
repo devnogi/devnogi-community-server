@@ -125,11 +125,7 @@ class PostServiceTest {
 
         updateRequest =
                 new PostUpdateRequest(
-                        1L,
-                        "Updated Title",
-                        "Updated Content",
-                        false,
-                        Arrays.asList("tag3", "tag4"));
+                        "Updated Title", "Updated Content", false, Arrays.asList("tag3", "tag4"));
 
         mockSummaryResponse =
                 PostSummaryResponse.builder()
@@ -161,12 +157,12 @@ class PostServiceTest {
             // Given
             SecurityContextHolder.setContext(securityContext);
             given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
             given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L)))
                     .willReturn(mockPost);
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
                     .willReturn(mockPersistResponse);
-            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
 
             // When
             PostPersistResponse result = postService.createPost(createRequest);
@@ -263,6 +259,9 @@ class PostServiceTest {
         void updatePost_Success() {
             // Given
             Long postId = 1L;
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
             given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
@@ -282,6 +281,9 @@ class PostServiceTest {
         void updatePost_PostNotFound() {
             // Given
             Long postId = 999L;
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
             given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
 
             // When & Then
