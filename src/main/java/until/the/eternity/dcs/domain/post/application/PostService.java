@@ -52,8 +52,8 @@ public class PostService {
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
     public PostPersistResponse createPost(PostCreateRequest request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = postPermissionEvaluator.getCurrentUserId(auth);
+
+        Long userId = getCurrentUserId();
         Post post = postConverter.fromCreateRequestToPost(request, userId);
         Post savedPost = postRepository.save(post);
 
@@ -91,8 +91,7 @@ public class PostService {
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canUpdate(authentication,#id)")
     public PostPersistResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = postPermissionEvaluator.getCurrentUserId(auth);
+        Long userId = getCurrentUserId();
 
         Post post = findById(id);
 
@@ -144,9 +143,7 @@ public class PostService {
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
     public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = postPermissionEvaluator.getCurrentUserId(auth);
-
+        Long userId = getCurrentUserId();
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
         PostMeta postMeta = findPostMetaByPostId(postId);
@@ -172,5 +169,10 @@ public class PostService {
 
     private PostMeta findPostMetaByPostId(Long postId) {
         return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return postPermissionEvaluator.getCurrentUserId(auth);
     }
 }
