@@ -21,6 +21,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.entity.Board;
@@ -33,8 +36,6 @@ import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
-import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
-import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -64,6 +65,9 @@ class PostServiceTest {
 
     @Mock private RedisSender redisSender;
 
+    @Mock private PostPermissionEvaluator postPermissionEvaluator;
+    @Mock private SecurityContext securityContext;
+    @Mock private Authentication authentication;
     @InjectMocks private PostService postService;
 
     @Mock private PostMetaRepository postMetaRepository;
@@ -155,38 +159,23 @@ class PostServiceTest {
         @DisplayName("정상적인 게시글 생성")
         void createPost_Success() {
             // Given
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
             given(postConverter.fromCreateRequestToPost(eq(createRequest), eq(1L)))
                     .willReturn(mockPost);
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
                     .willReturn(mockPersistResponse);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
 
             // When
             PostPersistResponse result = postService.createPost(createRequest);
 
             // Then
             assertThat(result).isEqualTo(mockPersistResponse);
-            verify(fakeUserService).getCurrentUser();
             verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L));
             verify(postRepository).save(mockPost);
             verify(postConverter).fromPostToPostPersistResponse(mockPost);
-        }
-
-        @Test
-        @DisplayName("사용자 인증 실패 시 예외 발생")
-        void createPost_UserAuthenticationFailed() {
-            // Given
-            given(fakeUserService.getCurrentUser())
-                    .willThrow(new RuntimeException("User not found"));
-
-            // When & Then
-            assertThatThrownBy(() -> postService.createPost(createRequest))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessage("User not found");
-
-            verify(fakeUserService).getCurrentUser();
-            verify(postRepository, never()).save(any());
         }
     }
 
@@ -274,7 +263,6 @@ class PostServiceTest {
         void updatePost_Success() {
             // Given
             Long postId = 1L;
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
@@ -285,26 +273,8 @@ class PostServiceTest {
 
             // Then
             assertThat(result).isEqualTo(mockPersistResponse);
-            verify(fakeUserService).getCurrentUser();
             verify(postRepository).findWithTagsById(postId);
             verify(postRepository).save(mockPost);
-        }
-
-        @Test
-        @DisplayName("작성자가 아닌 사용자의 수정 시도 시 예외 발생")
-        void updatePost_ForbiddenUser() {
-            // Given
-            Long postId = 1L;
-            UserSummary anotherUser = UserSummary.builder().id(2L).nickname("anotherUser").build();
-
-            given(fakeUserService.getCurrentUser()).willReturn(anotherUser);
-
-            // When & Then
-            assertThatThrownBy(() -> postService.updatePost(postId, updateRequest))
-                    .isInstanceOf(PostModifyForbiddenException.class);
-
-            verify(fakeUserService).getCurrentUser();
-            verify(postRepository, never()).save(any());
         }
 
         @Test
@@ -312,7 +282,6 @@ class PostServiceTest {
         void updatePost_PostNotFound() {
             // Given
             Long postId = 999L;
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
 
             // When & Then
@@ -333,35 +302,14 @@ class PostServiceTest {
         void deletePost_Success() {
             // Given
             Long postId = 1L;
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
 
             // When
             postService.deletePost(postId);
 
             // Then
-            verify(fakeUserService).getCurrentUser();
             verify(postRepository).findWithTagsById(postId);
             verify(postRepository).delete(mockPost);
-        }
-
-        @Test
-        @DisplayName("작성자가 아닌 사용자의 삭제 시도 시 예외 발생")
-        void deletePost_NotAllowed() {
-            // Given
-            Long postId = 1L;
-            UserSummary anotherUser = UserSummary.builder().id(2L).nickname("anotherUser").build();
-
-            given(fakeUserService.getCurrentUser()).willReturn(anotherUser);
-            given(postRepository.findWithTagsById(postId)).willReturn(Optional.of(mockPost));
-
-            // When & Then
-            assertThatThrownBy(() -> postService.deletePost(postId))
-                    .isInstanceOf(PostDeletionNotAllowedException.class);
-
-            verify(fakeUserService).getCurrentUser();
-            verify(postRepository).findWithTagsById(postId);
-            verify(postRepository, never()).delete(any());
         }
 
         @Test
@@ -369,7 +317,6 @@ class PostServiceTest {
         void deletePost_PostNotFound() {
             // Given
             Long postId = 999L;
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findWithTagsById(postId)).willReturn(Optional.empty());
 
             // When & Then
@@ -391,13 +338,12 @@ class PostServiceTest {
 
             PostLikeCreateRequest postLikeCreateRequest =
                     new PostLikeCreateRequest(mockPost.getId(), userId);
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(false);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
             // when
-            postService.togglePostLike(postLikeCreateRequest);
+            postService.togglePostLike(postLikeCreateRequest, userId);
 
             // then
             assertThat(postMeta.getLikeCount()).isEqualTo(1);
@@ -413,12 +359,11 @@ class PostServiceTest {
 
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
             given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
 
             // when
-            postService.togglePostLike(postLikeCreateRequest);
+            postService.togglePostLike(postLikeCreateRequest, userId);
 
             // then
             assertThat(postMeta.getLikeCount()).isEqualTo(-1);

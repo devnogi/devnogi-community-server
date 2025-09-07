@@ -90,8 +90,7 @@ public class PostService {
 
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canUpdate(authentication,#id)")
-    public PostPersistResponse updatePost(
-            Long id, PostUpdateRequest postUpdateRequest, Long userId) {
+    public PostPersistResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
 
         Post post = findById(id);
 
@@ -125,7 +124,7 @@ public class PostService {
                 postUpdateRequest.content(),
                 postUpdateRequest.isDraft(),
                 null,
-                userId);
+                postUpdateRequest.userId());
 
         Post updatedPost = postRepository.save(post);
 
@@ -168,10 +167,5 @@ public class PostService {
 
     private PostMeta findPostMetaByPostId(Long postId) {
         return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
-    }
-
-    public boolean isOwner(Long postId, Long userId) {
-        Post post = findById(postId);
-        return post.getUserId().equals(userId);
     }
 }

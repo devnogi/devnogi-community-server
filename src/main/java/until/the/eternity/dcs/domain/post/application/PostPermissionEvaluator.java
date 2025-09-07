@@ -33,7 +33,6 @@ public class PostPermissionEvaluator {
         if (!userSummaryRepository.existsById(currentUserId)) {
             return false;
         }
-        ;
         Post currentPost = getPost(postId);
 
         return currentPost.getUserId().equals(currentUserId);
@@ -50,7 +49,6 @@ public class PostPermissionEvaluator {
         if (!userSummaryRepository.existsById(currentUserId)) {
             return false;
         }
-        ;
         Post currentPost = getPost(postId);
 
         return currentPost.getUserId().equals(currentUserId);

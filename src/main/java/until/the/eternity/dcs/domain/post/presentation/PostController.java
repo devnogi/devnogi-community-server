@@ -82,11 +82,8 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public ResponseEntity<PostPersistResponse> updatePost(
-            @PathVariable Long id,
-            @Valid @RequestBody PostUpdateRequest postUpdateRequest,
-            @AuthenticationPrincipal Long userId) {
-        return ResponseEntity.status(OK)
-                .body(postService.updatePost(id, postUpdateRequest, userId));
+            @PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
+        return ResponseEntity.status(OK).body(postService.updatePost(id, postUpdateRequest));
     }
 
     @DeleteMapping("/{id}")
@@ -97,8 +94,7 @@ public class PostController {
 			- Assignee : 고범수
 		""")
     @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> delete(
-            @PathVariable("id") Long id, @AuthenticationPrincipal Long userId) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
         postService.deletePost(id);
         return ResponseEntity.status(NO_CONTENT).build();
     }
