@@ -1,56 +1,69 @@
-﻿# 🛠 프로젝트 시작 가이드
+﻿# devnogi-community-server
 
-## 🚀 프로젝트 시작 방법
+> **데브노기 커뮤니티 마이크로서비스**
 
-1. ### ✅ `setup.sh` 실행
-   루트 디렉토리에서 초기 설정 스크립트를 실행합니다:
-   ```bash
-   bash setup.sh
-   ```
+---
 
-   이 스크립트는 다음 파일들을 자동 생성합니다:
-    - `.env`: 환경 변수 파일
-    - `application.yml`: Spring Boot 설정 파일
+## 1. 서비스 설명
+**목적 및 기능**
+- 데브노기의 커뮤니티 서비스를 위한 백엔드 마이크로서비스
+- 주요 기능: 게시글 CRUD, 댓글 기능, 사용자 인증/권한 관리 등 (예시; 실제 구현된 기능 기반으로 작성)
 
-2. ### ✏️ `.env` 변수 설정
-   `.env` 파일에는 실제 서비스 운영을 위한 민감한 환경 변수들이 포함되어야 합니다.  
-   각 항목에 대한 설명 및 값은 [📘 Notion 환경 변수 페이지](https://your-notion-link.com)를 참고하여 **직접 값을 채워주세요**.
+**사용자가 얻는 가치**
+- 안정적인 커뮤니티 경험 제공
+- 빠른 응답성 및 확장 가능한 아키텍처 기반의 백엔드 서버 개발 및 운영
 
-3. ### ⚙️ IntelliJ 환경 변수 설정
-   생성된 `application.yml`을 IntelliJ에서 정상적으로 인식하려면, 실행 환경 변수 설정이 필요합니다.  
-   설정 방법은 [📘 Notion IntelliJ 설정 가이드](https://your-notion-link.com)를 참고해주세요.
+---
 
-4. ### 🐳 Docker 설치 안내
-   이 프로젝트는 Docker를 사용해 로컬 데이터베이스를 실행합니다.  
-   시스템에 Docker가 설치되어 있지 않다면 아래 중 하나를 설치해 주세요:
+## 2. 기술 스택
+- **Backend**: Java, Spring Boot, Spring Data JPA
+- **Infra**: MySQL, Redis
+- **Tools**: Gradle, Docker, Docker Compose, GitHub Actions
+- **기타**: codecov, jacoco, spotless
 
-    - CLI 환경: [Docker Engine 설치 가이드](https://docs.docker.com/engine/install/)
-    - GUI 환경: [Docker Desktop 설치 가이드](https://www.docker.com/products/docker-desktop/)
+---
 
-   > 설치 후에는 반드시 Docker 데몬이 실행 중인지 확인해주세요.
+## 3. 인프라 및 배포
+- CI/CD 구조
+    ![pipeline](.github/img/pipeline.png)
 
-5. ### 🗄️ 로컬 DB 연결 및 볼륨 초기화 주의
-   `.env` 파일 설정이 완료된 상태에서 Docker를 실행하면 로컬 DB 컨테이너가 자동으로 띄워집니다.  
-   **`.env` 설정 이전에 Docker를 먼저 실행했다면**, 잘못된 초기 설정이 저장되었을 수 있으므로 다음 명령어로 **볼륨을 초기화하고 다시 실행**하는 것을 권장합니다:
+---
 
-   ```bash
-   docker volume prune
-   ```
+## 4. 프로젝트 구조
+```
+src/main/java/until/the/eternity/dcs
+│
+├── common/
+│	├── config/          # 설정 파일
+│	├── entity/          # 공통 객체
+│	├── exception/       # 공통 예외 처리
+│	├── notification/    # 알림 중 공통 사용 부분
+│	├── request/         # 공통 요청 DTO
+│	└── response/        # 공통 응답 DTO
+│
+├── domain/
+│	├── announcement/    # 공지글
+│	├── board/           # 게시판
+│	├── comment/         # 댓글
+│	├── notice/          # 알림
+│	├── post/            # 게시글
+│	├── report/          # 신고
+│	├── tag/             # 태그
+│	└── user/            # 사용자
+│
+└── DcsApplication.java
+```
+- **아키텍처**: 계층형 구조(Controller, Service, Repository)
 
-   또는 프로젝트에서 사용하는 특정 볼륨만 제거하려면:
-   ```bash
-   docker volume rm <volume-name>
-   ```
+---
 
-6. ### 🔗 앱과 DB는 자동 연동됩니다
-   현재 구조에서는 **Spring Boot 애플리케이션이 Docker로 띄운 DB와 자동으로 연동**됩니다.  
-   위 과정을 순서대로 잘 따라오셨다면, 애플리케이션 실행 시 별도의 추가 설정 없이 DB 연결이 정상적으로 동작합니다.
+## 5. API 문서
+- Swagger를 통한 내부 공유
 
+## 6. DB 스키마 / ERD
 
-<br>
+- ERD 다이어그램:
 
-# 💻 for developers
+  TODO: ERD 이미지 또는 설명 추가
 
-- **Git branch 전략**: Git-flow [관련 블로그](https://velog.io/@kw2577/Git-branch-%EC%A0%84%EB%9E%B5)
-
-<br>
+- 마이그레이션 관리: Flyway를 사용
