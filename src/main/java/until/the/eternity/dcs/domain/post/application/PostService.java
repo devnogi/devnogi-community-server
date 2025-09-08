@@ -48,7 +48,6 @@ public class PostService {
     private final RedisSender redisSender;
     private final PostPermissionEvaluator postPermissionEvaluator;
 
-    // todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
     public PostPersistResponse createPost(PostCreateRequest request) {

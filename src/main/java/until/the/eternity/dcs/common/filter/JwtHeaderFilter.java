@@ -29,7 +29,6 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. 헤더에서 사용자 정보 추출
         String userIdCode = request.getHeader("X-USER-ID");
         String userGradeCode = request.getHeader("X-USER-GRADE");
 
