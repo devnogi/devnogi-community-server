@@ -1,9 +1,10 @@
 package until.the.eternity.dcs.domain.board.application;
 
-import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
-
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.board.dto.request.BoardCreateRequest;
@@ -12,23 +13,20 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
-import until.the.eternity.dcs.domain.board.exception.BoardModifyForbiddenException;
 import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
-import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
-import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardConverter boardConverter;
-    private final UserService fakeUserService;
+    private final BoardPermissionEvaluator boardPermissionEvaluator;
 
+    @Transactional
+    @PreAuthorize("@boardPermissionEvaluator.checkIsAdmin(authentication)")
     public BoardPersistResponse createBoard(BoardCreateRequest request) {
-        UserSummary user = getCurrentUser();
-        checkManagerAuthority(user.getGrade());
-        Board board = boardConverter.fromCreateRequestToBoard(request, user.getId());
+        Long userId = getCurrentUserId();
+        Board board = boardConverter.fromCreateRequestToBoard(request, userId);
         Board saved = boardRepository.save(board);
         return boardConverter.fromBoardToPersistResponse(saved);
     }
@@ -39,38 +37,34 @@ public class BoardService {
     }
 
     @Transactional
+    @PreAuthorize("@boardPermissionEvaluator.checkIsAdmin(authentication)")
     public BoardPersistResponse updateBoard(Long id, BoardUpdateRequest request) {
-        UserSummary user = getCurrentUser();
-        checkManagerAuthority(user.getGrade());
+
+        Long userId = getCurrentUserId();
         Board board = findBoardById(id);
         board.update(
                 request.name(),
                 request.description(),
                 request.topCategory(),
                 request.subCategory(),
-                user.getId());
+                userId);
         return boardConverter.fromBoardToPersistResponse(board);
     }
 
     @Transactional
+    @PreAuthorize("@boardPermissionEvaluator.checkIsAdmin(authentication)")
     public void deleteBoard(Long id) {
-        UserSummary user = getCurrentUser();
-        checkManagerAuthority(user.getGrade());
+        Long userId = getCurrentUserId();
         Board board = findBoardById(id);
-        board.delete(user.getId());
-    }
-
-    private UserSummary getCurrentUser() {
-        return fakeUserService.getCurrentUser();
-    }
-
-    private void checkManagerAuthority(UserGrade grade) {
-        if (!grade.equals(ADMIN)) {
-            throw new BoardModifyForbiddenException();
-        }
+        board.delete(userId);
     }
 
     private Board findBoardById(Long id) {
         return boardRepository.findById(id).orElseThrow(() -> new BoardNotFoundException(id));
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return boardPermissionEvaluator.getCurrentUserId(auth);
     }
 }

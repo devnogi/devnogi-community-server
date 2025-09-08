@@ -25,7 +25,7 @@ class BoardConverterTest {
     void fromCreateRequestToBoard_Success() {
         // given
         BoardCreateRequest request =
-                new BoardCreateRequest(name, description, topCategory, subCategory, userId);
+                new BoardCreateRequest(name, description, topCategory, subCategory);
 
         // when
         Board board = boardConverter.fromCreateRequestToBoard(request, userId);
