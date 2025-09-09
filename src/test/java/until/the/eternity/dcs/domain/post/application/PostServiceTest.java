@@ -311,7 +311,6 @@ class PostServiceTest {
 
             // Then
             verify(postRepository).findWithTagsById(postId);
-            verify(postRepository).delete(mockPost);
         }
 
         @Test

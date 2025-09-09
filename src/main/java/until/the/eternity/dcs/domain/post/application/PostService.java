@@ -134,9 +134,9 @@ public class PostService {
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canDelete(authentication,#id)")
     public void deletePost(Long id) {
+        Long userId = getCurrentUserId();
         Post post = findById(id);
-
-        postRepository.delete(post);
+        post.delete(userId);
     }
 
     @Transactional

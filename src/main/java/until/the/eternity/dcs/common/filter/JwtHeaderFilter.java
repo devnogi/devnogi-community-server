@@ -38,7 +38,13 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             return;
         }
 
-        Long userId = Long.parseLong(userIdCode);
+        Long userId;
+        try {
+            userId = Long.parseLong(userIdCode);
+        } catch (NumberFormatException e) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         UserGrade userGrade =
                 UserGrade.fromCode(userGradeCode)
