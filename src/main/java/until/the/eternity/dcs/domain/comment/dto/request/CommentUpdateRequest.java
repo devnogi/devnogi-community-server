@@ -10,7 +10,4 @@ public record CommentUpdateRequest(
         @Schema(description = "댓글 내용", example = "정말 좋은 게시글이네요!!", requiredMode = REQUIRED)
                 @NotBlank(message = "댓글 내용은 공란일 수 없습니다.")
                 @Size(max = 255, message = "댓글의 길이는 255자 보다 길 수 없습니다.")
-                String content,
-        @Schema(description = "사용자 ID", example = "1L", requiredMode = REQUIRED)
-                @NotBlank(message = "사용자 ID값은 공란일 수 없습니다.")
-                Long userId) {}
+                String content) {}

@@ -17,7 +17,7 @@ class CommentLikeConverterTest {
         // given
         Long id = 1L;
         Long userId = 1L;
-        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id, userId);
+        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
         // when
         CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);

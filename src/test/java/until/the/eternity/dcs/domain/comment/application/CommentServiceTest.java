@@ -35,7 +35,7 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class CommentServiceTest {
@@ -43,24 +43,26 @@ class CommentServiceTest {
     CommentLikeRepository commentLikeRepository = mock(CommentLikeRepository.class);
     PostRepository postRepository = mock(PostRepository.class);
     CommentConverter commentConverter = new CommentConverter(commentRepository, postRepository);
-    UserService userService = mock(UserService.class);
+    UserSummaryService userService = mock(UserSummaryService.class);
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
     PostMetaRepository postMetaRepository = mock(PostMetaRepository.class);
     Long userId = 1L;
     RedisSender redisSender = mock(RedisSender.class);
+    CommentPermissionEvaluator commentPermissionEvaluator = mock(CommentPermissionEvaluator.class);
 
     CommentService commentService =
             new CommentService(
                     commentRepository,
                     commentConverter,
-                    userService,
                     commentLikeRepository,
                     commentLikeConverter,
                     commentMetaRepository,
                     postRepository,
                     postMetaRepository,
-                    redisSender);
+                    redisSender,
+                    commentPermissionEvaluator,
+                    userService);
 
     Comment comment;
     Long id = 1L;
@@ -91,11 +93,10 @@ class CommentServiceTest {
     void create_Success() {
         // given
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
-        when(userService.getCurrentUser()).thenReturn(user);
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
         when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
-        CommentCreateRequest request = new CommentCreateRequest(null, content, userId);
+        CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
         CommentPersistResponse response = commentService.create(id, request);
@@ -109,9 +110,8 @@ class CommentServiceTest {
     void update_Success() {
         // given
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
-        when(userService.getCurrentUser()).thenReturn(user);
         String newContent = "new content";
-        CommentUpdateRequest request = new CommentUpdateRequest(newContent, userId);
+        CommentUpdateRequest request = new CommentUpdateRequest(newContent);
 
         // when
         CommentPersistResponse response = commentService.update(id, request);
@@ -127,7 +127,6 @@ class CommentServiceTest {
     @DisplayName("delete 는 comment 를 삭제 처리한다.")
     void delete_Success() {
         // given
-        when(userService.getCurrentUser()).thenReturn(user);
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
         when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
@@ -169,8 +168,7 @@ class CommentServiceTest {
         when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
         when(commentMetaRepository.findById(anyLong()))
                 .thenReturn(Optional.of(CommentMeta.create(id)));
-        when(userService.isAuthenticated()).thenReturn(true);
-        when(userService.getCurrentUser()).thenReturn(user);
+        when(userService.existsUserSummaryById(1L)).thenReturn(true);
         CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
         // when
@@ -190,10 +188,9 @@ class CommentServiceTest {
     void toggleLike_Like() {
         // given
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
-        when(userService.getCurrentUser()).thenReturn(user);
-        when(userService.isAuthenticated()).thenReturn(true);
+        when(userService.existsUserSummaryById(1L)).thenReturn(true);
         when(commentMetaRepository.findById(anyLong())).thenReturn(Optional.of(commentMeta));
-        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id, userId);
+        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
         // when
         commentService.toggleLike(request);
@@ -211,10 +208,9 @@ class CommentServiceTest {
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));
         when(commentLikeRepository.findByCommentIdAndUserId(anyLong(), anyLong()))
                 .thenReturn(Optional.of(commentLike));
-        when(userService.getCurrentUser()).thenReturn(user);
-        when(userService.isAuthenticated()).thenReturn(true);
+        when(userService.existsUserSummaryById(1L)).thenReturn(true);
         when(commentMetaRepository.findById(anyLong())).thenReturn(Optional.of(commentMeta));
-        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id, userId);
+        CommentLikeToggleRequest request = new CommentLikeToggleRequest(id);
 
         // when
         commentService.toggleLike(request);

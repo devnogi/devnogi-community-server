@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
@@ -27,7 +29,6 @@ import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
-import until.the.eternity.dcs.domain.comment.exception.CommentModifyForbiddenException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotLikedYetException;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -35,27 +36,27 @@ import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentConverter commentConverter;
-    private final UserService userService;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentLikeConverter commentLikeConverter;
     private final CommentMetaRepository commentMetaRepository;
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
     private final RedisSender redisSender;
+    private final CommentPermissionEvaluator commentPermissionEvaluator;
+    private final UserSummaryService userSummaryService;
 
     @Transactional
+    @PreAuthorize("@commentPermissionEvaluator.canCreate(authentication)")
     public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
-        UserSummary user = getCurrentUser();
-        Comment comment =
-                commentConverter.fromCreateRequestToComment(request, user.getId(), postId);
+        Long userId = getCurrentUserId();
+        Comment comment = commentConverter.fromCreateRequestToComment(request, userId, postId);
         Comment save = commentRepository.save(comment);
 
         connectCommentWithPost(postId, save);
@@ -66,21 +67,21 @@ public class CommentService {
     }
 
     @Transactional
+    @PreAuthorize("@commentPermissionEvaluator.canUpdate(authentication,#id)")
     public CommentPersistResponse update(Long id, CommentUpdateRequest request) {
-        UserSummary user = getCurrentUser();
+        Long userId = getCurrentUserId();
         Comment comment = findById(id);
-        isCurrentUserEqualsWriter(user.getId(), comment);
 
-        comment.update(request.content(), user.getId());
+        comment.update(request.content(), userId);
         return commentConverter.fromCommentToPersistResponse(comment);
     }
 
     @Transactional
+    @PreAuthorize("@commentPermissionEvaluator.canDelete(authentication,#id)")
     public void delete(Long id) {
-        UserSummary user = getCurrentUser();
+        Long userId = getCurrentUserId();
         Comment comment = findById(id);
-        isCurrentUserEqualsWriter(user.getId(), comment);
-        comment.delete(user.getId());
+        comment.delete(userId);
 
         disconnectCommentWithPost(comment);
     }
@@ -88,6 +89,7 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
+        Long userId = getCurrentUserId();
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
         List<Long> commentIds = comments.stream().map(Comment::getId).toList();
@@ -98,10 +100,9 @@ public class CommentService {
                                 Collectors.toMap(
                                         CommentMeta::getCommentId, CommentMeta::getLikeCount));
 
-        if (userService.isAuthenticated()) {
+        if (userSummaryService.existsUserSummaryById(userId)) {
             Set<Long> likedCommentIds =
-                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(
-                            getCurrentUser().getId(), commentIds);
+                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
 
             return comments.map(
                     c ->
@@ -118,8 +119,9 @@ public class CommentService {
     }
 
     @Transactional
+    @PreAuthorize("@commentPermissionEvaluator.canToggleLike(authentication)")
     public void toggleLike(CommentLikeToggleRequest request) {
-        Long userId = getCurrentUser().getId();
+        Long userId = getCurrentUserId();
 
         if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
             likeComment(request, userId);
@@ -196,17 +198,13 @@ public class CommentService {
         commentMeta.unlike();
     }
 
-    private UserSummary getCurrentUser() {
-        return userService.getCurrentUser();
-    }
-
-    private void isCurrentUserEqualsWriter(Long currentUserId, Comment comment) {
-        if (!currentUserId.equals(comment.getUserId())) {
-            throw new CommentModifyForbiddenException();
-        }
-    }
-
     private Comment findById(Long id) {
         return commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(id));
+    }
+
+    private Long getCurrentUserId() {
+        org.springframework.security.core.Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
+        return commentPermissionEvaluator.getCurrentUserId(auth);
     }
 }

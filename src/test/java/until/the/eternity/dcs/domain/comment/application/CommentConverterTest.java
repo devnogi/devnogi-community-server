@@ -39,7 +39,7 @@ class CommentConverterTest {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
-        CommentCreateRequest request = new CommentCreateRequest(null, content, userId);
+        CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
         Comment comment = commentConverter.fromCreateRequestToComment(request, userId, id);
@@ -58,7 +58,7 @@ class CommentConverterTest {
         when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).build()));
-        CommentCreateRequest request = new CommentCreateRequest(id, content, userId);
+        CommentCreateRequest request = new CommentCreateRequest(id, content);
 
         // when
         Comment comment = commentConverter.fromCreateRequestToComment(request, userId, id);
