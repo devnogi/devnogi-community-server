@@ -76,7 +76,11 @@ class ReportServiceTest {
             Report savedReport = mock(Report.class);
             ReportPersistResponse expectedResponse = mock(ReportPersistResponse.class);
 
-            given(reportConverter.fromReportCreateRequestToReport(request)).willReturn(newReport);
+            given(reportConverter.fromReportCreateRequestToReport(request, adminId))
+                    .willReturn(newReport);
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(reportPermissionEvaluator.getCurrentUserId(authentication)).willReturn(adminId);
             given(reportRepository.save(newReport)).willReturn(savedReport);
             given(reportConverter.fromReportToReportPersistResponse(savedReport))
                     .willReturn(expectedResponse);
@@ -86,7 +90,7 @@ class ReportServiceTest {
 
             // then
             assertThat(result).isEqualTo(expectedResponse);
-            verify(reportConverter).fromReportCreateRequestToReport(request);
+            verify(reportConverter).fromReportCreateRequestToReport(request, adminId);
             verify(reportRepository).save(newReport);
             verify(reportConverter).fromReportToReportPersistResponse(savedReport);
         }

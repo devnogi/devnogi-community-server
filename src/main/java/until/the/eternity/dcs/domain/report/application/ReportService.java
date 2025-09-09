@@ -36,8 +36,10 @@ public class ReportService {
     private final ReportPermissionEvaluator reportPermissionEvaluator;
 
     @Transactional
+    @PreAuthorize("@reportPermissionEvaluator.canCreate(authentication)")
     public ReportPersistResponse createReport(ReportCreateRequest request) {
-        Report newReport = reportConverter.fromReportCreateRequestToReport(request);
+        Long userId = getCurrentUserId();
+        Report newReport = reportConverter.fromReportCreateRequestToReport(request, userId);
         return reportConverter.fromReportToReportPersistResponse(reportRepository.save(newReport));
     }
 

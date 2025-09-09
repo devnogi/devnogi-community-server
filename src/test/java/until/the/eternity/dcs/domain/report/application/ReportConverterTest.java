@@ -59,7 +59,8 @@ class ReportConverterTest {
     @DisplayName("ReportCreateRequest를 Report로 변환 - 정상 케이스")
     void fromReportCreateRequestToReport_Success() {
         // when
-        Report result = reportConverter.fromReportCreateRequestToReport(reportCreateRequest);
+        Report result =
+                reportConverter.fromReportCreateRequestToReport(reportCreateRequest, userId);
 
         // then
         assertThat(result).isNotNull();
@@ -75,7 +76,7 @@ class ReportConverterTest {
     @DisplayName("ReportCreateRequest를 Report로 변환 - null 입력값")
     void fromReportCreateRequestToReport_WithNullInput() {
         // when & then
-        assertThatThrownBy(() -> reportConverter.fromReportCreateRequestToReport(null))
+        assertThatThrownBy(() -> reportConverter.fromReportCreateRequestToReport(null, userId))
                 .isInstanceOf(NullPointerException.class);
     }
 

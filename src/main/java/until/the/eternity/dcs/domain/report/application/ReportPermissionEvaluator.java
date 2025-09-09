@@ -21,6 +21,14 @@ public class ReportPermissionEvaluator {
         return hasRole(auth, "ADMIN");
     }
 
+    public boolean canCreate(Authentication auth) {
+        if (!isAuthenticated(auth)) {
+            return false;
+        }
+        Long currentUserId = getCurrentUserId(auth);
+        return userSummaryRepository.existsById(currentUserId);
+    }
+
     private boolean isAuthenticated(Authentication auth) {
         return auth != null && auth.isAuthenticated();
     }
