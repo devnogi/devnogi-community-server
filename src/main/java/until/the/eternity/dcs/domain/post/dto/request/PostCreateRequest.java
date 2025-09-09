@@ -1,7 +1,5 @@
 package until.the.eternity.dcs.domain.post.dto.request;
 
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +18,4 @@ public record PostCreateRequest(
                 @Size(max = 10000, message = "내용은 10000자를 초과할 수 없습니다.")
                 String content,
         @Schema(description = "임시저장 여부", example = "false") Boolean isDraft,
-        @Schema(description = "태그 목록") List<String> tags,
-        @Schema(description = "사용자 ID", example = "1L", requiredMode = REQUIRED)
-                @NotBlank(message = "사용자 ID값은 공란일 수 없습니다.")
-                Long userId) {}
+        @Schema(description = "태그 목록") List<String> tags) {}

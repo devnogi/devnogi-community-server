@@ -1,14 +1,8 @@
 package until.the.eternity.dcs.domain.post.dto.request;
 
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record PostLikeCreateRequest(
         @Schema(description = "게시글 ID", example = "1") @NotNull(message = "게시글 ID는 필수입니다.")
-                Long postId,
-        @Schema(description = "사용자 ID", example = "1L", requiredMode = REQUIRED)
-                @NotBlank(message = "사용자 ID값은 공란일 수 없습니다.")
-                Long userId) {}
+                Long postId) {}

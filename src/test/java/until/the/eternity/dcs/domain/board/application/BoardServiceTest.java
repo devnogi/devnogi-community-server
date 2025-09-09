@@ -21,14 +21,14 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.entity.BoardRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class BoardServiceTest {
     BoardRepository boardRepository = mock(BoardRepository.class);
     BoardConverter boardConverter = new BoardConverter();
-    UserService userService = mock(UserService.class);
-    BoardService boardService = new BoardService(boardRepository, boardConverter, userService);
+    BoardPermissionEvaluator boardPermissionEvaluator = mock(BoardPermissionEvaluator.class);
+    BoardService boardService =
+            new BoardService(boardRepository, boardConverter, boardPermissionEvaluator);
 
     Board board1;
     Board board2;
@@ -75,9 +75,8 @@ class BoardServiceTest {
         // given
         when(boardRepository.save(any(Board.class))).thenReturn(board1);
         when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
-        when(userService.getCurrentUser()).thenReturn(user);
         BoardCreateRequest request =
-                new BoardCreateRequest(name, description, topCategory, subCategory, userId);
+                new BoardCreateRequest(name, description, topCategory, subCategory);
 
         // when
         BoardPersistResponse response = boardService.createBoard(request);
@@ -121,14 +120,12 @@ class BoardServiceTest {
     void updateBoard_Success() {
         // given
         when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
-        when(userService.getCurrentUser()).thenReturn(user);
         String newName = "new name";
         String newDescription = "new description";
         String newTopCategory = "new top category";
         String newSubCategory = "new sub category";
         BoardUpdateRequest request =
-                new BoardUpdateRequest(
-                        newName, newDescription, newTopCategory, newSubCategory, userId);
+                new BoardUpdateRequest(newName, newDescription, newTopCategory, newSubCategory);
 
         // when
         BoardPersistResponse response = boardService.updateBoard(boardId, request);
@@ -150,7 +147,6 @@ class BoardServiceTest {
     void deleteBoard_throws_BoardNotFoundException() {
         // given
         when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
-        when(userService.getCurrentUser()).thenReturn(user);
 
         // when
         boardService.deleteBoard(boardId);

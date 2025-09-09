@@ -5,11 +5,13 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
@@ -24,8 +26,6 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
-import until.the.eternity.dcs.domain.post.exception.PostDeletionNotAllowedException;
-import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -33,8 +33,6 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
-import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Service
 @Transactional(readOnly = true)
@@ -42,20 +40,20 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 public class PostService {
     private final PostRepository postRepository;
     private final PostConverter postConverter;
-    private final UserService fakeUserService;
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
     private final PostMetaRepository postMetaRepository;
     private final TagService tagService;
     private final PostTagService postTagService;
     private final RedisSender redisSender;
+    private final PostPermissionEvaluator postPermissionEvaluator;
 
-    // todo 추후에 사용자 인증부분 추가해야될듯(token 유효라던가)
     @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
     public PostPersistResponse createPost(PostCreateRequest request) {
-        UserSummary user = getCurrentUser();
 
-        Post post = postConverter.fromCreateRequestToPost(request, user.getId());
+        Long userId = getCurrentUserId();
+        Post post = postConverter.fromCreateRequestToPost(request, userId);
         Post savedPost = postRepository.save(post);
 
         List<PostTag> postTags =
@@ -90,14 +88,9 @@ public class PostService {
     }
 
     @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canUpdate(authentication,#id)")
     public PostPersistResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
-
-        UserSummary user = getCurrentUser();
-
-        // 우선 본인 글만 수정할 수 있게 (ADMIN 권한도 게시글 내용을 수정할 수 있게 할건지)
-        if (!Objects.equals(user.getId(), postUpdateRequest.userId())) {
-            throw new PostModifyForbiddenException();
-        }
+        Long userId = getCurrentUserId();
 
         Post post = findById(id);
 
@@ -131,28 +124,25 @@ public class PostService {
                 postUpdateRequest.content(),
                 postUpdateRequest.isDraft(),
                 null,
-                user.getId());
+                userId);
 
-        Post updatedPost = postRepository.save(post); // todo 이 부분 에러발생
+        Post updatedPost = postRepository.save(post);
 
         return postConverter.fromPostToPostPersistResponse(updatedPost);
     }
 
     @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canDelete(authentication,#id)")
     public void deletePost(Long id) {
-        UserSummary user = getCurrentUser();
+        Long userId = getCurrentUserId();
         Post post = findById(id);
-
-        if (!Objects.equals(user.getId(), post.getUserId())) {
-            throw new PostDeletionNotAllowedException();
-        }
-
-        postRepository.delete(post);
+        post.delete(userId);
     }
 
     @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
     public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest) {
-        Long userId = getCurrentUser().getId();
+        Long userId = getCurrentUserId();
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
         PostMeta postMeta = findPostMetaByPostId(postId);
@@ -172,15 +162,16 @@ public class PostService {
         postMetaRepository.save(postMeta);
     }
 
-    private UserSummary getCurrentUser() {
-        return fakeUserService.getCurrentUser();
-    }
-
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
     private PostMeta findPostMetaByPostId(Long postId) {
         return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return postPermissionEvaluator.getCurrentUserId(auth);
     }
 }
