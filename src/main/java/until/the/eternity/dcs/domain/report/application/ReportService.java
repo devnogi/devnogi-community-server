@@ -3,12 +3,14 @@ package until.the.eternity.dcs.domain.report.application;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_BLOCKED;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_BLOCKED;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.REPORT_RESULT;
-import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
@@ -20,13 +22,9 @@ import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportStatus;
 import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
-import until.the.eternity.dcs.domain.report.exception.ReportModifyForbiddenException;
 import until.the.eternity.dcs.domain.report.exception.ReportNotFoundException;
 import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
-import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +32,8 @@ import until.the.eternity.dcs.domain.user.enums.UserGrade;
 public class ReportService {
     private final ReportRepository reportRepository;
     private final ReportConverter reportConverter;
-    private final UserService fakeUserService;
     private final RedisSender redisSender;
+    private final ReportPermissionEvaluator reportPermissionEvaluator;
 
     @Transactional
     public ReportPersistResponse createReport(ReportCreateRequest request) {
@@ -43,21 +41,25 @@ public class ReportService {
         return reportConverter.fromReportToReportPersistResponse(reportRepository.save(newReport));
     }
 
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportRepliedDetailResponse getRepliedReport(Long id) {
         Report report = findById(id);
         return reportConverter.fromReportToReportRepliedDetailResponse(report);
     }
 
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportRevivedDetailResponse getRevivedReport(Long id) {
         Report report = findById(id);
         return reportConverter.fromReportToReportRevivedDetailResponse(report);
     }
 
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportReportedDetailResponse getReportedReport(Long id) {
         Report report = findById(id);
         return reportConverter.fromReportToReportReportedDetailResponse(report);
     }
 
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public Page<ReportRepliedSummaryResponse> findRepliedReports(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
@@ -67,6 +69,7 @@ public class ReportService {
         return repliedReports.map(reportConverter::fromReportToReportRepliedSummaryResponse);
     }
 
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public Page<ReportRevivedSummaryResponse> findRevivedReports(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
@@ -76,6 +79,7 @@ public class ReportService {
         return revivedReports.map(reportConverter::fromReportToReportRevivedSummaryResponse);
     }
 
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public Page<ReportReportedSummaryResponse> findReportedReports(CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
@@ -86,10 +90,8 @@ public class ReportService {
     }
 
     @Transactional
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportPersistResponse updateReport(Long id, ReportUpdateRequest reportUpdateRequest) {
-        UserSummary user = getCurrentUser();
-
-        checkManagerAuthority(user.getGrade());
 
         ReportStatus status =
                 ReportStatus.fromCode(reportUpdateRequest.statusCd())
@@ -98,7 +100,7 @@ public class ReportService {
 
         Report report = findById(id);
         LocalDateTime time = LocalDateTime.now();
-        Long userId = user.getId();
+        Long userId = getCurrentUserId();
 
         if (status.equals(ReportStatus.ACCEPT)) {
             report.update(status, time, userId, null, null);
@@ -111,9 +113,8 @@ public class ReportService {
     }
 
     @Transactional
+    @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public void deleteReport(Long id) {
-        UserSummary user = getCurrentUser();
-        checkManagerAuthority(user.getGrade());
         findById(id);
         reportRepository.deleteById(id);
     }
@@ -131,17 +132,12 @@ public class ReportService {
         }
     }
 
-    private UserSummary getCurrentUser() {
-        return fakeUserService.getCurrentUser();
-    }
-
-    private void checkManagerAuthority(UserGrade grade) {
-        if (!grade.equals(ADMIN)) {
-            throw new ReportModifyForbiddenException();
-        }
-    }
-
     private Report findById(Long id) {
         return reportRepository.findById(id).orElseThrow(() -> new ReportNotFoundException(id));
+    }
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return reportPermissionEvaluator.getCurrentUserId(auth);
     }
 }

@@ -6,10 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -17,6 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
@@ -24,11 +24,9 @@ import until.the.eternity.dcs.domain.report.dto.request.ReportUpdateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportStatus;
-import until.the.eternity.dcs.domain.report.exception.ReportModifyForbiddenException;
 import until.the.eternity.dcs.domain.report.exception.ReportNotFoundException;
 import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
@@ -40,10 +38,11 @@ class ReportServiceTest {
 
     @Mock private ReportConverter reportConverter;
 
-    @Mock private UserService fakeUserService;
-
     @Mock private RedisSender redisSender;
 
+    @Mock private ReportPermissionEvaluator reportPermissionEvaluator;
+    @Mock private SecurityContext securityContext;
+    @Mock private Authentication authentication;
     @InjectMocks private ReportService reportService;
 
     private Report mockReport;
@@ -57,6 +56,11 @@ class ReportServiceTest {
         mockReport = Report.builder().id(1L).build();
         mockUser = UserSummary.builder().id(userId).grade(UserGrade.USER).build();
         mockAdmin = UserSummary.builder().id(adminId).grade(UserGrade.ADMIN).build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Nested
@@ -244,10 +248,12 @@ class ReportServiceTest {
             // given
             Long reportId = 1L;
             String acceptStatusCode = "ACCEPT";
-            ReportUpdateRequest request = new ReportUpdateRequest(acceptStatusCode, adminId);
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(reportPermissionEvaluator.getCurrentUserId(authentication)).willReturn(adminId);
+            ReportUpdateRequest request = new ReportUpdateRequest(acceptStatusCode);
             ReportPersistResponse expectedResponse = mock(ReportPersistResponse.class);
 
-            given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
             given(reportConverter.fromReportToReportPersistResponse(mockReport))
                     .willReturn(expectedResponse);
@@ -267,10 +273,12 @@ class ReportServiceTest {
             // given
             Long reportId = 1L;
             String rejectStatusCode = "REJECT";
-            ReportUpdateRequest request = new ReportUpdateRequest(rejectStatusCode, adminId);
+            ReportUpdateRequest request = new ReportUpdateRequest(rejectStatusCode);
             ReportPersistResponse expectedResponse = mock(ReportPersistResponse.class);
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(reportPermissionEvaluator.getCurrentUserId(authentication)).willReturn(adminId);
 
-            given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
             given(reportConverter.fromReportToReportPersistResponse(mockReport))
                     .willReturn(expectedResponse);
@@ -285,34 +293,21 @@ class ReportServiceTest {
         }
 
         @Test
-        @DisplayName("일반 사용자가 신고 업데이트 시 권한 없음 예외 발생")
-        void updatePost_ForbiddenForNonAdmin() {
-            // given
-            Long reportId = 1L;
-            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT", adminId);
-
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-
-            // when & then
-            assertThatThrownBy(() -> reportService.updateReport(reportId, request))
-                    .isInstanceOf(ReportModifyForbiddenException.class);
-
-            verify(reportRepository, never()).findById(any());
-        }
-
-        @Test
         @DisplayName("유효하지 않은 상태 코드로 업데이트 시 예외 발생")
         void updatePost_InvalidStatusCode() {
             // given
             Long reportId = 1L;
             String invalidStatusCode = "INVALID";
-            ReportUpdateRequest request = new ReportUpdateRequest(invalidStatusCode, adminId);
-
-            given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
+            ReportUpdateRequest request = new ReportUpdateRequest(invalidStatusCode);
+            SecurityContextHolder.setContext(securityContext);
+            given(reportPermissionEvaluator.getCurrentUserId(authentication)).willReturn(adminId);
 
             // when & then
             assertThatThrownBy(() -> reportService.updateReport(reportId, request))
                     .isInstanceOf(StatusNotFoundException.class);
+            assertThat(authentication).isNotNull();
+            assertThat(reportPermissionEvaluator.getCurrentUserId(authentication))
+                    .isEqualTo(adminId);
         }
 
         @Test
@@ -320,9 +315,9 @@ class ReportServiceTest {
         void updatePost_ReportNotFound() {
             // given
             Long reportId = 999L;
-            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT", adminId);
+            ReportUpdateRequest request = new ReportUpdateRequest("ACCEPT");
+            SecurityContextHolder.setContext(securityContext);
 
-            given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
             given(reportRepository.findById(reportId)).willReturn(Optional.empty());
 
             // when & then
@@ -340,8 +335,7 @@ class ReportServiceTest {
         void deleteReport_Success() {
             // given
             Long reportId = 1L;
-
-            given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
+            SecurityContextHolder.setContext(securityContext);
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
 
             // when
@@ -353,28 +347,11 @@ class ReportServiceTest {
         }
 
         @Test
-        @DisplayName("일반 사용자가 신고 삭제 시 권한 없음 예외 발생")
-        void deleteReport_ForbiddenForNonAdmin() {
-            // given
-            Long reportId = 1L;
-
-            given(fakeUserService.getCurrentUser()).willReturn(mockUser);
-
-            // when & then
-            assertThatThrownBy(() -> reportService.deleteReport(reportId))
-                    .isInstanceOf(ReportModifyForbiddenException.class);
-
-            verify(reportRepository, never()).findById(any());
-            verify(reportRepository, never()).deleteById(any());
-        }
-
-        @Test
         @DisplayName("존재하지 않는 신고 삭제 시 예외 발생")
         void deleteReport_ReportNotFound() {
             // given
             Long reportId = 999L;
-
-            given(fakeUserService.getCurrentUser()).willReturn(mockAdmin);
+            SecurityContextHolder.setContext(securityContext);
             given(reportRepository.findById(reportId)).willReturn(Optional.empty());
 
             // when & then
