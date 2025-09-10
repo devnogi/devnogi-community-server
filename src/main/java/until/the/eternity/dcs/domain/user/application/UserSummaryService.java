@@ -71,7 +71,7 @@ public class UserSummaryService {
         return userSummaryRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
-    private boolean existsUserSummaryById(Long userId) {
+    public boolean existsUserSummaryById(Long userId) {
         return userSummaryRepository.existsById(userId);
     }
 }

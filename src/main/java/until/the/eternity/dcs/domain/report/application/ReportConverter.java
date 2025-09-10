@@ -11,7 +11,8 @@ import until.the.eternity.dcs.domain.report.exception.TargetNotFoundException;
 
 @Component
 public class ReportConverter {
-    public Report fromReportCreateRequestToReport(ReportCreateRequest reportCreateRequest) {
+    public Report fromReportCreateRequestToReport(
+            ReportCreateRequest reportCreateRequest, Long userId) {
         ReportTargetType targetType =
                 ReportTargetType.fromCode(reportCreateRequest.targetType())
                         .orElseThrow(
@@ -29,6 +30,7 @@ public class ReportConverter {
                 .targetType(targetType)
                 .targetUserId(reportCreateRequest.targetUserId())
                 .categoryCd(reportCategory)
+                .userId(userId)
                 .reason(reportCreateRequest.reason())
                 .build();
     }

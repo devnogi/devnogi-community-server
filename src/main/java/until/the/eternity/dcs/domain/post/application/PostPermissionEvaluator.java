@@ -26,12 +26,12 @@ public class PostPermissionEvaluator {
         if (!isAuthenticated(auth)) {
             return false;
         }
-        if (hasRole(auth, "ADMIN")) {
-            return true;
-        }
         Long currentUserId = getCurrentUserId(auth);
         if (!userSummaryRepository.existsById(currentUserId)) {
             return false;
+        }
+        if (hasRole(auth, "ADMIN")) {
+            return true;
         }
         Post currentPost = getPost(postId);
 
@@ -42,12 +42,12 @@ public class PostPermissionEvaluator {
         if (!isAuthenticated(auth)) {
             return false;
         }
-        if (hasRole(auth, "ADMIN")) {
-            return true;
-        }
         Long currentUserId = getCurrentUserId(auth);
         if (!userSummaryRepository.existsById(currentUserId)) {
             return false;
+        }
+        if (hasRole(auth, "ADMIN")) {
+            return true;
         }
         Post currentPost = getPost(postId);
 

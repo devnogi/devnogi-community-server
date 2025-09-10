@@ -36,8 +36,7 @@ class ReportConverterTest {
                         1L, // targetId
                         100L, // targetUserId
                         "SPAM", // categoryCd
-                        "스팸 게시물입니다", // reason
-                        userId // 신고자ID
+                        "스팸 게시물입니다" // reason
                         );
 
         report =
@@ -60,7 +59,8 @@ class ReportConverterTest {
     @DisplayName("ReportCreateRequest를 Report로 변환 - 정상 케이스")
     void fromReportCreateRequestToReport_Success() {
         // when
-        Report result = reportConverter.fromReportCreateRequestToReport(reportCreateRequest);
+        Report result =
+                reportConverter.fromReportCreateRequestToReport(reportCreateRequest, userId);
 
         // then
         assertThat(result).isNotNull();
@@ -76,7 +76,7 @@ class ReportConverterTest {
     @DisplayName("ReportCreateRequest를 Report로 변환 - null 입력값")
     void fromReportCreateRequestToReport_WithNullInput() {
         // when & then
-        assertThatThrownBy(() -> reportConverter.fromReportCreateRequestToReport(null))
+        assertThatThrownBy(() -> reportConverter.fromReportCreateRequestToReport(null, userId))
                 .isInstanceOf(NullPointerException.class);
     }
 
