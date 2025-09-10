@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
@@ -31,6 +32,7 @@ public class NoticeService {
     private final NoticeUserRepository noticeUserRepository;
     private final NoticeUserConverter noticeUserConverter;
     private final UserSummaryRepository userSummaryRepository;
+    private final NoticePremissionEvaluator noticePremissionEvaluator;
 
     @Transactional
     public NoticePersistResponse createNotice(NoticeSendRequest request) {
@@ -49,6 +51,7 @@ public class NoticeService {
     }
 
     @Transactional
+    @PreAuthorize("@noticePremissionEvaluator.canReadDetail(authentication)")
     public NoticeCommonResponse getDetailNotice(Long id) {
         Notice notice =
                 noticeRepository.findById(id).orElseThrow(() -> new NoticeNotFoundException(id));
@@ -62,6 +65,7 @@ public class NoticeService {
         return noticeConverter.toNoticeCommonResponse(notice, noticeUser);
     }
 
+    @PreAuthorize("@noticePremissionEvaluator.canReadList(authentication,#userId)")
     public List<NoticeCommonResponse> getNoticeList(Long userId, Integer day) {
         // 최근 day일 데이터
         LocalDateTime date = LocalDateTime.now().minusDays(day).toLocalDate().atStartOfDay();

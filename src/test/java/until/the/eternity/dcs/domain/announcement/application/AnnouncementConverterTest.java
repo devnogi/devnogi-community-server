@@ -28,7 +28,7 @@ class AnnouncementConverterTest {
             "fromCreateRequestAndPost은 AnnouncementCreateRequest, Post, PostMeta로 Announcement를 생성한다.")
     void fromCreateRequestAndPost() {
         // given
-        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true, userId);
+        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
         Post post =
                 Post.builder()
                         .id(id)
