@@ -69,4 +69,8 @@ public class CommentPermissionEvaluator {
     public Long getCurrentUserId(Authentication auth) {
         return (Long) auth.getPrincipal();
     }
+
+    public boolean isAnonymousUser(Authentication auth) {
+        return auth.getPrincipal().equals("anonymousUser");
+    }
 }

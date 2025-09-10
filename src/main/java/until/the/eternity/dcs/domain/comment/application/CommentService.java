@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +90,7 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
-        Long userId = getCurrentUserId();
+
         Page<Comment> comments = commentRepository.findByPost(postId, pageable);
 
         List<Long> commentIds = comments.stream().map(Comment::getId).toList();
@@ -99,19 +100,21 @@ public class CommentService {
                         .collect(
                                 Collectors.toMap(
                                         CommentMeta::getCommentId, CommentMeta::getLikeCount));
+        if (!checkIsAnonymousUser()) {
+            Long userId = getCurrentUserId();
 
-        if (userSummaryService.existsUserSummaryById(userId)) {
-            Set<Long> likedCommentIds =
-                    commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
+            if (userSummaryService.existsUserSummaryById(userId)) {
+                Set<Long> likedCommentIds =
+                        commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
 
-            return comments.map(
-                    c ->
-                            commentConverter.fromCommentToPageResponse(
-                                    c,
-                                    likedCommentIds.contains(c.getId()),
-                                    commentMetaMap.getOrDefault(c.getId(), 0)));
+                return comments.map(
+                        c ->
+                                commentConverter.fromCommentToPageResponse(
+                                        c,
+                                        likedCommentIds.contains(c.getId()),
+                                        commentMetaMap.getOrDefault(c.getId(), 0)));
+            }
         }
-
         return comments.map(
                 c ->
                         commentConverter.fromCommentToPageResponseNonAuth(
@@ -203,8 +206,12 @@ public class CommentService {
     }
 
     private Long getCurrentUserId() {
-        org.springframework.security.core.Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return commentPermissionEvaluator.getCurrentUserId(auth);
+    }
+
+    private boolean checkIsAnonymousUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return commentPermissionEvaluator.isAnonymousUser(auth);
     }
 }
