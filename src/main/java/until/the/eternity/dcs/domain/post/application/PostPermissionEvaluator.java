@@ -14,6 +14,8 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 public class PostPermissionEvaluator {
     private final PostRepository postRepository;
     private final UserSummaryRepository userSummaryRepository;
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     public boolean canCreate(Authentication auth) {
         if (!isAuthenticated(auth)) {
@@ -30,7 +32,7 @@ public class PostPermissionEvaluator {
         }
         Long currentUserId = getCurrentUserId(auth);
         validateUserExists(currentUserId);
-        if (hasRole(auth, "ADMIN")) {
+        if (hasRole(auth, ROLE_ADMIN)) {
             return true;
         }
         Post currentPost = getPost(postId);
@@ -69,7 +71,7 @@ public class PostPermissionEvaluator {
 
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + ROLE_ADMIN));
     }
 
     public void validateUserExists(Long currentUserId) {

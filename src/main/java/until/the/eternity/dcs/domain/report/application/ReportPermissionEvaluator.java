@@ -10,10 +10,12 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 @RequiredArgsConstructor
 public class ReportPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     public boolean isAuthorized(Authentication auth) {
         checkBasicAuth(auth);
-        return hasRole(auth, "ADMIN");
+        return hasRole(auth, ROLE_ADMIN);
     }
 
     public boolean canCreate(Authentication auth) {
@@ -39,7 +41,7 @@ public class ReportPermissionEvaluator {
 
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + ROLE_ADMIN));
     }
 
     public void validateUserExists(Long currentUserId) {

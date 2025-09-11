@@ -11,6 +11,8 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 @RequiredArgsConstructor
 public class BoardPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     private boolean isAuthenticated(Authentication auth) {
         return auth != null && auth.isAuthenticated();
@@ -28,7 +30,7 @@ public class BoardPermissionEvaluator {
         if (!userSummaryRepository.existsById(currentUserId)) {
             throw new UserNotFoundException(currentUserId);
         }
-        if (!hasRole(auth, "ADMIN")) {
+        if (!hasRole(auth, ROLE_ADMIN)) {
             throw new BoardModifyForbiddenException();
         }
         return true;
@@ -36,6 +38,6 @@ public class BoardPermissionEvaluator {
 
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + ROLE_ADMIN));
     }
 }
