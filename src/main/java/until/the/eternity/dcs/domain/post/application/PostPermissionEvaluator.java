@@ -20,35 +20,30 @@ public class PostPermissionEvaluator {
             return false;
         }
         Long currentUserId = getCurrentUserId(auth);
-        return userSummaryRepository.existsById(currentUserId);
+        validateUserExists(currentUserId);
+        return true;
+    }
+
+    private boolean canModify(Authentication auth, Long postId) {
+        if (!isAuthenticated(auth)) {
+            return false;
+        }
+        Long currentUserId = getCurrentUserId(auth);
+        validateUserExists(currentUserId);
+        if (hasRole(auth, "ADMIN")) {
+            return true;
+        }
+        Post currentPost = getPost(postId);
+
+        return currentPost.getUserId().equals(currentUserId);
     }
 
     public boolean canUpdate(Authentication auth, Long postId) {
-        if (!isAuthenticated(auth)) {
-            return false;
-        }
-        Long currentUserId = getCurrentUserId(auth);
-        validateUserExists(currentUserId);
-        if (hasRole(auth, "ADMIN")) {
-            return true;
-        }
-        Post currentPost = getPost(postId);
-
-        return currentPost.getUserId().equals(currentUserId);
+        return canModify(auth, postId);
     }
 
     public boolean canDelete(Authentication auth, Long postId) {
-        if (!isAuthenticated(auth)) {
-            return false;
-        }
-        Long currentUserId = getCurrentUserId(auth);
-        validateUserExists(currentUserId);
-        if (hasRole(auth, "ADMIN")) {
-            return true;
-        }
-        Post currentPost = getPost(postId);
-
-        return currentPost.getUserId().equals(currentUserId);
+        return canModify(auth, postId);
     }
 
     public boolean canTogglePostLike(Authentication auth) {

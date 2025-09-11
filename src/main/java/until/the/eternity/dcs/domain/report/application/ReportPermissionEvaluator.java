@@ -12,15 +12,15 @@ public class ReportPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
 
     public boolean isAuthorized(Authentication auth) {
-        if (!isAuthenticated(auth)) {
-            return false;
-        }
-        Long currentUserId = getCurrentUserId(auth);
-        validateUserExists(currentUserId);
+        checkBasicAuth(auth);
         return hasRole(auth, "ADMIN");
     }
 
     public boolean canCreate(Authentication auth) {
+        return checkBasicAuth(auth);
+    }
+
+    private boolean checkBasicAuth(Authentication auth) {
         if (!isAuthenticated(auth)) {
             return false;
         }

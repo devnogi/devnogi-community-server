@@ -10,22 +10,10 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
 @RequiredArgsConstructor
-public class NoticePremissionEvaluator {
+public class NoticePermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
 
-    public boolean canReadDetail(Authentication auth) {
-        if (!isAuthenticated(auth)) {
-            return false;
-        }
-        if (isAnonymousUser(auth)) {
-            throw new UserNotFoundException();
-        }
-        Long currentUserId = getCurrentUserId(auth);
-        validateUserExists(currentUserId);
-        return true;
-    }
-
-    public boolean canReadList(Authentication auth, Long userId) {
+    public boolean canRead(Authentication auth) {
         if (!isAuthenticated(auth)) {
             return false;
         }

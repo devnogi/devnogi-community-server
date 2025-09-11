@@ -33,7 +33,7 @@ class NoticeServiceTest {
     NoticeUserRepository noticeUserRepository = mock(NoticeUserRepository.class);
     NoticeUserConverter noticeUserConverter = new NoticeUserConverter();
     UserSummaryRepository userSummaryRepository = mock(UserSummaryRepository.class);
-    NoticePremissionEvaluator noticePremissionEvaluator = mock(NoticePremissionEvaluator.class);
+    NoticePermissionEvaluator noticePermissionEvaluator = mock(NoticePermissionEvaluator.class);
 
     NoticeService noticeService;
 
@@ -53,7 +53,7 @@ class NoticeServiceTest {
                         noticeUserRepository,
                         noticeUserConverter,
                         userSummaryRepository,
-                        noticePremissionEvaluator);
+                        noticePermissionEvaluator);
         notice =
                 Notice.builder()
                         .id(id)

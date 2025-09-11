@@ -10,7 +10,7 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
 @RequiredArgsConstructor
-public class AnnouncementPremissionEvaluator {
+public class AnnouncementPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
     private final JpaAnnouncementRepository jpaAnnouncementRepository;
 

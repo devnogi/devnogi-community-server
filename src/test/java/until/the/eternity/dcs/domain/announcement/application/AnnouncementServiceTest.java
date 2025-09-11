@@ -43,8 +43,8 @@ class AnnouncementServiceTest {
         postMetaRepository = mock(PostMetaRepository.class);
         userService = mock(UserService.class);
         RedisSender redisSender = mock(RedisSender.class);
-        AnnouncementPremissionEvaluator announcementPremissionEvaluator =
-                mock(AnnouncementPremissionEvaluator.class);
+        AnnouncementPermissionEvaluator announcementPermissionEvaluator =
+                mock(AnnouncementPermissionEvaluator.class);
 
         AnnouncementConverter converter = new AnnouncementConverter();
 
@@ -55,7 +55,7 @@ class AnnouncementServiceTest {
                         postRepository,
                         postMetaRepository,
                         redisSender,
-                        announcementPremissionEvaluator);
+                        announcementPermissionEvaluator);
 
         announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();
         post =
