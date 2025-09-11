@@ -22,14 +22,13 @@ public class AnnouncementPremissionEvaluator {
         if (!userSummaryRepository.existsById(currentUserId)) {
             return false;
         }
-        if (hasRole(auth, "ADMIN")) {
-            return true;
-        }
         Announcement announcement =
                 jpaAnnouncementRepository
                         .findById(announcementId)
                         .orElseThrow(() -> new AnnouncementNotFoundException(announcementId));
-
+        if (hasRole(auth, "ADMIN")) {
+            return true;
+        }
         return announcement.getUserId().equals(currentUserId);
     }
 

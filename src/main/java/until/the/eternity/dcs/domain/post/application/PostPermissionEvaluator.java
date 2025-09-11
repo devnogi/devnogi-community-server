@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
@@ -27,9 +28,7 @@ public class PostPermissionEvaluator {
             return false;
         }
         Long currentUserId = getCurrentUserId(auth);
-        if (!userSummaryRepository.existsById(currentUserId)) {
-            return false;
-        }
+        validateUserExists(currentUserId);
         if (hasRole(auth, "ADMIN")) {
             return true;
         }
@@ -43,9 +42,7 @@ public class PostPermissionEvaluator {
             return false;
         }
         Long currentUserId = getCurrentUserId(auth);
-        if (!userSummaryRepository.existsById(currentUserId)) {
-            return false;
-        }
+        validateUserExists(currentUserId);
         if (hasRole(auth, "ADMIN")) {
             return true;
         }
@@ -58,8 +55,9 @@ public class PostPermissionEvaluator {
         if (!isAuthenticated(auth)) {
             return false;
         }
-        Long userId = getCurrentUserId(auth);
-        return userSummaryRepository.existsById(userId);
+        Long currentUserId = getCurrentUserId(auth);
+        validateUserExists(currentUserId);
+        return true;
     }
 
     private boolean isAuthenticated(Authentication auth) {
@@ -77,5 +75,11 @@ public class PostPermissionEvaluator {
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+    }
+
+    public void validateUserExists(Long currentUserId) {
+        if (!userSummaryRepository.existsById(currentUserId)) {
+            throw new UserNotFoundException(currentUserId);
+        }
     }
 }

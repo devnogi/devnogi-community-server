@@ -1,8 +1,11 @@
 package until.the.eternity.dcs.domain.notice.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
@@ -15,10 +18,11 @@ public class NoticePremissionEvaluator {
             return false;
         }
         if (isAnonymousUser(auth)) {
-            return false;
+            throw new UserNotFoundException();
         }
         Long currentUserId = getCurrentUserId(auth);
-        return userSummaryRepository.existsById(currentUserId);
+        validateUserExists(currentUserId);
+        return true;
     }
 
     public boolean canReadList(Authentication auth, Long userId) {
@@ -26,13 +30,11 @@ public class NoticePremissionEvaluator {
             return false;
         }
         if (isAnonymousUser(auth)) {
-            return false;
+            throw new UserNotFoundException();
         }
         Long currentUserId = getCurrentUserId(auth);
-        if (!userSummaryRepository.existsById(currentUserId)) {
-            return false;
-        }
-        return currentUserId.equals(userId);
+        validateUserExists(currentUserId);
+        return true;
     }
 
     private boolean isAuthenticated(Authentication auth) {
@@ -44,11 +46,13 @@ public class NoticePremissionEvaluator {
     }
 
     public boolean isAnonymousUser(Authentication auth) {
-        return auth.getPrincipal().equals("anonymousUser");
+        AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
+        return trustResolver.isAnonymous(auth);
     }
 
-    private boolean hasRole(Authentication auth, String role) {
-        return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+    public void validateUserExists(Long currentUserId) {
+        if (!userSummaryRepository.existsById(currentUserId)) {
+            throw new UserNotFoundException(currentUserId);
+        }
     }
 }

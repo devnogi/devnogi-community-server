@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.report.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
@@ -15,9 +16,7 @@ public class ReportPermissionEvaluator {
             return false;
         }
         Long currentUserId = getCurrentUserId(auth);
-        if (!userSummaryRepository.existsById(currentUserId)) {
-            return false;
-        }
+        validateUserExists(currentUserId);
         return hasRole(auth, "ADMIN");
     }
 
@@ -26,7 +25,8 @@ public class ReportPermissionEvaluator {
             return false;
         }
         Long currentUserId = getCurrentUserId(auth);
-        return userSummaryRepository.existsById(currentUserId);
+        validateUserExists(currentUserId);
+        return true;
     }
 
     private boolean isAuthenticated(Authentication auth) {
@@ -40,5 +40,11 @@ public class ReportPermissionEvaluator {
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+    }
+
+    public void validateUserExists(Long currentUserId) {
+        if (!userSummaryRepository.existsById(currentUserId)) {
+            throw new UserNotFoundException(currentUserId);
+        }
     }
 }

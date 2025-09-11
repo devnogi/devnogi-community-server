@@ -3,6 +3,8 @@ package until.the.eternity.dcs.domain.board.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.domain.board.exception.BoardModifyForbiddenException;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
@@ -24,9 +26,12 @@ public class BoardPermissionEvaluator {
         }
         Long currentUserId = getCurrentUserId(auth);
         if (!userSummaryRepository.existsById(currentUserId)) {
-            return false;
+            throw new UserNotFoundException(currentUserId);
         }
-        return hasRole(auth, "ADMIN");
+        if (!hasRole(auth, "ADMIN")) {
+            throw new BoardModifyForbiddenException();
+        }
+        return true;
     }
 
     private boolean hasRole(Authentication auth, String role) {
