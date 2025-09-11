@@ -4,6 +4,7 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.ANNOUNCEMENT
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
@@ -19,13 +20,9 @@ import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFound
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
-import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
-import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +31,8 @@ public class AnnouncementService {
     private final AnnouncementConverter converter;
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
-    private final UserService userService;
     private final RedisSender redisSender;
+    private final AnnouncementPremissionEvaluator announcementPremissionEvaluator;
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
@@ -58,8 +55,8 @@ public class AnnouncementService {
     }
 
     @Transactional
+    @PreAuthorize("@announcementPremissionEvaluator.canDelete(authentication,#id)")
     public void delete(Long id) {
-        isAuthorizedUser(findById(id));
 
         repository.deleteById(id);
     }
@@ -98,14 +95,5 @@ public class AnnouncementService {
 
     private Announcement findById(Long id) {
         return repository.findById(id).orElseThrow(() -> new AnnouncementNotFoundException(id));
-    }
-
-    private void isAuthorizedUser(Announcement announcement) {
-        UserSummary currentUser = userService.getCurrentUser();
-        if (currentUser.getId().equals(announcement.getUserId())
-                || currentUser.getGrade().equals(UserGrade.ADMIN)) {
-            return;
-        }
-        throw new PostModifyForbiddenException();
     }
 }

@@ -21,11 +21,9 @@ import until.the.eternity.dcs.domain.announcement.entity.AnnouncementRepository;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.exception.PostModifyForbiddenException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserService;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class AnnouncementServiceTest {
     AnnouncementService announcementService;
@@ -45,6 +43,8 @@ class AnnouncementServiceTest {
         postMetaRepository = mock(PostMetaRepository.class);
         userService = mock(UserService.class);
         RedisSender redisSender = mock(RedisSender.class);
+        AnnouncementPremissionEvaluator announcementPremissionEvaluator =
+                mock(AnnouncementPremissionEvaluator.class);
 
         AnnouncementConverter converter = new AnnouncementConverter();
 
@@ -54,8 +54,8 @@ class AnnouncementServiceTest {
                         converter,
                         postRepository,
                         postMetaRepository,
-                        userService,
-                        redisSender);
+                        redisSender,
+                        announcementPremissionEvaluator);
 
         announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();
         post =
@@ -72,7 +72,7 @@ class AnnouncementServiceTest {
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
-        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true, userId);
+        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
 
         // when
         AnnouncementPersistResponse response = announcementService.create(id, request);
@@ -91,25 +91,12 @@ class AnnouncementServiceTest {
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
         when(announcementRepository.existsByPostId(post.getId())).thenReturn(true);
-        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true, userId);
+        AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
 
         // when
         // then
         assertThatThrownBy(() -> announcementService.create(id, request))
                 .isInstanceOf(AnnouncementDuplicateException.class);
-    }
-
-    @Test
-    @DisplayName("delete는 인가되지 않은 User의 Announcement 수정에 대해 PostModifyForbiddenException를 리턴한다.")
-    void delete_ForbiddenException() {
-        // given
-        when(announcementRepository.findById(id)).thenReturn(Optional.of(announcement));
-        when(userService.getCurrentUser()).thenReturn(UserSummary.builder().id(999L).build());
-
-        // when
-        // then
-        assertThatThrownBy(() -> announcementService.delete(id))
-                .isInstanceOf(PostModifyForbiddenException.class);
     }
 
     @Test
