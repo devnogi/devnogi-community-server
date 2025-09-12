@@ -32,7 +32,7 @@ public class AnnouncementService {
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
     private final RedisSender redisSender;
-    private final AnnouncementPremissionEvaluator announcementPremissionEvaluator;
+    private final AnnouncementPermissionEvaluator announcementPermissionEvaluator;
 
     @Transactional
     public AnnouncementPersistResponse create(Long postId, AnnouncementCreateRequest request) {
@@ -55,7 +55,7 @@ public class AnnouncementService {
     }
 
     @Transactional
-    @PreAuthorize("@announcementPremissionEvaluator.canDelete(authentication,#id)")
+    @PreAuthorize("@announcementPermissionEvaluator.canDelete(authentication,#id)")
     public void delete(Long id) {
 
         repository.deleteById(id);

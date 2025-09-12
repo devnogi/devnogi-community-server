@@ -10,9 +10,11 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
 @RequiredArgsConstructor
-public class AnnouncementPremissionEvaluator {
+public class AnnouncementPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
     private final JpaAnnouncementRepository jpaAnnouncementRepository;
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     public boolean canDelete(Authentication auth, Long announcementId) {
         if (!isAuthenticated(auth)) {
@@ -22,14 +24,13 @@ public class AnnouncementPremissionEvaluator {
         if (!userSummaryRepository.existsById(currentUserId)) {
             return false;
         }
-        if (hasRole(auth, "ADMIN")) {
-            return true;
-        }
         Announcement announcement =
                 jpaAnnouncementRepository
                         .findById(announcementId)
                         .orElseThrow(() -> new AnnouncementNotFoundException(announcementId));
-
+        if (hasRole(auth, ROLE_ADMIN)) {
+            return true;
+        }
         return announcement.getUserId().equals(currentUserId);
     }
 
@@ -43,6 +44,6 @@ public class AnnouncementPremissionEvaluator {
 
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + role));
     }
 }

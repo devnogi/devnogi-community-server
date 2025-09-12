@@ -32,7 +32,7 @@ public class NoticeService {
     private final NoticeUserRepository noticeUserRepository;
     private final NoticeUserConverter noticeUserConverter;
     private final UserSummaryRepository userSummaryRepository;
-    private final NoticePremissionEvaluator noticePremissionEvaluator;
+    private final NoticePermissionEvaluator noticePermissionEvaluator;
 
     @Transactional
     public NoticePersistResponse createNotice(NoticeSendRequest request) {
@@ -51,7 +51,7 @@ public class NoticeService {
     }
 
     @Transactional
-    @PreAuthorize("@noticePremissionEvaluator.canReadDetail(authentication)")
+    @PreAuthorize("@noticePermissionEvaluator.canRead(authentication)")
     public NoticeCommonResponse getDetailNotice(Long id) {
         Notice notice =
                 noticeRepository.findById(id).orElseThrow(() -> new NoticeNotFoundException(id));
@@ -65,7 +65,7 @@ public class NoticeService {
         return noticeConverter.toNoticeCommonResponse(notice, noticeUser);
     }
 
-    @PreAuthorize("@noticePremissionEvaluator.canReadList(authentication,#userId)")
+    @PreAuthorize("@noticePermissionEvaluator.canRead(authentication)")
     public List<NoticeCommonResponse> getNoticeList(Long userId, Integer day) {
         // 최근 day일 데이터
         LocalDateTime date = LocalDateTime.now().minusDays(day).toLocalDate().atStartOfDay();

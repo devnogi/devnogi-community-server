@@ -3,30 +3,32 @@ package until.the.eternity.dcs.domain.report.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
 @RequiredArgsConstructor
 public class ReportPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     public boolean isAuthorized(Authentication auth) {
-        if (!isAuthenticated(auth)) {
-            return false;
-        }
-        Long currentUserId = getCurrentUserId(auth);
-        if (!userSummaryRepository.existsById(currentUserId)) {
-            return false;
-        }
-        return hasRole(auth, "ADMIN");
+        checkBasicAuth(auth);
+        return hasRole(auth, ROLE_ADMIN);
     }
 
     public boolean canCreate(Authentication auth) {
+        return checkBasicAuth(auth);
+    }
+
+    private boolean checkBasicAuth(Authentication auth) {
         if (!isAuthenticated(auth)) {
             return false;
         }
         Long currentUserId = getCurrentUserId(auth);
-        return userSummaryRepository.existsById(currentUserId);
+        validateUserExists(currentUserId);
+        return true;
     }
 
     private boolean isAuthenticated(Authentication auth) {
@@ -39,6 +41,12 @@ public class ReportPermissionEvaluator {
 
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + role));
+    }
+
+    public void validateUserExists(Long currentUserId) {
+        if (!userSummaryRepository.existsById(currentUserId)) {
+            throw new UserNotFoundException(currentUserId);
+        }
     }
 }
