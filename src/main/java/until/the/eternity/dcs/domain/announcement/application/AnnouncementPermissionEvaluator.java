@@ -44,6 +44,6 @@ public class AnnouncementPermissionEvaluator {
 
     private boolean hasRole(Authentication auth, String role) {
         return auth.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + ROLE_ADMIN));
+                .anyMatch(authority -> authority.getAuthority().equals(ROLE_PREFIX + role));
     }
 }
