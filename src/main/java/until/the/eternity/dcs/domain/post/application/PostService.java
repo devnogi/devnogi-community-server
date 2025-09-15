@@ -82,7 +82,7 @@ public class PostService {
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = findPostMetaByPostId(post.getId());
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -146,21 +146,18 @@ public class PostService {
         Long userId = getCurrentUserId();
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
-        PostMeta postMeta = findPostMetaByPostId(postId);
 
         if (!postLikeRepository.existsByUserIdAndPostId(userId, postId)) {
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
-            postMeta.like();
-            postMetaRepository.save(postMeta);
+            postMetaService.likePost(postId);
 
             redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
-        postMeta.unlike();
-        postMetaRepository.save(postMeta);
+        postMetaService.unlikePost(postId);
     }
 
     public Page<PostSummaryResponse> findPostsByBoardId(CustomPageRequest request, Long boardId) {
