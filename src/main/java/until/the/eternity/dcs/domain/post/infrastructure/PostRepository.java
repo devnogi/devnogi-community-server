@@ -16,6 +16,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findAllByIsDeletedFalseAndIsBlockedFalse(Pageable pageable);
 
+    Page<Post> findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(Pageable pageable, Long id);
+
     @Query(
             "SELECT p FROM Post p LEFT JOIN FETCH p.postTags pt LEFT JOIN FETCH pt.tag WHERE p.id = :id AND p.isDeleted = false AND p.isDraft = false")
     Optional<Post> findWithTagsById(@Param("id") Long id);

@@ -162,6 +162,20 @@ public class PostService {
         postMetaRepository.save(postMeta);
     }
 
+    public Page<PostSummaryResponse> findPostsByBoardId(CustomPageRequest request, Long boardId) {
+        Pageable pageable = request.toPageable();
+
+        Page<Post> posts =
+                postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
+                        pageable, boardId);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = findPostMetaByPostId(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
+    }
+
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }

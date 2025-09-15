@@ -42,7 +42,6 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
-import until.the.eternity.dcs.domain.user.application.UserService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,8 +51,6 @@ class PostServiceTest {
     @Mock private PostRepository postRepository;
 
     @Mock private PostConverter postConverter;
-
-    @Mock private UserService fakeUserService;
 
     @Mock private PostLikeRepository postLikeRepository;
 
@@ -82,12 +79,13 @@ class PostServiceTest {
     private PostDetailResponse mockDetailResponse;
     private PostPersistResponse mockPersistResponse;
     Long userId = 1L;
+    Board mockBoard;
 
     @BeforeEach
     void setUp() {
         mockUser = UserSummary.builder().id(1L).nickname("testUser").build();
 
-        Board mockBoard = Board.builder().id(1L).build();
+        mockBoard = Board.builder().id(1L).build();
 
         mockPost =
                 Post.builder()
@@ -247,6 +245,34 @@ class PostServiceTest {
             assertThat(result.getContent()).hasSize(2);
             assertThat(result.getContent().get(0)).isEqualTo(mockSummaryResponse);
             verify(postRepository).findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
+        }
+
+        @Test
+        @DisplayName("게시판에 있는 게시글 목록 조회 성공")
+        void findPostsByBoardId_Success() {
+            // Given
+            Long boardId = mockBoard.getId();
+            CustomPageRequest pageRequest = mock(CustomPageRequest.class);
+
+            Pageable pageable = PageRequest.of(1, 10);
+            List<Post> posts = Arrays.asList(mockPost, mockPost2);
+            Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+
+            given(pageRequest.toPageable()).willReturn(pageable);
+            given(
+                            postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
+                                    pageable, boardId))
+                    .willReturn(postPage);
+            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
+
+            // When
+            Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
+
+            // Then
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent().get(0)).isEqualTo(mockSummaryResponse);
+            verify(postRepository)
+                    .findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(pageable, boardId);
         }
     }
 

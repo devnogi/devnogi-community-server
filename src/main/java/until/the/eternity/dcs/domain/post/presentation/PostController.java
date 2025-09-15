@@ -41,7 +41,7 @@ public class PostController {
         return ResponseEntity.status(CREATED).body(postService.createPost(request));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/details/{id}")
     @Operation(
             summary = "게시글 단건 조회 API",
             description = """
@@ -109,5 +109,21 @@ public class PostController {
     public ResponseEntity<Void> like(@RequestBody PostLikeCreateRequest postLikeCreateRequest) {
         postService.togglePostLike(postLikeCreateRequest);
         return ResponseEntity.status(NO_CONTENT).build();
+    }
+
+    @GetMapping("/{boardId}")
+    @Operation(
+            summary = "게시글 리스트 조회 API",
+            description =
+                    """
+			- Description : 이 API는 게시판 별 게시글 리스트를 조회합니다.
+			- Assignee : 고범수
+		""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> getPostsByBoardId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+        return CustomPageResponse.from(postService.findPostsByBoardId(request, boardId));
     }
 }
