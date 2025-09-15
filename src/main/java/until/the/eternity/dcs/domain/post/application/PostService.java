@@ -46,6 +46,7 @@ public class PostService {
     private final TagService tagService;
     private final PostTagService postTagService;
     private final RedisSender redisSender;
+    private final PostMetaService postMetaService;
     private final PostPermissionEvaluator postPermissionEvaluator;
 
     @Transactional
@@ -69,8 +70,8 @@ public class PostService {
 
     public PostDetailResponse findPost(Long id) {
         Post post = findById(id);
-        PostMeta postMeta = findPostMetaByPostId(id);
-        postMeta.viewPost(); // todo 차후 일정 기간 내 다시 조회는 조회수 카운트로 치지 않도록 변경
+        postMetaService.viewPost(id);
+        PostMeta postMeta = postMetaService.getPostMeta(id);
         postMetaRepository.save(postMeta);
         return postConverter.fromPostToPostDetailResponse(post, postMeta);
     }
