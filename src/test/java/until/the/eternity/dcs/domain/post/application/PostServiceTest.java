@@ -65,11 +65,12 @@ class PostServiceTest {
     @Mock private PostPermissionEvaluator postPermissionEvaluator;
     @Mock private SecurityContext securityContext;
     @Mock private Authentication authentication;
+    @Mock private PostMetaService postMetaService;
     @InjectMocks private PostService postService;
 
     @Mock private PostMetaRepository postMetaRepository;
     private PostMeta postMeta;
-
+    private PostMeta postMeta2;
     private UserSummary mockUser;
     private Post mockPost;
     private Post mockPost2;
@@ -143,6 +144,7 @@ class PostServiceTest {
         mockPersistResponse = PostPersistResponse.builder().id(1L).build();
 
         postMeta = PostMeta.builder().postId(1L).viewCount(0).likeCount(0).build();
+        postMeta2 = PostMeta.builder().postId(2L).viewCount(0).likeCount(0).build();
     }
 
     @Nested
@@ -192,7 +194,7 @@ class PostServiceTest {
                             .userId(1L)
                             .comments(comments)
                             .build();
-            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
+            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
             given(postRepository.findWithTagsById(postId))
                     .willReturn(Optional.of(postWithComments));
             given(postConverter.fromPostToPostDetailResponse(postWithComments, postMeta))
@@ -204,7 +206,7 @@ class PostServiceTest {
             // Then
             assertThat(result).isEqualTo(mockDetailResponse);
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
-            assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
+            assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);
             verify(postRepository).findWithTagsById(postId);
             verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMeta);
         }
@@ -236,7 +238,8 @@ class PostServiceTest {
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
-            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
+            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMeta(2L)).willReturn(postMeta2);
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
@@ -263,7 +266,8 @@ class PostServiceTest {
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
                     .willReturn(postPage);
-            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
+            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMeta(2L)).willReturn(postMeta2);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -370,12 +374,15 @@ class PostServiceTest {
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(false);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
-            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
+            //            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
+            given(postMetaService.canDoMethod(1L, "like", "1")).willReturn(true);
+
+            int cnt = postMeta.getLikeCount();
             // when
             postService.togglePostLike(postLikeCreateRequest);
 
             // then
-            assertThat(postMeta.getLikeCount()).isEqualTo(1);
+            verify(postMetaService).likePost(1L, "1");
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }
 
@@ -392,13 +399,14 @@ class PostServiceTest {
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
-            given(postMetaRepository.findByPostId(1L)).willReturn(Optional.ofNullable(postMeta));
-
+            //            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
+            given(postMetaService.canDoMethod(1L, "unlike", "1")).willReturn(true);
+            int cnt = postMeta.getLikeCount();
             // when
             postService.togglePostLike(postLikeCreateRequest);
 
             // then
-            assertThat(postMeta.getLikeCount()).isEqualTo(-1);
+            verify(postMetaService).unlikePost(1L, "1");
             verify(postRepository).findWithTagsById(1L);
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
             verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(), mockPost.getId());

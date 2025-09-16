@@ -71,7 +71,10 @@ public class PostService {
 
     public PostDetailResponse findPost(Long id) {
         Post post = findById(id);
-        postMetaService.viewPost(id);
+
+        String userIp =
+                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
+        postMetaService.viewPost(id, userIp);
         PostMeta postMeta = postMetaService.getPostMeta(id);
         return postConverter.fromPostToPostDetailResponse(post, postMeta);
     }
@@ -146,24 +149,26 @@ public class PostService {
         Long userId = getCurrentUserId();
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
+        String userIp =
+                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
 
         if (!postLikeRepository.existsByUserIdAndPostId(userId, postId)) {
-            if (!postMetaService.canDoMethod(postId, PostMetaType.LIKE.getCode())) {
+            if (!postMetaService.canDoMethod(postId, PostMetaType.LIKE.getCode(), userIp)) {
                 return;
             }
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
-            postMetaService.likePost(postId);
+            postMetaService.likePost(postId, userIp);
 
             redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
             return;
         }
-        if (!postMetaService.canDoMethod(postId, PostMetaType.UNLIKE.getCode())) {
+        if (!postMetaService.canDoMethod(postId, PostMetaType.UNLIKE.getCode(), userIp)) {
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
-        postMetaService.unlikePost(postId);
+        postMetaService.unlikePost(postId, userIp);
     }
 
     public Page<PostSummaryResponse> findPostsByBoardId(CustomPageRequest request, Long boardId) {
@@ -174,7 +179,7 @@ public class PostService {
                         pageable, boardId);
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = findPostMetaByPostId(post.getId());
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -184,12 +189,19 @@ public class PostService {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    private PostMeta findPostMetaByPostId(Long postId) {
-        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
-    }
-
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return postPermissionEvaluator.getCurrentUserId(auth);
+    }
+
+    private String getCurrentUserIp() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, String> details = (Map<String, String>) auth.getDetails();
+        return details.get("remoteAddress");
+    }
+
+    private boolean checkIsAnonymousUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return postPermissionEvaluator.isAnonymousUser(auth);
     }
 }
