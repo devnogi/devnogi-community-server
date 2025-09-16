@@ -14,7 +14,8 @@ public enum PostMetaType {
     VIEW("view", "조회"),
     LIKE("like", "좋아요"),
     UNLIKE("unlike", "종하요 취소"),
-    COMMENTED("comment", "댓글");
+    ADD_COMMENT("addComment", "댓글 작성"),
+    DELETE_COMMENT("deleteComment", "댓글 삭제");
 
     private final String code;
     private final String description;

@@ -94,6 +94,42 @@ public class PostMetaService {
         redisTemplate.opsForValue().set(methodKey, postMeta, 12, TimeUnit.HOURS);
     }
 
+    public void addComment(Long postId, String userIp) {
+        String key = generateKey(postId);
+        String methodKey = generateMethodKey(postId, PostMetaType.ADD_COMMENT.getCode(), userIp);
+
+        Object postMetaData = redisTemplate.opsForValue().get(key);
+
+        PostMeta postMeta;
+        if (postMetaData != null) {
+            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
+        } else {
+            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+        }
+
+        postMeta.addComment();
+        redisTemplate.opsForValue().set(key, postMeta);
+        redisTemplate.opsForValue().set(methodKey, postMeta);
+    }
+
+    public void deleteComment(Long postId, String userIp) {
+        String key = generateKey(postId);
+        String methodKey = generateMethodKey(postId, PostMetaType.DELETE_COMMENT.getCode(), userIp);
+
+        Object postMetaData = redisTemplate.opsForValue().get(key);
+
+        PostMeta postMeta;
+        if (postMetaData != null) {
+            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
+        } else {
+            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+        }
+
+        postMeta.addComment();
+        redisTemplate.opsForValue().set(key, postMeta);
+        redisTemplate.opsForValue().set(methodKey, postMeta);
+    }
+
     public PostMeta getPostMeta(Long postId) {
         String key = generateKey(postId);
         // 1. Redis에서 데이터 조회 시도

@@ -32,6 +32,7 @@ import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotLikedYetException;
+import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
@@ -52,6 +53,7 @@ public class CommentService {
     private final RedisSender redisSender;
     private final CommentPermissionEvaluator commentPermissionEvaluator;
     private final UserSummaryService userSummaryService;
+    private final PostMetaService postMetaService;
 
     @Transactional
     @PreAuthorize("@commentPermissionEvaluator.canCreate(authentication)")
@@ -138,22 +140,22 @@ public class CommentService {
 
     private void connectCommentWithPost(Long postId, Comment save) {
         Post post = findPostById(postId);
+        String userId =
+                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         post.getComments().add(save);
         postRepository.save(post);
 
-        PostMeta postMeta = findPostMetaById(postId);
-        postMeta.addComment();
-        postMetaRepository.save(postMeta);
+        postMetaService.addComment(postId, userId);
     }
 
     private void disconnectCommentWithPost(Comment comment) {
         Long postId = comment.getPost().getId();
-
+        String userId =
+                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         Post post = findPostById(postId);
         post.getComments().remove(comment);
 
-        PostMeta postMeta = findPostMetaById(postId);
-        postMeta.deleteComment();
+        postMetaService.deleteComment(postId, userId);
     }
 
     private void sendCommentCreatedNotice(Long postId, Long parentId) {
@@ -213,5 +215,11 @@ public class CommentService {
     private boolean checkIsAnonymousUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return commentPermissionEvaluator.isAnonymousUser(auth);
+    }
+
+    private String getCurrentUserIp() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, String> details = (Map<String, String>) auth.getDetails();
+        return details.get("remoteAddress");
     }
 }

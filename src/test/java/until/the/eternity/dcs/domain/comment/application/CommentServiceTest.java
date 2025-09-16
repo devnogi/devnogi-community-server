@@ -31,6 +31,7 @@ import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
+import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -50,6 +51,7 @@ class CommentServiceTest {
     Long userId = 1L;
     RedisSender redisSender = mock(RedisSender.class);
     CommentPermissionEvaluator commentPermissionEvaluator = mock(CommentPermissionEvaluator.class);
+    PostMetaService postMetaService = mock(PostMetaService.class);
 
     CommentService commentService =
             new CommentService(
@@ -62,7 +64,8 @@ class CommentServiceTest {
                     postMetaRepository,
                     redisSender,
                     commentPermissionEvaluator,
-                    userService);
+                    userService,
+                    postMetaService);
 
     Comment comment;
     Long id = 1L;
