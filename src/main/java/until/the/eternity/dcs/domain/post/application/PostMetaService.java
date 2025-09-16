@@ -16,21 +16,11 @@ public class PostMetaService {
     private final ObjectMapper objectMapper;
     private final PostMetaRepository postMetaRepository;
 
-    private String generateKey(Long postId) {
-        return "postMeta:" + postId;
-    }
-
-    private String generateMethodKey(Long postId, String method, String userId) {
-        return "postMeta:" + postId + ":" + method + ":" + userId;
-    }
-
     public void viewPost(Long postId, String userIp) {
         String key = generateKey(postId);
 
         String methodKey = generateMethodKey(postId, PostMetaType.VIEW.getCode(), userIp);
         Object postMetaData = redisTemplate.opsForValue().get(key);
-
-        System.out.println(methodKey);
 
         if (!canDoMethod(postId, PostMetaType.VIEW.getCode(), userIp)) {
             return;
@@ -152,5 +142,13 @@ public class PostMetaService {
         String likeKey = generateMethodKey(postId, method, userIp);
         Object likeMetaInfo = redisTemplate.opsForValue().get(likeKey);
         return likeMetaInfo == null;
+    }
+
+    private String generateKey(Long postId) {
+        return "postMeta:" + postId;
+    }
+
+    private String generateMethodKey(Long postId, String method, String userId) {
+        return "postMeta:" + postId + ":" + method + ":" + userId;
     }
 }
