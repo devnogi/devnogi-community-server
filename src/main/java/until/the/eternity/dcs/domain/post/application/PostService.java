@@ -26,6 +26,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -72,7 +73,6 @@ public class PostService {
         Post post = findById(id);
         postMetaService.viewPost(id);
         PostMeta postMeta = postMetaService.getPostMeta(id);
-        postMetaRepository.save(postMeta);
         return postConverter.fromPostToPostDetailResponse(post, postMeta);
     }
 
@@ -148,12 +148,18 @@ public class PostService {
         Post post = findById(postId);
 
         if (!postLikeRepository.existsByUserIdAndPostId(userId, postId)) {
+            if (!postMetaService.canDoMethod(postId, PostMetaType.LIKE.getCode())) {
+                return;
+            }
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
             postMetaService.likePost(postId);
 
             redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
+            return;
+        }
+        if (!postMetaService.canDoMethod(postId, PostMetaType.UNLIKE.getCode())) {
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);

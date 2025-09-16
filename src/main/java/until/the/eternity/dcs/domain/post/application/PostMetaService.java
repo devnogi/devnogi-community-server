@@ -1,10 +1,12 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 
 @Service
@@ -19,54 +21,78 @@ public class PostMetaService {
         return "postMeta:" + postId;
     }
 
+    private String generateMethodKey(Long postId, String method) {
+        return "postMeta:" + postId + ":" + method;
+    }
+
     public void viewPost(Long postId) {
         String key = generateKey(postId);
-        // 1. Redis에서 Key로 데이터를 조회
-        Object rawData = redisTemplate.opsForValue().get(key);
+
+        String methodKey = generateMethodKey(postId, PostMetaType.VIEW.getCode());
+        Object postMetaData = redisTemplate.opsForValue().get(key);
+
+        if (!canDoMethod(postId, PostMetaType.VIEW.getCode())) {
+            System.out.println("쿨타임");
+            return;
+        }
 
         PostMeta postMeta;
-        if (rawData != null) {
+        if (postMetaData != null) {
             // 2-1. 데이터가 있으면 PostMeta 객체로 변환
-            postMeta = objectMapper.convertValue(rawData, PostMeta.class);
+            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
             postMeta.viewPost();
         } else {
             // 2-2. 데이터가 없으면 새로 생성
-            postMeta = PostMeta.create(postId);
+            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
             postMeta.viewPost();
         }
 
         // 3. 변경된 객체를 다시 Redis에 저장 (JSON으로 직렬화됨)
         redisTemplate.opsForValue().set(key, postMeta);
+        redisTemplate.opsForValue().set(methodKey, postMeta, 2, TimeUnit.MINUTES);
     }
 
     public void likePost(Long postId) {
         String key = generateKey(postId);
-        Object rawData = redisTemplate.opsForValue().get(key);
+        String methodKey = generateMethodKey(postId, PostMetaType.LIKE.getCode());
+        Object postMetaData = redisTemplate.opsForValue().get(key);
+
+        if (!canDoMethod(postId, PostMetaType.LIKE.getCode())) {
+            return;
+        }
 
         PostMeta postMeta;
-        if (rawData != null) {
-            postMeta = objectMapper.convertValue(rawData, PostMeta.class);
+        if (postMetaData != null) {
+            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
         } else {
-            postMeta = PostMeta.create(postId);
+            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
         }
 
         postMeta.like();
         redisTemplate.opsForValue().set(key, postMeta);
+        redisTemplate.opsForValue().set(methodKey, postMeta, 3, TimeUnit.MINUTES);
     }
 
     public void unlikePost(Long postId) {
         String key = generateKey(postId);
-        Object rawData = redisTemplate.opsForValue().get(key);
+        String methodKey = generateMethodKey(postId, PostMetaType.UNLIKE.getCode());
+
+        Object postMetaData = redisTemplate.opsForValue().get(key);
+
+        if (!canDoMethod(postId, PostMetaType.UNLIKE.getCode())) {
+            return;
+        }
 
         PostMeta postMeta;
-        if (rawData != null) {
-            postMeta = objectMapper.convertValue(rawData, PostMeta.class);
+        if (postMetaData != null) {
+            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
         } else {
-            postMeta = PostMeta.create(postId);
+            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
         }
 
         postMeta.unlike();
         redisTemplate.opsForValue().set(key, postMeta);
+        redisTemplate.opsForValue().set(methodKey, postMeta, 3, TimeUnit.MINUTES);
     }
 
     public PostMeta getPostMeta(Long postId) {
@@ -88,5 +114,11 @@ public class PostMetaService {
 
             return postMetaFromDb;
         }
+    }
+
+    public boolean canDoMethod(Long postId, String method) {
+        String likeKey = generateMethodKey(postId, method);
+        Object likeMetaInfo = redisTemplate.opsForValue().get(likeKey);
+        return likeMetaInfo == null;
     }
 }
