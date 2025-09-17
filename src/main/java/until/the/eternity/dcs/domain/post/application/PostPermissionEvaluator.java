@@ -1,6 +1,8 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -78,5 +80,10 @@ public class PostPermissionEvaluator {
         if (!userSummaryRepository.existsById(currentUserId)) {
             throw new UserNotFoundException(currentUserId);
         }
+    }
+
+    public boolean isAnonymousUser(Authentication auth) {
+        AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
+        return trustResolver.isAnonymous(auth);
     }
 }

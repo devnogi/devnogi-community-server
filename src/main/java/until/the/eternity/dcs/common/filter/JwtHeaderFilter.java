@@ -6,7 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,12 +17,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import until.the.eternity.dcs.common.util.IpAddressUtil;
 import until.the.eternity.dcs.domain.user.enums.UserGrade;
 import until.the.eternity.dcs.domain.user.exception.UserGradeNotFoundException;
 
 @Component
 @RequiredArgsConstructor
 public class JwtHeaderFilter extends OncePerRequestFilter {
+
+    private final IpAddressUtil ipAddressUtil;
 
     @Override
     protected void doFilterInternal(
@@ -55,6 +60,13 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userId, null, authorities);
+
+        String clientIp = ipAddressUtil.getClientIp(request);
+
+        Map<String, String> details = new HashMap<>();
+        details.put("remoteAddress", clientIp);
+
+        authentication.setDetails(details);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

@@ -26,6 +26,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -46,6 +47,7 @@ public class PostService {
     private final TagService tagService;
     private final PostTagService postTagService;
     private final RedisSender redisSender;
+    private final PostMetaService postMetaService;
     private final PostPermissionEvaluator postPermissionEvaluator;
 
     @Transactional
@@ -69,9 +71,11 @@ public class PostService {
 
     public PostDetailResponse findPost(Long id) {
         Post post = findById(id);
-        PostMeta postMeta = findPostMetaByPostId(id);
-        postMeta.viewPost(); // todo 차후 일정 기간 내 다시 조회는 조회수 카운트로 치지 않도록 변경
-        postMetaRepository.save(postMeta);
+
+        String userIp =
+                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
+        postMetaService.viewPost(id, userIp);
+        PostMeta postMeta = postMetaService.getPostMeta(id);
         return postConverter.fromPostToPostDetailResponse(post, postMeta);
     }
 
@@ -81,7 +85,7 @@ public class PostService {
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = findPostMetaByPostId(post.getId());
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -145,33 +149,59 @@ public class PostService {
         Long userId = getCurrentUserId();
         Long postId = postLikeCreateRequest.postId();
         Post post = findById(postId);
-        PostMeta postMeta = findPostMetaByPostId(postId);
+        String userIp =
+                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
 
         if (!postLikeRepository.existsByUserIdAndPostId(userId, postId)) {
+            if (!postMetaService.canDoMethod(postId, PostMetaType.LIKE.getCode(), userIp)) {
+                return;
+            }
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
-            postMeta.like();
-            postMetaRepository.save(postMeta);
+            postMetaService.likePost(postId, userIp);
 
             redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
             return;
         }
+        if (!postMetaService.canDoMethod(postId, PostMetaType.UNLIKE.getCode(), userIp)) {
+            return;
+        }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
-        postMeta.unlike();
-        postMetaRepository.save(postMeta);
+        postMetaService.unlikePost(postId, userIp);
+    }
+
+    public Page<PostSummaryResponse> findPostsByBoardId(CustomPageRequest request, Long boardId) {
+        Pageable pageable = request.toPageable();
+
+        Page<Post> posts =
+                postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
+                        pageable, boardId);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
 
-    private PostMeta findPostMetaByPostId(Long postId) {
-        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
-    }
-
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return postPermissionEvaluator.getCurrentUserId(auth);
+    }
+
+    private String getCurrentUserIp() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, String> details = (Map<String, String>) auth.getDetails();
+        return details.get("remoteAddress");
+    }
+
+    private boolean checkIsAnonymousUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return postPermissionEvaluator.isAnonymousUser(auth);
     }
 }
