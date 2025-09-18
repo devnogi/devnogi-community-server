@@ -17,15 +17,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
+import until.the.eternity.dcs.domain.board.application.BoardService;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
@@ -66,6 +64,7 @@ class PostServiceTest {
     @Mock private SecurityContext securityContext;
     @Mock private Authentication authentication;
     @Mock private PostMetaService postMetaService;
+    @Mock private BoardService boardService;
     @InjectMocks private PostService postService;
 
     @Mock private PostMetaRepository postMetaRepository;
@@ -255,13 +254,12 @@ class PostServiceTest {
         void findPostsByBoardId_Success() {
             // Given
             Long boardId = mockBoard.getId();
-            CustomPageRequest pageRequest = mock(CustomPageRequest.class);
+            CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "id", "desc");
+            Pageable pageable = pageRequest.toPageable();
 
-            Pageable pageable = PageRequest.of(1, 10);
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
-            Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+            Page<Post> postPage = new PageImpl<>(posts, pageable, posts.size());
 
-            given(pageRequest.toPageable()).willReturn(pageable);
             given(
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
@@ -277,6 +275,37 @@ class PostServiceTest {
             assertThat(result.getContent().get(0)).isEqualTo(mockSummaryResponse);
             verify(postRepository)
                     .findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(pageable, boardId);
+        }
+
+        @Test
+        @DisplayName("게시판에 있는 게시글 목록 조회 성공")
+        void findPostsByBoardIdWithNewPageable_Success() {
+            // Given
+            Long boardId = mockBoard.getId();
+            CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "likeCount", "desc");
+            Pageable pageable = pageRequest.toPageable();
+
+            List<Post> posts = Arrays.asList(mockPost, mockPost2);
+            Page<Post> postPage = new PageImpl<>(posts, pageable, posts.size());
+
+            given(postRepository.findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard)))
+                    .willReturn(postPage);
+            given(boardService.findBoardById(boardId)).willReturn(mockBoard);
+            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMeta(2L)).willReturn(postMeta2);
+
+            // When
+            Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
+
+            // Then
+            assertThat(result.getContent()).hasSize(2);
+
+            verify(postRepository, times(1))
+                    .findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard));
+
+            verify(postRepository, never())
+                    .findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
+                            any(Pageable.class), anyLong());
         }
     }
 

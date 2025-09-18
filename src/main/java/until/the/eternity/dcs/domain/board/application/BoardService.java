@@ -59,7 +59,7 @@ public class BoardService {
         board.delete(userId);
     }
 
-    private Board findBoardById(Long id) {
+    public Board findBoardById(Long id) {
         return boardRepository.findById(id).orElseThrow(() -> new BoardNotFoundException(id));
     }
 
