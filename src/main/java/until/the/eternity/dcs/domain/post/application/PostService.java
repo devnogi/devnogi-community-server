@@ -34,7 +34,6 @@ import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
@@ -49,7 +48,6 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
     private final BoardService boardService;
-    private final PostMetaRepository postMetaRepository;
     private final TagService tagService;
     private final PostTagService postTagService;
     private final RedisSender redisSender;

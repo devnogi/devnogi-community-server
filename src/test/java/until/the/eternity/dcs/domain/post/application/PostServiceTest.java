@@ -36,7 +36,6 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
@@ -67,7 +66,6 @@ class PostServiceTest {
     @Mock private BoardService boardService;
     @InjectMocks private PostService postService;
 
-    @Mock private PostMetaRepository postMetaRepository;
     private PostMeta postMeta;
     private PostMeta postMeta2;
     private UserSummary mockUser;
