@@ -2,13 +2,16 @@ package until.the.eternity.dcs.domain.post.application;
 
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
+import until.the.eternity.dcs.domain.board.application.BoardService;
+import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
@@ -29,7 +34,6 @@ import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
@@ -43,7 +47,7 @@ public class PostService {
     private final PostConverter postConverter;
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
-    private final PostMetaRepository postMetaRepository;
+    private final BoardService boardService;
     private final TagService tagService;
     private final PostTagService postTagService;
     private final RedisSender redisSender;
@@ -173,10 +177,19 @@ public class PostService {
 
     public Page<PostSummaryResponse> findPostsByBoardId(CustomPageRequest request, Long boardId) {
         Pageable pageable = request.toPageable();
+        String[] sortArr = pageable.getSort().toString().split(":");
+        Page<Post> posts;
+        if (sortArr[0].equals("likeCount") || sortArr[0].equals("viewCount")) {
+            Pageable newPageable = adjustSort(pageable);
 
-        Page<Post> posts =
-                postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
-                        pageable, boardId);
+            Board board = boardService.findBoardById(boardId);
+
+            posts = postRepository.findWithPostMetaByBoardId(newPageable, board);
+        } else {
+            posts =
+                    postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
+                            pageable, boardId);
+        }
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
             PostMeta postMeta = postMetaService.getPostMeta(post.getId());
@@ -203,5 +216,32 @@ public class PostService {
     private boolean checkIsAnonymousUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return postPermissionEvaluator.isAnonymousUser(auth);
+    }
+
+    private Pageable adjustSort(Pageable pageable) {
+
+        Sort originalSort = pageable.getSort();
+
+        List<Sort.Order> newOrders = new ArrayList<>();
+
+        for (Sort.Order order : originalSort) {
+            String property = order.getProperty();
+            Sort.Order newOrder;
+
+            if ("likeCount".equals(property)) {
+                newOrder = new Sort.Order(order.getDirection(), "pm.likeCount");
+            } else if ("viewCount".equals(property)) {
+                newOrder = new Sort.Order(order.getDirection(), "pm.viewCount");
+            } else {
+                newOrder = new Sort.Order(order.getDirection(), "p." + property);
+            }
+            newOrders.add(newOrder);
+        }
+
+        Sort newSort = Sort.by(newOrders);
+
+        Pageable newPageable =
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), newSort);
+        return newPageable;
     }
 }
