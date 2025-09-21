@@ -64,6 +64,7 @@ src/main/java/until/the/eternity/dcs
 
 - ERD 다이어그램:
 
-  TODO: ERD 이미지 또는 설명 추가
+  ![pipeline](.github/img/erd.png)
 
-- 마이그레이션 관리: Flyway를 사용
+- 마이그레이션 관리
+  - Flyway를 사용해 추적 관리
