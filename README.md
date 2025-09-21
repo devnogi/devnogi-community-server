@@ -53,18 +53,20 @@ src/main/java/until/the/eternity/dcs
 │
 └── DcsApplication.java
 ```
-- **아키텍처**: 계층형 구조(Controller, Service, Repository)
+- 아키텍처
+  - 계층형 구조(Controller, Service, Repository)
 
 ---
 
 ## 5. API 문서
-- Swagger를 통한 내부 공유
+- Swagger를 통한 문서화
+- Swagger 경로는 보안을 위해 내부에서만 공유
 
 ## 6. DB 스키마 / ERD
 
 - ERD 다이어그램:
 
-  ![pipeline](.github/img/erd.png)
+  ![erd](.github/img/erd.png)
 
 - 마이그레이션 관리
   - Flyway를 사용해 추적 관리
