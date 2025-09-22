@@ -10,7 +10,9 @@ CREATE TABLE board_archive
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT COMMENT '생성자 ID',
     updated_by BIGINT COMMENT '수정자 ID',
-    archived_at DATETIME COMMENT '이관 시간'
+    archived_at DATETIME COMMENT '이관 시간',
+    INDEX idx_archived_at(archived_at),
+    INDEX idx_board_archived (board_id, archived_at)
 );
 
 CREATE TABLE post_archive
@@ -26,7 +28,9 @@ CREATE TABLE post_archive
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by BIGINT,
-    archived_at DATETIME COMMENT '이관 시간'
+    archived_at DATETIME COMMENT '이관 시간',
+    INDEX idx_archived_at(archived_at),
+    INDEX idx_post_archived (post_id, archived_at)
 );
 
 CREATE TABLE comment_archive
@@ -42,5 +46,7 @@ CREATE TABLE comment_archive
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
-    archived_at DATETIME COMMENT '이관 시간'
+    archived_at DATETIME COMMENT '이관 시간',
+    INDEX idx_archived_at(archived_at),
+    INDEX idx_comment_archived (comment_id, archived_at)
 );
