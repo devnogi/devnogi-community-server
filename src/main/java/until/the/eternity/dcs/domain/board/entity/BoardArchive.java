@@ -21,7 +21,7 @@ public class BoardArchive extends AuditableEntity {
     private Long id;
 
     @Column(name = "board_id", nullable = false)
-    private String boardId;
+    private Long boardId;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
