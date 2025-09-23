@@ -39,7 +39,7 @@ public class PostArchiveService {
         for (Long postId : postIdList) {
             postMetaService.deletePostMeta(postId);
         }
-        postRepository.deleteAllByIdIn(postIdList); // post 제거
+        postRepository.deleteAllByIdIn(postIdList);
         postArchiveRepository.saveAll(postArchiveList);
     }
 }
