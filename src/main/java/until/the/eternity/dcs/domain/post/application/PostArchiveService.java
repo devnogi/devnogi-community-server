@@ -33,9 +33,9 @@ public class PostArchiveService {
         List<Long> postIdList = postList.stream().map(Post::getId).collect(Collectors.toList());
         List<PostArchive> postArchiveList =
                 postList.stream().map(PostArchive::from).collect(Collectors.toList());
-        postTagRepository.deleteAllByPostIdIn(postIdList); // 태그 제거
-        postLikeRepository.deleteAllByPostIdIn(postIdList); // 좋아요 제거
-        postMetaRepository.deleteAllByPostIdIn(postIdList); // 메타 테이블 제거
+        postTagRepository.deleteAllByPostIdIn(postIdList);
+        postLikeRepository.deleteAllByPostIdIn(postIdList);
+        postMetaRepository.deleteAllByPostIdIn(postIdList);
         for (Long postId : postIdList) {
             postMetaService.deletePostMeta(postId);
         }

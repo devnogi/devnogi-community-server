@@ -31,7 +31,7 @@ public class CommentArchive extends AuditableEntity {
     private Long userId;
 
     @Column(name = "parent_comment_id")
-    private Long parentCommentId; // 대댓글의 경우 상위 댓글 ID
+    private Long parentCommentId;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
