@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import until.the.eternity.dcs.common.entity.AuditableEntity;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "board_archive")
@@ -14,7 +14,7 @@ import until.the.eternity.dcs.common.entity.AuditableEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BoardArchive extends AuditableEntity {
+public class BoardArchive {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +38,30 @@ public class BoardArchive extends AuditableEntity {
     @Column(name = "created_by")
     private Long createdBy;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @CreatedDate
     @Column(name = "archived_at", nullable = false)
     private LocalDateTime archivedAt;
+
+    public static BoardArchive from(Board board) {
+        return BoardArchive.builder()
+                .boardId(board.getId())
+                .name(board.getName())
+                .description(board.getDescription())
+                .topCategory(board.getTopCategory())
+                .subCategory(board.getSubCategory())
+                .createdBy(board.getCreatedBy())
+                .createdAt(board.getCreatedAt())
+                .updatedBy(board.getUpdatedBy())
+                .updatedAt(board.getUpdatedAt())
+                .build();
+    }
 }

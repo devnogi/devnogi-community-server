@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import until.the.eternity.dcs.common.entity.AuditableEntity;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "post_archive")
@@ -14,7 +14,7 @@ import until.the.eternity.dcs.common.entity.AuditableEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostArchive extends AuditableEntity {
+public class PostArchive {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,6 +42,31 @@ public class PostArchive extends AuditableEntity {
     @Builder.Default
     private boolean isBlocked = false;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @CreatedDate
     @Column(name = "archived_at")
     private LocalDateTime archivedAt;
+
+    public static PostArchive from(Post post) {
+        return PostArchive.builder()
+                .postId(post.getId())
+                .boardId(post.getBoard().getId())
+                .userId(post.getUserId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .isDraft(post.getIsDraft())
+                .isBlocked(post.getIsBlocked())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .updatedBy(post.getUpdatedBy())
+                .build();
+    }
 }

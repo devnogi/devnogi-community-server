@@ -1,6 +1,8 @@
 package until.the.eternity.dcs.common.infrastructure;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.application.BoardArchiveService;
 import until.the.eternity.dcs.domain.comment.application.CommentArchiveService;
@@ -12,4 +14,12 @@ public class ArchivingScheduler {
     private final BoardArchiveService boardArchiveService;
     private final PostArchiveService postArchiveService;
     private final CommentArchiveService commentArchiveService;
+
+    @Scheduled(cron = "0 27 1 * * *")
+    public void Schedule() {
+        LocalDateTime now = LocalDateTime.now().minusYears(1);
+        commentArchiveService.archiveOldComment(now);
+        postArchiveService.archiveOldPost(now);
+        boardArchiveService.archiveOldBoard(now);
+    }
 }

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import until.the.eternity.dcs.common.entity.AuditableEntity;
 
 @Entity
@@ -39,6 +40,30 @@ public class CommentArchive extends AuditableEntity {
     @Builder.Default
     private Boolean isBlocked = false;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @CreatedDate
     @Column(name = "archived_at")
-    private LocalDateTime archivedAt; // 이관 시간
+    private LocalDateTime archivedAt;
+
+    public static CommentArchive from(Comment comment) {
+        return CommentArchive.builder()
+                .commentId(comment.getId())
+                .postId(comment.getPost().getId())
+                .userId(comment.getUserId())
+                .parentCommentId(comment.getParentComment().getId())
+                .content(comment.getContent())
+                .isBlocked(comment.getIsBlocked())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
+                .updatedBy(comment.getUpdatedBy())
+                .build();
+    }
 }

@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -142,6 +143,15 @@ public class PostMetaService {
         String likeKey = generateMethodKey(postId, method, userIp);
         Object likeMetaInfo = redisTemplate.opsForValue().get(likeKey);
         return likeMetaInfo == null;
+    }
+
+    public void deletePostMeta(Long postId) {
+        String key = generateKey(postId);
+        Set<String> keySet = redisTemplate.keys(key + "*");
+        if (keySet.isEmpty()) {
+            return;
+        }
+        redisTemplate.delete(keySet);
     }
 
     private String generateKey(Long postId) {
