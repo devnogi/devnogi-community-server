@@ -15,7 +15,7 @@ public class ArchivingScheduler {
     private final PostArchiveService postArchiveService;
     private final CommentArchiveService commentArchiveService;
 
-    @Scheduled(cron = "0 27 1 * * *")
+    @Scheduled(cron = "0 0 3 * * *")
     public void Schedule() {
         LocalDateTime now = LocalDateTime.now().minusYears(1);
         commentArchiveService.archiveOldComment(now);
