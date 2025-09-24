@@ -12,5 +12,5 @@ public interface JpaBoardRepository extends JpaRepository<Board, Long> {
 
     Optional<Board> findByIdAndIsDeletedIsFalse(Long id);
 
-    List<Board> findALlByIsDeletedTrueAndDeletedAtLessThanEqual(LocalDateTime date);
+    List<Board> findAllByIsDeletedTrueAndDeletedAtLessThanEqual(LocalDateTime date);
 }

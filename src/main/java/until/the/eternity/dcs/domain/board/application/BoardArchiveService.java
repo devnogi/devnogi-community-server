@@ -20,15 +20,12 @@ public class BoardArchiveService {
     @Transactional
     public void archiveOldBoard(LocalDateTime date) {
         List<Board> boardList =
-                jpaBoardRepository.findALlByIsDeletedTrueAndDeletedAtLessThanEqual(date);
+                jpaBoardRepository.findAllByIsDeletedTrueAndDeletedAtLessThanEqual(date);
         if (boardList.isEmpty()) {
             return;
         }
         List<BoardArchive> boardArchiveList =
                 boardList.stream().map(BoardArchive::from).collect(Collectors.toList());
-        if (boardArchiveList.isEmpty()) {
-            throw new RuntimeException();
-        }
         boardArchiveRepository.saveAll(boardArchiveList);
         jpaBoardRepository.deleteAll(boardList);
     }
