@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.board.infrastructure;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,6 @@ public interface JpaBoardRepository extends JpaRepository<Board, Long> {
     List<Board> findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc();
 
     Optional<Board> findByIdAndIsDeletedIsFalse(Long id);
+
+    List<Board> findAllByIsDeletedTrueAndDeletedAtLessThanEqual(LocalDateTime date);
 }
