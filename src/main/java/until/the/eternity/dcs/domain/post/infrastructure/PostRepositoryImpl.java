@@ -91,11 +91,4 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
         return Optional.ofNullable(result);
     }
-
-    @Override
-    public void deleteAllByIdIn(List<Long> ids) {
-        queryFactory.delete(post).where(post.id.in(ids)).execute();
-        em.flush();
-        em.clear();
-    }
 }
