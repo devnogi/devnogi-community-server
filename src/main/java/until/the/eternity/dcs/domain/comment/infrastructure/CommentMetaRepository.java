@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 
-public interface JpaCommentMetaRepository extends JpaRepository<CommentMeta, Long> {
+@Repository
+public interface CommentMetaRepository extends JpaRepository<CommentMeta, Long> {
 
     List<CommentMeta> findByCommentIdIn(List<Long> commentIds);
 

@@ -26,12 +26,12 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseIte
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
-import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
-import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
-import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotLikedYetException;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
@@ -93,7 +93,7 @@ public class CommentService {
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
 
-        Page<Comment> comments = commentRepository.findByPost(postId, pageable);
+        Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
 
         List<Long> commentIds = comments.stream().map(Comment::getId).toList();
 

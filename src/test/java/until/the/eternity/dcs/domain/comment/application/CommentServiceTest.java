@@ -27,10 +27,10 @@ import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseIte
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
-import until.the.eternity.dcs.domain.comment.entity.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
-import until.the.eternity.dcs.domain.comment.entity.CommentMetaRepository;
-import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
@@ -148,7 +148,7 @@ class CommentServiceTest {
     void findByPostId_Success() {
         // given
         Page<Comment> page = new PageImpl<>(List.of(comment));
-        when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
+        when(commentRepository.findAllByPostId(anyLong(), any(Pageable.class))).thenReturn(page);
         CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
         // when
@@ -168,7 +168,7 @@ class CommentServiceTest {
     void findByPostId_Success_Login() {
         // given
         Page<Comment> page = new PageImpl<>(List.of(comment));
-        when(commentRepository.findByPost(anyLong(), any(Pageable.class))).thenReturn(page);
+        when(commentRepository.findAllByPostId(anyLong(), any(Pageable.class))).thenReturn(page);
         when(commentMetaRepository.findById(anyLong()))
                 .thenReturn(Optional.of(CommentMeta.create(id)));
         when(userService.existsUserSummaryById(1L)).thenReturn(true);

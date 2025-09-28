@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.exception.CommentModifyForbiddenException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
-import until.the.eternity.dcs.domain.comment.infrastructure.JpaCommentRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
@@ -16,7 +16,7 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 @RequiredArgsConstructor
 public class CommentPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
-    private final JpaCommentRepository jpaCommentRepository;
+    private final CommentRepository commentRepository;
 
     public boolean canCreate(Authentication auth) {
         if (!isAuthenticated(auth)) {
@@ -35,9 +35,7 @@ public class CommentPermissionEvaluator {
         Long currentUserId = getCurrentUserId(auth);
         validateUserExists(currentUserId);
         Comment comment =
-                jpaCommentRepository
-                        .findById(id)
-                        .orElseThrow(() -> new CommentNotFoundException(id));
+                commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(id));
         Long commentWriter = comment.getUserId();
         if (!currentUserId.equals(commentWriter)) {
             throw new CommentModifyForbiddenException();
@@ -52,9 +50,7 @@ public class CommentPermissionEvaluator {
         Long currentUserId = getCurrentUserId(auth);
         validateUserExists(currentUserId);
         Comment comment =
-                jpaCommentRepository
-                        .findById(id)
-                        .orElseThrow(() -> new CommentNotFoundException(id));
+                commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(id));
         Long commentWriter = comment.getUserId();
         if (!currentUserId.equals(commentWriter)) {
             throw new CommentModifyForbiddenException();

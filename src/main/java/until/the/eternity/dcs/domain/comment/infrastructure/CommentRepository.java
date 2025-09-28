@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 
-public interface JpaCommentRepository extends JpaRepository<Comment, Long> {
+@Repository
+public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     Page<Comment> findAllByPostId(Long postId, Pageable pageable);
 
