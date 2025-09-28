@@ -20,7 +20,7 @@ import until.the.eternity.dcs.domain.board.dto.request.BoardUpdateRequest;
 import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.board.entity.BoardRepository;
+import until.the.eternity.dcs.domain.board.infrastructure.BoardRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class BoardServiceTest {
@@ -74,7 +74,8 @@ class BoardServiceTest {
     void createBoard_Success() {
         // given
         when(boardRepository.save(any(Board.class))).thenReturn(board1);
-        when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+        when(boardRepository.findByIdAndIsDeletedIsFalse(anyLong()))
+                .thenReturn(Optional.of(board1));
         BoardCreateRequest request =
                 new BoardCreateRequest(name, description, topCategory, subCategory);
 
@@ -85,7 +86,7 @@ class BoardServiceTest {
         assertNotNull(response);
         assertEquals(boardId, response.id());
 
-        Board board = boardRepository.findById(response.id()).get();
+        Board board = boardRepository.findByIdAndIsDeletedIsFalse(response.id()).get();
         assertNotNull(board);
         assertEquals(name, board.getName());
         assertEquals(description, board.getDescription());
@@ -100,7 +101,8 @@ class BoardServiceTest {
     @DisplayName("getAllBoards 는 DB 에 저장된 모든 데이터를 BoardListResponse 로 조회한다.")
     void getAllBoards_Success() {
         // given
-        when(boardRepository.findAll()).thenReturn(List.of(board1, board2));
+        when(boardRepository.findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc())
+                .thenReturn(List.of(board1, board2));
 
         // when
         BoardListResponse response = boardService.getAllBoards();
@@ -119,7 +121,8 @@ class BoardServiceTest {
     @DisplayName("updateBoard 는 Board 의 정보를 변경한다.")
     void updateBoard_Success() {
         // given
-        when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+        when(boardRepository.findByIdAndIsDeletedIsFalse(anyLong()))
+                .thenReturn(Optional.of(board1));
         String newName = "new name";
         String newDescription = "new description";
         String newTopCategory = "new top category";
@@ -134,7 +137,7 @@ class BoardServiceTest {
         assertNotNull(response);
         assertEquals(1L, response.id());
 
-        Board board = boardRepository.findById(boardId).get();
+        Board board = boardRepository.findByIdAndIsDeletedIsFalse(boardId).get();
         assertNotNull(board);
         assertEquals(newName, board.getName());
         assertEquals(newDescription, board.getDescription());
@@ -146,13 +149,14 @@ class BoardServiceTest {
     @DisplayName("deleteBoard 는 게시판을 삭제한다.")
     void deleteBoard_throws_BoardNotFoundException() {
         // given
-        when(boardRepository.findById(anyLong())).thenReturn(Optional.of(board1));
+        when(boardRepository.findByIdAndIsDeletedIsFalse(anyLong()))
+                .thenReturn(Optional.of(board1));
 
         // when
         boardService.deleteBoard(boardId);
 
         // then
-        Board board = boardRepository.findById(boardId).get();
+        Board board = boardRepository.findByIdAndIsDeletedIsFalse(boardId).get();
         assertTrue(board.getIsDeleted());
     }
 }
