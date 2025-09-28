@@ -5,14 +5,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
-import until.the.eternity.dcs.domain.announcement.infrastructure.JpaAnnouncementRepository;
+import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Component
 @RequiredArgsConstructor
 public class AnnouncementPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
-    private final JpaAnnouncementRepository jpaAnnouncementRepository;
+    private final AnnouncementRepository announcementRepository;
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_PREFIX = "ROLE_";
 
@@ -25,7 +25,7 @@ public class AnnouncementPermissionEvaluator {
             return false;
         }
         Announcement announcement =
-                jpaAnnouncementRepository
+                announcementRepository
                         .findById(announcementId)
                         .orElseThrow(() -> new AnnouncementNotFoundException(announcementId));
         if (hasRole(auth, ROLE_ADMIN)) {

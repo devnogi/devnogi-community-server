@@ -3,13 +3,12 @@ package until.the.eternity.dcs.domain.announcement.entity;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-import until.the.eternity.dcs.domain.announcement.infrastructure.JpaAnnouncementRepository;
 
-@Repository
+// @Repository
 @RequiredArgsConstructor
 public class AnnouncementRepository {
-    private final JpaAnnouncementRepository jpaRepository;
+    private final until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository
+            jpaRepository;
 
     public Announcement save(Announcement announcement) {
         return jpaRepository.save(announcement);
