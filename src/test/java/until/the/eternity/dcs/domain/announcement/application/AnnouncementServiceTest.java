@@ -23,14 +23,12 @@ import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
 
 class AnnouncementServiceTest {
     AnnouncementService announcementService;
     AnnouncementRepository announcementRepository;
     PostRepository postRepository;
     PostMetaRepository postMetaRepository;
-    UserService userService;
     Long id = 1L;
     Post post;
     Announcement announcement;
@@ -41,7 +39,6 @@ class AnnouncementServiceTest {
         announcementRepository = mock(AnnouncementRepository.class);
         postRepository = mock(PostRepository.class);
         postMetaRepository = mock(PostMetaRepository.class);
-        userService = mock(UserService.class);
         RedisSender redisSender = mock(RedisSender.class);
         AnnouncementPermissionEvaluator announcementPermissionEvaluator =
                 mock(AnnouncementPermissionEvaluator.class);
