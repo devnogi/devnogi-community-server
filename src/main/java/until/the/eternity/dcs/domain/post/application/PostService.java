@@ -229,9 +229,9 @@ public class PostService {
             Sort.Order newOrder;
 
             if ("likeCount".equals(property)) {
-                newOrder = new Sort.Order(order.getDirection(), "pm.likeCount");
+                newOrder = new Sort.Order(order.getDirection(), "likeCount");
             } else if ("viewCount".equals(property)) {
-                newOrder = new Sort.Order(order.getDirection(), "pm.viewCount");
+                newOrder = new Sort.Order(order.getDirection(), "viewCount");
             } else {
                 newOrder = new Sort.Order(order.getDirection(), "p." + property);
             }
