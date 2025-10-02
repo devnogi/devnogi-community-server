@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.announcement.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.common.util.RoleConstants;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
 import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
@@ -13,8 +14,8 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 public class AnnouncementPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
     private final AnnouncementRepository announcementRepository;
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROLE_PREFIX = "ROLE_";
+    private static final String ROLE_ADMIN = RoleConstants.ROLE_ADMIN.getValue();
+    private static final String ROLE_PREFIX = RoleConstants.ROLE_PREFIX.getValue();
 
     public boolean canDelete(Authentication auth, Long announcementId) {
         if (!isAuthenticated(auth)) {

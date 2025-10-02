@@ -5,6 +5,7 @@ import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.common.util.RoleConstants;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -16,8 +17,8 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 public class PostPermissionEvaluator {
     private final PostRepository postRepository;
     private final UserSummaryRepository userSummaryRepository;
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROLE_PREFIX = "ROLE_";
+    private static final String ROLE_ADMIN = RoleConstants.ROLE_ADMIN.getValue();
+    private static final String ROLE_PREFIX = RoleConstants.ROLE_PREFIX.getValue();
 
     public boolean canCreate(Authentication auth) {
         if (!isAuthenticated(auth)) {
