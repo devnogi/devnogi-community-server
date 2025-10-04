@@ -12,8 +12,8 @@ import until.the.eternity.dcs.domain.board.dto.request.BoardUpdateRequest;
 import until.the.eternity.dcs.domain.board.dto.response.BoardListResponse;
 import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
-import until.the.eternity.dcs.domain.board.entity.BoardRepository;
 import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
+import until.the.eternity.dcs.domain.board.infrastructure.BoardRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,8 @@ public class BoardService {
     }
 
     public BoardListResponse getAllBoards() {
-        List<Board> boardList = boardRepository.findAll();
+        List<Board> boardList =
+                boardRepository.findAllByIsDeletedIsFalseOrderByTopCategoryAscSubCategoryAsc();
         return boardConverter.fromBoardToListResponse(boardList);
     }
 
@@ -60,7 +61,9 @@ public class BoardService {
     }
 
     public Board findBoardById(Long id) {
-        return boardRepository.findById(id).orElseThrow(() -> new BoardNotFoundException(id));
+        return boardRepository
+                .findByIdAndIsDeletedIsFalse(id)
+                .orElseThrow(() -> new BoardNotFoundException(id));
     }
 
     private Long getCurrentUserId() {

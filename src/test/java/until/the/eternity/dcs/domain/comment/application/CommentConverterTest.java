@@ -14,7 +14,7 @@ import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
-import until.the.eternity.dcs.domain.comment.entity.CommentRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 

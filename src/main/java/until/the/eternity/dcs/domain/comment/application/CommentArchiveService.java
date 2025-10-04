@@ -9,22 +9,22 @@ import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentArchive;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentArchiveRepository;
-import until.the.eternity.dcs.domain.comment.infrastructure.JpaCommentLikeRepository;
-import until.the.eternity.dcs.domain.comment.infrastructure.JpaCommentMetaRepository;
-import until.the.eternity.dcs.domain.comment.infrastructure.JpaCommentRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 
 @Service
 @RequiredArgsConstructor
 public class CommentArchiveService {
     private final CommentArchiveRepository commentArchiveRepository;
-    private final JpaCommentRepository jpaCommentRepository;
-    private final JpaCommentLikeRepository jpaCommentLikeRepository;
-    private final JpaCommentMetaRepository jpaCommentMetaRepository;
+    private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final CommentMetaRepository commentMetaRepository;
 
     @Transactional
     public void archiveOldComment(LocalDateTime date) {
         List<Comment> commentList =
-                jpaCommentRepository.findAllByIsDeletedTrueAndDeletedAtLessThanEqual(date);
+                commentRepository.findAllByIsDeletedTrueAndDeletedAtLessThanEqual(date);
         if (commentList.isEmpty()) {
             return;
         }
@@ -33,8 +33,8 @@ public class CommentArchiveService {
         List<CommentArchive> commentArchiveList =
                 commentList.stream().map(CommentArchive::from).collect(Collectors.toList());
         commentArchiveRepository.saveAll(commentArchiveList);
-        jpaCommentLikeRepository.deleteAllByCommentIdIn(commentIdList);
-        jpaCommentMetaRepository.deleteAllByCommentIdIn(commentIdList);
-        jpaCommentRepository.deleteAllByCommentIdIn(commentIdList);
+        commentLikeRepository.deleteAllByCommentIdIn(commentIdList);
+        commentMetaRepository.deleteAllByCommentIdIn(commentIdList);
+        commentRepository.deleteAllByCommentIdIn(commentIdList);
     }
 }

@@ -7,9 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 
-public interface JpaCommentLikeRepository extends JpaRepository<CommentLike, Long> {
+@Repository
+public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
 
     Optional<CommentLike> findByCommentIdAndUserId(Long commentId, Long userId);
 

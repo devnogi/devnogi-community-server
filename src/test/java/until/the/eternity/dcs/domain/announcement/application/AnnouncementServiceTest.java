@@ -17,20 +17,18 @@ import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreate
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
-import until.the.eternity.dcs.domain.announcement.entity.AnnouncementRepository;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
+import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-import until.the.eternity.dcs.domain.user.application.UserService;
 
 class AnnouncementServiceTest {
     AnnouncementService announcementService;
     AnnouncementRepository announcementRepository;
     PostRepository postRepository;
     PostMetaRepository postMetaRepository;
-    UserService userService;
     Long id = 1L;
     Post post;
     Announcement announcement;
@@ -41,7 +39,6 @@ class AnnouncementServiceTest {
         announcementRepository = mock(AnnouncementRepository.class);
         postRepository = mock(PostRepository.class);
         postMetaRepository = mock(PostMetaRepository.class);
-        userService = mock(UserService.class);
         RedisSender redisSender = mock(RedisSender.class);
         AnnouncementPermissionEvaluator announcementPermissionEvaluator =
                 mock(AnnouncementPermissionEvaluator.class);
@@ -122,7 +119,8 @@ class AnnouncementServiceTest {
     @DisplayName("getAnnouncementByBoardId는 BoardId로 해당 게시판과 전체 공지글을 조회한다.")
     void getAnnouncementByBoardId_Success() {
         // given
-        when(announcementRepository.findByBoardIdAndGlobal(id)).thenReturn(List.of(announcement));
+        when(announcementRepository.findByBoardIdOrIsGlobalTrue(id))
+                .thenReturn(List.of(announcement));
 
         // when
         List<AnnouncementPageResponseItem> response =

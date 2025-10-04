@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.report.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import until.the.eternity.dcs.common.util.RoleConstants;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
@@ -10,8 +11,8 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 @RequiredArgsConstructor
 public class ReportPermissionEvaluator {
     private final UserSummaryRepository userSummaryRepository;
-    private static final String ROLE_ADMIN = "ADMIN";
-    private static final String ROLE_PREFIX = "ROLE_";
+    private static final String ROLE_ADMIN = RoleConstants.ROLE_ADMIN.getValue();
+    private static final String ROLE_PREFIX = RoleConstants.ROLE_PREFIX.getValue();
 
     public boolean isAuthorized(Authentication auth) {
         checkBasicAuth(auth);

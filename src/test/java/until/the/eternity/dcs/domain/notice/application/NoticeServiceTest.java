@@ -18,12 +18,12 @@ import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
-import until.the.eternity.dcs.domain.notice.entity.NoticeRepository;
 import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
-import until.the.eternity.dcs.domain.notice.entity.NoticeUserRepository;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 import until.the.eternity.dcs.domain.notice.exception.NoticeNotFoundException;
 import until.the.eternity.dcs.domain.notice.exception.NoticeSendForbiddenException;
+import until.the.eternity.dcs.domain.notice.infrastructure.NoticeRepository;
+import until.the.eternity.dcs.domain.notice.infrastructure.NoticeUserRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
@@ -153,7 +153,8 @@ class NoticeServiceTest {
         // given
         int day = 1;
         when(noticeRepository.findByIdIn(anyList())).thenReturn(List.of(notice));
-        when(noticeUserRepository.findByCreatedAtAndUserId(any(), anyLong()))
+        when(noticeUserRepository.findByCreatedAtGreaterThanEqualAndUserIdOrderByCreatedAtDesc(
+                        any(), anyLong()))
                 .thenReturn(List.of(noticeUser));
 
         // when

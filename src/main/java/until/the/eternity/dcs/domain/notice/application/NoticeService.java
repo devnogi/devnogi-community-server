@@ -14,12 +14,12 @@ import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
-import until.the.eternity.dcs.domain.notice.entity.NoticeRepository;
 import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
-import until.the.eternity.dcs.domain.notice.entity.NoticeUserRepository;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 import until.the.eternity.dcs.domain.notice.exception.NoticeNotFoundException;
 import until.the.eternity.dcs.domain.notice.exception.NoticeSendForbiddenException;
+import until.the.eternity.dcs.domain.notice.infrastructure.NoticeRepository;
+import until.the.eternity.dcs.domain.notice.infrastructure.NoticeUserRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
@@ -69,7 +69,9 @@ public class NoticeService {
     public List<NoticeCommonResponse> getNoticeList(Long userId, Integer day) {
         // 최근 day일 데이터
         LocalDateTime date = LocalDateTime.now().minusDays(day).toLocalDate().atStartOfDay();
-        List<NoticeUser> myNoticeList = noticeUserRepository.findByCreatedAtAndUserId(date, userId);
+        List<NoticeUser> myNoticeList =
+                noticeUserRepository.findByCreatedAtGreaterThanEqualAndUserIdOrderByCreatedAtDesc(
+                        date, userId);
 
         List<Long> idList = myNoticeList.stream().map(NoticeUser::getNoticeId).toList();
         List<Notice> noticeList = noticeRepository.findByIdIn(idList);

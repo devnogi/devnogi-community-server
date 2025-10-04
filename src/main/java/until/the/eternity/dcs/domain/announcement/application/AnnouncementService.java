@@ -14,9 +14,9 @@ import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageR
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
-import until.the.eternity.dcs.domain.announcement.entity.AnnouncementRepository;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
+import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
@@ -72,7 +72,7 @@ public class AnnouncementService {
 
     @Transactional(readOnly = true)
     public List<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
-        List<Announcement> announcements = repository.findByBoardIdAndGlobal(boardId);
+        List<Announcement> announcements = repository.findByBoardIdOrIsGlobalTrue(boardId);
 
         return announcements.stream().map(converter::fromEntityToPageResponse).toList();
     }
