@@ -59,7 +59,7 @@ public class CommentArchive extends AuditableEntity {
                 .postId(comment.getPost().getId())
                 .userId(comment.getUserId())
                 .parentCommentId(
-                        comment.getParentComment().getId() != null
+                        comment.getParentComment() != null
                                 ? comment.getParentComment().getPost().getId()
                                 : null)
                 .content(comment.getContent())
