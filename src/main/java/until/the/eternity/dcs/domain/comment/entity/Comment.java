@@ -60,4 +60,8 @@ public class Comment extends SoftDeleteEntity {
         this.content = content;
         this.setUpdatedBy(userId);
     }
+
+    public void disconnectWithPost() {
+        this.post = null;
+    }
 }

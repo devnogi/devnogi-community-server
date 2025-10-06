@@ -154,7 +154,7 @@ public class CommentService {
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         Post post = findPostById(postId);
         post.getComments().remove(comment);
-
+        comment.disconnectWithPost();
         postMetaService.deleteComment(postId, userId);
     }
 
