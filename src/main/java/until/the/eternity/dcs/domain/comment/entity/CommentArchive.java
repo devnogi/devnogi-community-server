@@ -56,11 +56,11 @@ public class CommentArchive extends AuditableEntity {
     public static CommentArchive from(Comment comment) {
         return CommentArchive.builder()
                 .commentId(comment.getId())
-                .postId(comment.getPost().getId())
+                .postId(comment.getPost() != null ? comment.getPost().getId() : null)
                 .userId(comment.getUserId())
                 .parentCommentId(
                         comment.getParentComment() != null
-                                ? comment.getParentComment().getPost().getId()
+                                ? comment.getParentComment().getId()
                                 : null)
                 .content(comment.getContent())
                 .isBlocked(comment.getIsBlocked())
