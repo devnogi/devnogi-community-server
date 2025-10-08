@@ -37,7 +37,7 @@ CREATE TABLE comment_archive
 (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     comment_id BIGINT NOT NULL COMMENT '댓글 ID',
-    post_id BIGINT,
+    post_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     parent_comment_id BIGINT DEFAULT NULL COMMENT '대댓글의 경우 상위 댓글 ID',
     content TEXT NOT NULL,
