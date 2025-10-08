@@ -24,7 +24,7 @@ public class CommentArchive extends AuditableEntity {
     @Column(name = "comment_id", nullable = false)
     private Long commentId;
 
-    @Column(name = "post_id", nullable = false)
+    @Column(name = "post_id")
     private Long postId;
 
     @Column(name = "user_id", nullable = false)
@@ -56,11 +56,11 @@ public class CommentArchive extends AuditableEntity {
     public static CommentArchive from(Comment comment) {
         return CommentArchive.builder()
                 .commentId(comment.getId())
-                .postId(comment.getPost().getId())
+                .postId(comment.getPost() != null ? comment.getPost().getId() : null)
                 .userId(comment.getUserId())
                 .parentCommentId(
-                        comment.getParentComment().getId() != null
-                                ? comment.getParentComment().getPost().getId()
+                        comment.getParentComment() != null
+                                ? comment.getParentComment().getId()
                                 : null)
                 .content(comment.getContent())
                 .isBlocked(comment.getIsBlocked())

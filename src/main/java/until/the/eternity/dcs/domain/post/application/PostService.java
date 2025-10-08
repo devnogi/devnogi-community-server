@@ -22,6 +22,7 @@ import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.application.BoardService;
 import until.the.eternity.dcs.domain.board.entity.Board;
+import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
@@ -145,6 +146,7 @@ public class PostService {
         Long userId = getCurrentUserId();
         Post post = findById(id);
         post.delete(userId);
+        post.getComments().forEach(Comment::disconnectWithPost);
     }
 
     @Transactional

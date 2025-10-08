@@ -45,7 +45,7 @@ public class Post extends SoftDeleteEntity {
             mappedBy = "post",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,
-            orphanRemoval = true)
+            orphanRemoval = false)
     private List<Comment> comments;
 
     @OneToMany(
