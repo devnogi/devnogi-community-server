@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
@@ -34,7 +35,6 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepositor
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -177,10 +177,6 @@ public class CommentService {
                 .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
-    private PostMeta findPostMetaById(Long postId) {
-        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
-    }
-
     private void likeComment(CommentLikeToggleRequest request, Long userId) {
         CommentLike commentLike = commentLikeConverter.fromToggleRequest(request, userId);
         commentLikeRepository.save(commentLike);
@@ -219,7 +215,12 @@ public class CommentService {
 
     private String getCurrentUserIp() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Map<String, String> details = (Map<String, String>) auth.getDetails();
-        return details.get("remoteAddress");
+
+        Object details = auth.getDetails();
+        if (details instanceof CustomWebAuthenticationDetails webDetails) {
+            return webDetails.getRealRemoteAddress();
+        }
+
+        return "UNKNOWN_IP";
     }
 }

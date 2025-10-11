@@ -1,8 +1,6 @@
 package until.the.eternity.dcs.domain.comment.application;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationTrustResolver;
-import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
@@ -79,8 +77,7 @@ public class CommentPermissionEvaluator {
     }
 
     public boolean isAnonymousUser(Authentication auth) {
-        AuthenticationTrustResolver trustResolver = new AuthenticationTrustResolverImpl();
-        return trustResolver.isAnonymous(auth);
+        return auth.getPrincipal() == null;
     }
 
     public void validateUserExists(Long currentUserId) {
