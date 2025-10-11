@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
@@ -211,8 +212,13 @@ public class PostService {
 
     private String getCurrentUserIp() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Map<String, String> details = (Map<String, String>) auth.getDetails();
-        return details.get("remoteAddress");
+
+        Object details = auth.getDetails();
+        if (details instanceof CustomWebAuthenticationDetails webDetails) {
+            return webDetails.getRealRemoteAddress();
+        }
+
+        return "UNKNOWN_IP";
     }
 
     private boolean checkIsAnonymousUser() {
