@@ -1,8 +1,10 @@
 package until.the.eternity.dcs.common.entity;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
+@Getter
 public class CustomWebAuthenticationDetails extends WebAuthenticationDetails {
 
     private final String realRemoteAddress;
@@ -10,10 +12,6 @@ public class CustomWebAuthenticationDetails extends WebAuthenticationDetails {
     public CustomWebAuthenticationDetails(HttpServletRequest request, String realIp) {
         super(request);
         this.realRemoteAddress = realIp;
-    }
-
-    public String getRealRemoteAddress() {
-        return realRemoteAddress;
     }
 
     @Override
