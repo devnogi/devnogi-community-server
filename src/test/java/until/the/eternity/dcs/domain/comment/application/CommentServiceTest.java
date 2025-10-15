@@ -52,6 +52,7 @@ class CommentServiceTest {
     RedisSender redisSender = mock(RedisSender.class);
     CommentPermissionEvaluator commentPermissionEvaluator = mock(CommentPermissionEvaluator.class);
     PostMetaService postMetaService = mock(PostMetaService.class);
+    Integer commentCount = 1;
 
     CommentService commentService =
             new CommentService(
@@ -98,7 +99,8 @@ class CommentServiceTest {
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
-        when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
+        when(postMetaRepository.findById(id))
+                .thenReturn(Optional.of(PostMeta.create(id, commentCount)));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
@@ -132,7 +134,8 @@ class CommentServiceTest {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
-        when(postMetaRepository.findById(id)).thenReturn(Optional.of(PostMeta.create(id)));
+        when(postMetaRepository.findById(id))
+                .thenReturn(Optional.of(PostMeta.create(id, commentCount)));
 
         // when
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));

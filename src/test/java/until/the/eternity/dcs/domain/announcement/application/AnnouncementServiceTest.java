@@ -20,7 +20,9 @@ import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
 import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
+import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 
@@ -29,10 +31,13 @@ class AnnouncementServiceTest {
     AnnouncementRepository announcementRepository;
     PostRepository postRepository;
     PostMetaRepository postMetaRepository;
+    PostMetaService postMetaService;
     Long id = 1L;
     Post post;
     Announcement announcement;
     Long userId = 1L;
+    PostMeta postMeta;
+    Integer commentCount = 1;
 
     @BeforeEach
     void init() {
@@ -42,7 +47,7 @@ class AnnouncementServiceTest {
         RedisSender redisSender = mock(RedisSender.class);
         AnnouncementPermissionEvaluator announcementPermissionEvaluator =
                 mock(AnnouncementPermissionEvaluator.class);
-
+        postMetaService = mock(PostMetaService.class);
         AnnouncementConverter converter = new AnnouncementConverter();
 
         announcementService =
@@ -51,6 +56,7 @@ class AnnouncementServiceTest {
                         converter,
                         postRepository,
                         postMetaRepository,
+                        postMetaService,
                         redisSender,
                         announcementPermissionEvaluator);
 
@@ -60,6 +66,7 @@ class AnnouncementServiceTest {
                         .id(id)
                         .board(Board.builder().announcements(new ArrayList<>()).build())
                         .build();
+        postMeta = PostMeta.create(id, commentCount);
     }
 
     @Test
@@ -69,6 +76,7 @@ class AnnouncementServiceTest {
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
+        when(postMetaService.getPostMeta(id)).thenReturn(postMeta);
         AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
 
         // when

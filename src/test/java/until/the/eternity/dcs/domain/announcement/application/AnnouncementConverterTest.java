@@ -17,6 +17,7 @@ class AnnouncementConverterTest {
     AnnouncementConverter announcementConverter;
     Long id = 1L;
     Long userId = 1L;
+    Integer commentCount = 1;
 
     @BeforeEach
     void init() {
@@ -38,7 +39,7 @@ class AnnouncementConverterTest {
                         .content("content")
                         .isDraft(false)
                         .build();
-        PostMeta postMeta = PostMeta.create(id);
+        PostMeta postMeta = PostMeta.create(id, commentCount);
 
         // when
         Announcement announcement =
