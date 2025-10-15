@@ -53,8 +53,4 @@ public class PostMeta {
     public void deleteComment() {
         this.commentCount--;
     }
-
-    public void updateCommentCount(int commentCount) {
-        this.commentCount = commentCount;
-    }
 }
