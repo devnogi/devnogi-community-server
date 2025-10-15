@@ -21,4 +21,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.id IN :commentIdList")
     void deleteAllByCommentIdIn(@Param("commentIdList") List<Long> commentIdList);
+
+    Integer countByPostIdAndIsDeletedFalse(Long postId);
 }

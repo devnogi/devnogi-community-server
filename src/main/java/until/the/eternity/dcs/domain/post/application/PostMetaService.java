@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -16,6 +17,7 @@ public class PostMetaService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private final PostMetaRepository postMetaRepository;
+    private final CommentRepository commentRepository;
 
     public void viewPost(Long postId, String userIp) {
         String key = generateKey(postId);
@@ -31,13 +33,14 @@ public class PostMetaService {
         if (postMetaData != null) {
 
             postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
-            postMeta.viewPost();
         } else {
-
-            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
-            postMeta.viewPost();
+            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
+            postMeta =
+                    postMetaRepository
+                            .findById(postId)
+                            .orElseGet(() -> PostMeta.create(postId, commentCount));
         }
-
+        postMeta.viewPost();
         redisTemplate.opsForValue().set(key, postMeta);
         redisTemplate.opsForValue().set(methodKey, postMeta, 1, TimeUnit.HOURS);
     }
@@ -55,7 +58,11 @@ public class PostMetaService {
         if (postMetaData != null) {
             postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
         } else {
-            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
+            postMeta =
+                    postMetaRepository
+                            .findById(postId)
+                            .orElseGet(() -> PostMeta.create(postId, commentCount));
         }
 
         postMeta.like();
@@ -77,7 +84,11 @@ public class PostMetaService {
         if (postMetaData != null) {
             postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
         } else {
-            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
+            postMeta =
+                    postMetaRepository
+                            .findById(postId)
+                            .orElseGet(() -> PostMeta.create(postId, commentCount));
         }
 
         postMeta.unlike();
@@ -95,7 +106,11 @@ public class PostMetaService {
         if (postMetaData != null) {
             postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
         } else {
-            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
+            postMeta =
+                    postMetaRepository
+                            .findById(postId)
+                            .orElseGet(() -> PostMeta.create(postId, commentCount));
         }
 
         postMeta.addComment();
@@ -113,25 +128,32 @@ public class PostMetaService {
         if (postMetaData != null) {
             postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
         } else {
-            postMeta = postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
+            postMeta =
+                    postMetaRepository
+                            .findById(postId)
+                            .orElseGet(() -> PostMeta.create(postId, commentCount));
         }
 
-        postMeta.addComment();
+        postMeta.deleteComment();
         redisTemplate.opsForValue().set(key, postMeta);
         redisTemplate.opsForValue().set(methodKey, postMeta);
     }
 
     public PostMeta getPostMeta(Long postId) {
         String key = generateKey(postId);
-        // 1. Redis에서 데이터 조회 시도
+
         Object rawData = redisTemplate.opsForValue().get(key);
 
         if (rawData != null) {
             return objectMapper.convertValue(rawData, PostMeta.class);
         } else {
 
+            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
             PostMeta postMetaFromDb =
-                    postMetaRepository.findById(postId).orElseGet(() -> PostMeta.create(postId));
+                    postMetaRepository
+                            .findById(postId)
+                            .orElseGet(() -> PostMeta.create(postId, commentCount));
 
             redisTemplate.opsForValue().set(key, postMetaFromDb);
 
