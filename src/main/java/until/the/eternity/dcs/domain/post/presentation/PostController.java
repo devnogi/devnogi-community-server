@@ -126,4 +126,41 @@ public class PostController {
             @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
         return CustomPageResponse.from(postService.findPostsByBoardId(request, boardId));
     }
+
+    @GetMapping("/{boardId}/search")
+    @Operation(
+            summary = "게시글 키워드 검색 API",
+            description =
+                    """
+				- Description : 이 API는 검색어를 통해 게시판 별 게시글 리스트를 조회합니다.
+					- QueryParameter: title(게시글 제목), content(게시글 내용)
+				- Assignee : 이신행
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> searchPostsByBoardId(
+            @ModelAttribute CustomPageRequest request,
+            @PathVariable Long boardId,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String content) {
+        return CustomPageResponse.from(
+                postService.searchPostsByBoardId(request, boardId, title, content));
+    }
+
+    @GetMapping("/user/{userId}")
+    @Operation(
+            summary = "유저별 게시글 리스트 조회 API",
+            description =
+                    """
+				- Description : 이 API는 userId의 게시글 리스트를 조회합니다.
+				- Assignee : 이신행
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> searchPostsByUserId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long userId) {
+        return CustomPageResponse.from(postService.searchPostsByUserId(request, userId));
+    }
 }

@@ -201,6 +201,16 @@ public class PostService {
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
+    // todo
+    public Page<PostSummaryResponse> searchPostsByBoardId(
+            CustomPageRequest request, Long boardId, String title, String content) {
+        return null;
+    }
+
+    public Page<PostSummaryResponse> searchPostsByUserId(CustomPageRequest request, Long userId) {
+        return null;
+    }
+
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
