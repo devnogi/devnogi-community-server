@@ -201,7 +201,6 @@ public class PostService {
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
-    // todo
     public Page<PostSummaryResponse> searchPostsByBoardId(
             CustomPageRequest request, Long boardId, String title, String content) {
         Board board = boardService.findBoardById(boardId);

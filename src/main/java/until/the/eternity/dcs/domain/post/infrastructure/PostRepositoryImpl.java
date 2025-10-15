@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -101,6 +102,40 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     @Override
     public Page<Post> findWithPostMetaByUserId(Pageable pageable, Long userId) {
-        return null;
+        JPAQuery<Post> query =
+                queryFactory
+                        .selectFrom(post)
+                        .leftJoin(postMeta)
+                        .on(post.id.eq(postMeta.postId))
+                        .where(
+                                post.userId.eq(userId),
+                                post.isDeleted.isFalse(),
+                                post.isDraft.isFalse())
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize());
+
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty();
+            Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+            System.out.println(direction);
+            switch (property) {
+                case "createdAt":
+                    query.orderBy(new OrderSpecifier<>(direction, post.createdAt));
+                    break;
+                default:
+                    query.orderBy(new OrderSpecifier<>(Order.ASC, post.id));
+            }
+        }
+
+        List<Post> content = query.fetch();
+
+        Long count =
+                queryFactory
+                        .select(post.count())
+                        .from(post)
+                        .where(post.userId.eq((userId)))
+                        .fetchOne();
+
+        return new PageImpl<>(content, pageable, count != null ? count : 0);
     }
 }
