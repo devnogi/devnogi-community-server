@@ -204,11 +204,28 @@ public class PostService {
     // todo
     public Page<PostSummaryResponse> searchPostsByBoardId(
             CustomPageRequest request, Long boardId, String title, String content) {
-        return null;
+        Board board = boardService.findBoardById(boardId);
+        Page<Post> posts =
+                postRepository.findWithPostMetaByBoardIdAndKeyword(
+                        request.toPageable(), board, title, content);
+
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
     public Page<PostSummaryResponse> searchPostsByUserId(CustomPageRequest request, Long userId) {
-        return null;
+        Page<Post> posts = postRepository.findWithPostMetaByUserId(request.toPageable(), userId);
+
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
     private Post findById(Long id) {

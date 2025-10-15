@@ -23,6 +23,8 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
 
     List<Post> findAllByIsDeletedTrueAndDeletedAtLessThanEqual(LocalDateTime date);
 
+    Page<Post> findAllByUserIdAndIsDeletedFalseAndIsBlockedFalse(Pageable pageable, Long userId);
+
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Post p WHERE p.id IN :ids")
     void deleteAllByIdIn(@Param("ids") List<Long> ids);
