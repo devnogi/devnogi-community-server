@@ -20,26 +20,16 @@ public class PostMetaService {
     private final CommentRepository commentRepository;
 
     public void viewPost(Long postId, String userIp) {
-        String key = generateKey(postId);
 
+        String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.VIEW.getCode(), userIp);
-        Object postMetaData = redisTemplate.opsForValue().get(key);
 
         if (!canDoMethod(postId, PostMetaType.VIEW.getCode(), userIp)) {
             return;
         }
 
-        PostMeta postMeta;
-        if (postMetaData != null) {
+        PostMeta postMeta = getPostMeta(postId);
 
-            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
-        } else {
-            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-            postMeta =
-                    postMetaRepository
-                            .findById(postId)
-                            .orElseGet(() -> PostMeta.create(postId, commentCount));
-        }
         postMeta.viewPost();
         redisTemplate.opsForValue().set(key, postMeta);
         redisTemplate.opsForValue().set(methodKey, postMeta, 1, TimeUnit.HOURS);
@@ -48,22 +38,12 @@ public class PostMetaService {
     public void likePost(Long postId, String userIp) {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.LIKE.getCode(), userIp);
-        Object postMetaData = redisTemplate.opsForValue().get(key);
 
         if (!canDoMethod(postId, PostMetaType.LIKE.getCode(), userIp)) {
             return;
         }
 
-        PostMeta postMeta;
-        if (postMetaData != null) {
-            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
-        } else {
-            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-            postMeta =
-                    postMetaRepository
-                            .findById(postId)
-                            .orElseGet(() -> PostMeta.create(postId, commentCount));
-        }
+        PostMeta postMeta = getPostMeta(postId);
 
         postMeta.like();
         redisTemplate.opsForValue().set(key, postMeta);
@@ -74,22 +54,11 @@ public class PostMetaService {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.UNLIKE.getCode(), userIp);
 
-        Object postMetaData = redisTemplate.opsForValue().get(key);
-
         if (!canDoMethod(postId, PostMetaType.UNLIKE.getCode(), userIp)) {
             return;
         }
 
-        PostMeta postMeta;
-        if (postMetaData != null) {
-            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
-        } else {
-            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-            postMeta =
-                    postMetaRepository
-                            .findById(postId)
-                            .orElseGet(() -> PostMeta.create(postId, commentCount));
-        }
+        PostMeta postMeta = getPostMeta(postId);
 
         postMeta.unlike();
         redisTemplate.opsForValue().set(key, postMeta);
@@ -100,18 +69,7 @@ public class PostMetaService {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.ADD_COMMENT.getCode(), userIp);
 
-        Object postMetaData = redisTemplate.opsForValue().get(key);
-
-        PostMeta postMeta;
-        if (postMetaData != null) {
-            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
-        } else {
-            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-            postMeta =
-                    postMetaRepository
-                            .findById(postId)
-                            .orElseGet(() -> PostMeta.create(postId, commentCount));
-        }
+        PostMeta postMeta = getPostMeta(postId);
 
         postMeta.addComment();
         redisTemplate.opsForValue().set(key, postMeta);
@@ -122,18 +80,7 @@ public class PostMetaService {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.DELETE_COMMENT.getCode(), userIp);
 
-        Object postMetaData = redisTemplate.opsForValue().get(key);
-
-        PostMeta postMeta;
-        if (postMetaData != null) {
-            postMeta = objectMapper.convertValue(postMetaData, PostMeta.class);
-        } else {
-            Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-            postMeta =
-                    postMetaRepository
-                            .findById(postId)
-                            .orElseGet(() -> PostMeta.create(postId, commentCount));
-        }
+        PostMeta postMeta = getPostMeta(postId);
 
         postMeta.deleteComment();
         redisTemplate.opsForValue().set(key, postMeta);
