@@ -100,6 +100,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         String booleanQuery = toBooleanQuery(keyword);
         String orderBy = buildOrderBy(pageable);
 
+        // 조회 쿼리
         String sql =
                 """
 				SELECT p.*,
@@ -115,7 +116,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 				"""
                         .formatted(orderBy);
 
-        // COUNT
+        // 카운트 쿼리
         String countSql =
                 """
 				SELECT COUNT(1)
@@ -144,34 +145,6 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                                 .getSingleResult();
 
         return new PageImpl<>(content, pageable, total.longValue());
-    }
-
-    private String toBooleanQuery(String keyword) {
-        if (keyword == null) return "";
-        String[] tokens = keyword.trim().split("\\s+");
-        StringBuilder sb = new StringBuilder();
-        for (String t : tokens) {
-            if (!t.isBlank()) sb.append('+').append(t).append('*').append(' ');
-        }
-        return sb.toString().trim();
-    }
-
-    private String buildOrderBy(Pageable pageable) {
-        if (pageable.getSort().isUnsorted()) {
-            return "score DESC, p.created_at DESC, p.id DESC";
-        }
-        List<String> parts = new ArrayList<>();
-        pageable.getSort()
-                .forEach(
-                        o -> {
-                            String col;
-                            switch (o.getProperty()) {
-                                case "createdAt" -> col = "p.created_at";
-                                default -> col = "p.id";
-                            }
-                            parts.add(col + (o.isAscending() ? " ASC" : " DESC"));
-                        });
-        return String.join(", ", parts);
     }
 
     @Override
@@ -211,5 +184,33 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         .fetchOne();
 
         return new PageImpl<>(content, pageable, count != null ? count : 0);
+    }
+
+    private String toBooleanQuery(String keyword) {
+        if (keyword == null) return "";
+        String[] tokens = keyword.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String t : tokens) {
+            if (!t.isBlank()) sb.append('+').append(t).append('*').append(' ');
+        }
+        return sb.toString().trim();
+    }
+
+    private String buildOrderBy(Pageable pageable) {
+        if (pageable.getSort().isUnsorted()) {
+            return "score DESC, p.created_at DESC, p.id DESC";
+        }
+        List<String> parts = new ArrayList<>();
+        pageable.getSort()
+                .forEach(
+                        o -> {
+                            String col;
+                            switch (o.getProperty()) {
+                                case "createdAt" -> col = "p.created_at";
+                                default -> col = "p.id";
+                            }
+                            parts.add(col + (o.isAscending() ? " ASC" : " DESC"));
+                        });
+        return String.join(", ", parts);
     }
 }
