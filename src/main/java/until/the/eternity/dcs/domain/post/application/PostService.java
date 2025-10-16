@@ -202,11 +202,11 @@ public class PostService {
     }
 
     public Page<PostSummaryResponse> searchPostsByBoardId(
-            CustomPageRequest request, Long boardId, String title, String content) {
+            CustomPageRequest request, Long boardId, String keyword) {
         Board board = boardService.findBoardById(boardId);
         Page<Post> posts =
                 postRepository.findWithPostMetaByBoardIdAndKeyword(
-                        request.toPageable(), board, title, content);
+                        request.toPageable(), board, keyword);
 
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {

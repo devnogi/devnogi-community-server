@@ -133,7 +133,7 @@ public class PostController {
             description =
                     """
 				- Description : 이 API는 검색어를 통해 게시판 별 게시글 리스트를 조회합니다.
-					- QueryParameter: title(게시글 제목), content(게시글 내용)
+					- QueryParameter: keyword(검색어)
 				- Assignee : 이신행
 			""")
     @ApiResponse(
@@ -142,10 +142,8 @@ public class PostController {
     public CustomPageResponse<PostSummaryResponse> searchPostsByBoardId(
             @ModelAttribute CustomPageRequest request,
             @PathVariable Long boardId,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String content) {
-        return CustomPageResponse.from(
-                postService.searchPostsByBoardId(request, boardId, title, content));
+            @RequestParam(required = false) String keyword) {
+        return CustomPageResponse.from(postService.searchPostsByBoardId(request, boardId, keyword));
     }
 
     @GetMapping("/user/{userId}")

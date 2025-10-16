@@ -11,6 +11,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -93,11 +94,84 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return Optional.ofNullable(result);
     }
 
-    // todo
     @Override
     public Page<Post> findWithPostMetaByBoardIdAndKeyword(
-            Pageable pageable, Board board, String title, String content) {
-        return null;
+            Pageable pageable, Board board, String keyword) {
+        String booleanQuery = toBooleanQuery(keyword);
+        String orderBy = buildOrderBy(pageable);
+
+        String sql =
+                """
+				SELECT p.*,
+				       MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE) AS score
+				FROM post p
+				LEFT JOIN post_meta pm ON pm.post_id = p.id
+				WHERE p.board_id = :boardId
+				  AND p.is_deleted = 0
+				  AND p.is_draft = 0
+				  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE)
+				ORDER BY %s
+				LIMIT :limit OFFSET :offset
+				"""
+                        .formatted(orderBy);
+
+        // COUNT
+        String countSql =
+                """
+				SELECT COUNT(1)
+				FROM post p
+				WHERE p.board_id = :boardId
+				  AND p.is_deleted = 0
+				  AND p.is_draft = 0
+				  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE)
+				""";
+
+        // 조회
+        List<Post> content =
+                em.createNativeQuery(sql, Post.class)
+                        .setParameter("boardId", board.getId())
+                        .setParameter("q", booleanQuery)
+                        .setParameter("limit", pageable.getPageSize())
+                        .setParameter("offset", (int) pageable.getOffset())
+                        .getResultList();
+
+        // 카운트
+        Number total =
+                (Number)
+                        em.createNativeQuery(countSql)
+                                .setParameter("boardId", board.getId())
+                                .setParameter("q", booleanQuery)
+                                .getSingleResult();
+
+        return new PageImpl<>(content, pageable, total.longValue());
+    }
+
+    private String toBooleanQuery(String keyword) {
+        if (keyword == null) return "";
+        String[] tokens = keyword.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String t : tokens) {
+            if (!t.isBlank()) sb.append('+').append(t).append('*').append(' ');
+        }
+        return sb.toString().trim();
+    }
+
+    private String buildOrderBy(Pageable pageable) {
+        if (pageable.getSort().isUnsorted()) {
+            return "score DESC, p.created_at DESC, p.id DESC";
+        }
+        List<String> parts = new ArrayList<>();
+        pageable.getSort()
+                .forEach(
+                        o -> {
+                            String col;
+                            switch (o.getProperty()) {
+                                case "createdAt" -> col = "p.created_at";
+                                default -> col = "p.id";
+                            }
+                            parts.add(col + (o.isAscending() ? " ASC" : " DESC"));
+                        });
+        return String.join(", ", parts);
     }
 
     @Override
