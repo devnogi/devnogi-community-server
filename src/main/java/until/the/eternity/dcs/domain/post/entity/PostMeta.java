@@ -25,8 +25,13 @@ public class PostMeta {
     @Column(name = "comment_count", nullable = false)
     private Integer commentCount;
 
-    public static PostMeta create(Long postId) {
-        return PostMeta.builder().postId(postId).viewCount(0).likeCount(0).commentCount(0).build();
+    public static PostMeta create(Long postId, Integer commentCount) {
+        return PostMeta.builder()
+                .postId(postId)
+                .viewCount(0)
+                .likeCount(0)
+                .commentCount(commentCount)
+                .build();
     }
 
     public void like() {
