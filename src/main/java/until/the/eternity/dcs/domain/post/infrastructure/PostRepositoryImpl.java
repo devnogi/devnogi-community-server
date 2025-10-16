@@ -94,6 +94,12 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return Optional.ofNullable(result);
     }
 
+    // todo
+    @Override
+    public Page<Post> findWithPostMetaByKeyword(Pageable pageable, String keyword) {
+        return null;
+    }
+
     @Override
     public Page<Post> findWithPostMetaByBoardIdAndKeyword(
             Pageable pageable, Board board, String keyword) {
