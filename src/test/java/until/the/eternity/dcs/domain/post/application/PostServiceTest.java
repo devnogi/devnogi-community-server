@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verify;
@@ -438,5 +439,61 @@ class PostServiceTest {
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
             verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }
+    }
+
+    @Test
+    @DisplayName("키워드를 이용한 검색")
+    public void searchPostsByBoardId_Test() {
+        // given
+        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        Long boardId = 1L;
+        String keyword = "keyword";
+        Pageable pageable = pageRequest.toPageable();
+        List<Post> posts = Arrays.asList(mockPost, mockPost2);
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+
+        given(boardService.findBoardById(boardId)).willReturn(mockBoard);
+        given(postRepository.findWithPostMetaByBoardIdAndKeyword(pageable, mockBoard, keyword))
+                .willReturn(postPage);
+        given(postMetaService.getPostMeta(mockPost.getId())).willReturn(postMeta);
+        given(postMetaService.getPostMeta(mockPost2.getId())).willReturn(postMeta2);
+
+        // when
+        Page<PostSummaryResponse> responses =
+                postService.searchPostsByBoardId(pageRequest, boardId, keyword);
+
+        // then
+        List<PostSummaryResponse> list = responses.stream().toList();
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0).id()).isEqualTo(1);
+        assertThat(list.get(1).id()).isEqualTo(2);
+        assertThat(list.get(0).title()).isEqualTo(mockPost.getTitle());
+        assertThat(list.get(1).title()).isEqualTo(mockPost2.getTitle());
+    }
+
+    @Test
+    @DisplayName("사용자별 게시글 검색")
+    public void searchPostsByUserId_Test() {
+        // given
+        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        Long userId = 1L;
+        Pageable pageable = pageRequest.toPageable();
+        List<Post> posts = Arrays.asList(mockPost, mockPost2);
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+
+        given(postRepository.findWithPostMetaByUserId(pageable, userId)).willReturn(postPage);
+        given(postMetaService.getPostMeta(mockPost.getId())).willReturn(postMeta);
+        given(postMetaService.getPostMeta(mockPost2.getId())).willReturn(postMeta2);
+
+        // when
+        Page<PostSummaryResponse> responses = postService.searchPostsByUserId(pageRequest, userId);
+
+        // then
+        List<PostSummaryResponse> list = responses.stream().toList();
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0).id()).isEqualTo(1);
+        assertThat(list.get(1).id()).isEqualTo(2);
+        assertThat(list.get(0).title()).isEqualTo(mockPost.getTitle());
+        assertThat(list.get(1).title()).isEqualTo(mockPost2.getTitle());
     }
 }
