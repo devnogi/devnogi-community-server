@@ -164,7 +164,6 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         for (Sort.Order order : pageable.getSort()) {
             String property = order.getProperty();
             Order direction = order.isAscending() ? Order.ASC : Order.DESC;
-            System.out.println(direction);
             switch (property) {
                 case "createdAt":
                     query.orderBy(new OrderSpecifier<>(direction, post.createdAt));
