@@ -18,6 +18,7 @@ import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicat
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFoundException;
 import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
+import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
@@ -31,6 +32,7 @@ public class AnnouncementService {
     private final AnnouncementConverter converter;
     private final PostRepository postRepository;
     private final PostMetaRepository postMetaRepository;
+    private final PostMetaService postMetaService;
     private final RedisSender redisSender;
     private final AnnouncementPermissionEvaluator announcementPermissionEvaluator;
 
@@ -90,7 +92,7 @@ public class AnnouncementService {
     }
 
     private PostMeta getPostMeta(Long postId) {
-        return postMetaRepository.findByPostId(postId).orElse(PostMeta.create(postId));
+        return postMetaService.getPostMeta(postId);
     }
 
     private Announcement findById(Long id) {
