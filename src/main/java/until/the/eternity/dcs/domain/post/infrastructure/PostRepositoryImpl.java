@@ -97,7 +97,50 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     // todo
     @Override
     public Page<Post> findWithPostMetaByKeyword(Pageable pageable, String keyword) {
-        return null;
+        String booleanQuery = toBooleanQuery(keyword);
+        String orderBy = buildOrderBy(pageable);
+
+        // 조회 쿼리
+        String sql =
+                """
+			SELECT p.*,
+				   MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE) AS score
+			FROM post p
+			LEFT JOIN post_meta pm ON pm.post_id = p.id
+			WHERE p.is_deleted = 0
+			  AND p.is_draft = 0
+			  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE)
+			ORDER BY %s
+			LIMIT :limit OFFSET :offset
+			"""
+                        .formatted(orderBy);
+
+        // 카운트 쿼리
+        String countSql =
+                """
+			SELECT COUNT(1)
+			FROM post p
+			WHERE p.is_deleted = 0
+			  AND p.is_draft = 0
+			  AND MATCH(p.title, p.content) AGAINST (:q IN BOOLEAN MODE)
+			""";
+
+        // 조회
+        List<Post> content =
+                em.createNativeQuery(sql, Post.class)
+                        .setParameter("q", booleanQuery)
+                        .setParameter("limit", pageable.getPageSize())
+                        .setParameter("offset", (int) pageable.getOffset())
+                        .getResultList();
+
+        // 카운트
+        Number total =
+                (Number)
+                        em.createNativeQuery(countSql)
+                                .setParameter("q", booleanQuery)
+                                .getSingleResult();
+
+        return new PageImpl<>(content, pageable, total.longValue());
     }
 
     @Override
