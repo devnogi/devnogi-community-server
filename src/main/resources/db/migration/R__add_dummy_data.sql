@@ -91,19 +91,20 @@ VALUES
     (24, 21, 3, NULL, '버그 제보 감사합니다.', 0, 0),
     (25, 22, 1, NULL, '좋은 정보네요!', 0, 0);
 
--- 좋아요 더미 데이터 (post_like 5개, comment_like 5개)
+-- 좋아요 더미 데이터
 INSERT INTO post_like (id, post_id, user_id, created_at)
 VALUES
-    (3, 4, 3, NOW()),
-    (4, 5, 1, NOW()),
-    (5, 6, 2, NOW()),
-    (6, 7, 3, NOW()),
-    (7, 8, 1, NOW());
+    (1, 4, 3, NOW()),
+    (2, 5, 1, NOW()),
+    (3, 6, 2, NOW()),
+    (4, 7, 3, NOW()),
+    (5, 8, 1, NOW()),
+    (6, 9, 1, NOW());
 
 INSERT INTO comment_like (id, comment_id, user_id, created_at)
 VALUES
-    (3, 6, 2, NOW()),
-    (4, 7, 3, NOW()),
-    (5, 9, 1, NOW()),
-    (6, 14, 3, NOW()),
-    (7, 18, 2, NOW());
+    (1, 6, 2, NOW()),
+    (2, 7, 3, NOW()),
+    (3, 9, 1, NOW()),
+    (4, 14, 3, NOW()),
+    (5, 18, 2, NOW());

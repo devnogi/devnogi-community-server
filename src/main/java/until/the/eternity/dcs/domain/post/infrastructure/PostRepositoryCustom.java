@@ -10,4 +10,10 @@ public interface PostRepositoryCustom {
     Page<Post> findWithPostMetaByBoardId(Pageable pageable, Board board);
 
     Optional<Post> findWithTagsById(Long id);
+
+    Page<Post> findWithPostMetaByKeyword(Pageable pageable, String keyword);
+
+    Page<Post> findWithPostMetaByBoardIdAndKeyword(Pageable pageable, Board board, String keyword);
+
+    Page<Post> findWithPostMetaByUserId(Pageable pageable, Long userId);
 }

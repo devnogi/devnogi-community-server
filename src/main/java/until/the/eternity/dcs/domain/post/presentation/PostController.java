@@ -126,4 +126,57 @@ public class PostController {
             @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
         return CustomPageResponse.from(postService.findPostsByBoardId(request, boardId));
     }
+
+    @GetMapping("/search")
+    @Operation(
+            summary = "전체 게시글 키워드 검색 API",
+            description =
+                    """
+		- Description : 이 API는 전체 게시글 리스트에서 검색어를 통해 조회합니다.
+			- QueryParameter: keyword(검색어)
+		- Assignee : 이신행
+	""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> searchPosts(
+            @ModelAttribute CustomPageRequest request,
+            @RequestParam(required = false) String keyword) {
+        return CustomPageResponse.from(postService.searchPosts(request, keyword));
+    }
+
+    @GetMapping("/{boardId}/search")
+    @Operation(
+            summary = "게시판별 게시글 키워드 검색 API",
+            description =
+                    """
+				- Description : 이 API는 검색어를 통해 게시판 별 게시글 리스트를 조회합니다.
+					- QueryParameter: keyword(검색어)
+				- Assignee : 이신행
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> searchPostsByBoardId(
+            @ModelAttribute CustomPageRequest request,
+            @PathVariable Long boardId,
+            @RequestParam(required = false) String keyword) {
+        return CustomPageResponse.from(postService.searchPostsByBoardId(request, boardId, keyword));
+    }
+
+    @GetMapping("/user/{userId}")
+    @Operation(
+            summary = "유저별 게시글 리스트 조회 API",
+            description =
+                    """
+				- Description : 이 API는 userId의 게시글 리스트를 조회합니다.
+				- Assignee : 이신행
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> searchPostsByUserId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long userId) {
+        return CustomPageResponse.from(postService.searchPostsByUserId(request, userId));
+    }
 }
