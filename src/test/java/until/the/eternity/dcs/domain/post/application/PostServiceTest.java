@@ -441,8 +441,34 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("")
+    void searchPosts_Success() {
+        // given
+        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        String keyword = "keyword";
+        Pageable pageable = pageRequest.toPageable();
+        List<Post> posts = Arrays.asList(mockPost, mockPost2);
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+
+        given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
+        given(postMetaService.getPostMeta(mockPost.getId())).willReturn(postMeta);
+        given(postMetaService.getPostMeta(mockPost2.getId())).willReturn(postMeta2);
+
+        // when
+        Page<PostSummaryResponse> responses = postService.searchPosts(pageRequest, keyword);
+
+        // then
+        List<PostSummaryResponse> list = responses.stream().toList();
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0).id()).isEqualTo(1);
+        assertThat(list.get(1).id()).isEqualTo(2);
+        assertThat(list.get(0).title()).isEqualTo(mockPost.getTitle());
+        assertThat(list.get(1).title()).isEqualTo(mockPost2.getTitle());
+    }
+
+    @Test
     @DisplayName("키워드를 이용한 검색")
-    public void searchPostsByBoardId_Test() {
+    public void searchPostsByBoardId_Success() {
         // given
         CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
         Long boardId = 1L;
@@ -472,7 +498,7 @@ class PostServiceTest {
 
     @Test
     @DisplayName("사용자별 게시글 검색")
-    public void searchPostsByUserId_Test() {
+    public void searchPostsByUserId_Success() {
         // given
         CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
         Long userId = 1L;
