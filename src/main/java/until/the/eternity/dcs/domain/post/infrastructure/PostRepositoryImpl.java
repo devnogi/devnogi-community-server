@@ -234,6 +234,41 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return new PageImpl<>(content, pageable, count != null ? count : 0);
     }
 
+    @Override
+    public List<Post> findPopularPostsByBoardId(Board board) {
+        JPAQuery<Post> query =
+                queryFactory
+                        .selectFrom(post)
+                        .leftJoin(postMeta)
+                        .on(post.id.eq(postMeta.postId))
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false),
+                                postMeta.viewCount.add(postMeta.commentCount.multiply(3)).goe(50),
+                                postMeta.likeCount.goe(30),
+                                post.board.eq(board));
+
+        return query.fetch();
+    }
+
+    @Override
+    public List<Post> findMostLikedPostsByBoardId(Board board) {
+        JPAQuery<Post> query =
+                queryFactory
+                        .selectFrom(post)
+                        .leftJoin(postMeta)
+                        .on(post.id.eq(postMeta.postId))
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false),
+                                postMeta.likeCount.goe(30),
+                                post.board.eq(board));
+
+        return query.fetch();
+    }
+
     private String toBooleanQuery(String keyword) {
         if (keyword == null) return "";
         String[] tokens = keyword.trim().split("\\s+");

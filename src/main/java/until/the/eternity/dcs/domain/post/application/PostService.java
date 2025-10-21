@@ -238,6 +238,32 @@ public class PostService {
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
+    public List<PostSummaryResponse> getPopularPostsByBoardId(Long boardId) {
+        Board board = boardService.findBoardById(boardId);
+        List<Post> posts = postRepository.findPopularPostsByBoardId(board);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.stream()
+                .map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())))
+                .toList();
+    }
+
+    public List<PostSummaryResponse> getMostLikedPostsByBoardId(Long boardId) {
+        Board board = boardService.findBoardById(boardId);
+        List<Post> posts = postRepository.findMostLikedPostsByBoardId(board);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.stream()
+                .map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())))
+                .toList();
+    }
+
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }

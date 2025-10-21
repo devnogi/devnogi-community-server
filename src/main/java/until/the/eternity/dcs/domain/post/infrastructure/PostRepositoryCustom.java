@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.post.infrastructure;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,8 @@ public interface PostRepositoryCustom {
     Page<Post> findWithPostMetaByBoardIdAndKeyword(Pageable pageable, Board board, String keyword);
 
     Page<Post> findWithPostMetaByUserId(Pageable pageable, Long userId);
+
+    List<Post> findPopularPostsByBoardId(Board board);
+
+    List<Post> findMostLikedPostsByBoardId(Board board);
 }

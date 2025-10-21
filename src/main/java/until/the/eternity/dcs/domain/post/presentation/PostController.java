@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -178,5 +179,35 @@ public class PostController {
     public CustomPageResponse<PostSummaryResponse> searchPostsByUserId(
             @ModelAttribute CustomPageRequest request, @PathVariable Long userId) {
         return CustomPageResponse.from(postService.searchPostsByUserId(request, userId));
+    }
+
+    @GetMapping("/{boardId}/popular")
+    @Operation(
+            summary = "게시판별 인기 게시글 조회 API",
+            description =
+                    """
+				- Description : 이 API는 게시판 별 인기 게시글 리스트를 조회합니다.
+				- Assignee : 고범수
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public List<PostSummaryResponse> getPopularPostsByBoardId(@PathVariable Long boardId) {
+        return postService.getPopularPostsByBoardId(boardId);
+    }
+
+    @GetMapping("/{boardId}/mostLiked")
+    @Operation(
+            summary = "게시판별 인기 게시글 조회 API",
+            description =
+                    """
+				- Description : 이 API는 게시판 별 좋아요 수가 30개 이상인 게시글 리스트를 조회합니다.
+				- Assignee : 고범수
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public List<PostSummaryResponse> getMostLikedPostsByBoardId(@PathVariable Long boardId) {
+        return postService.getMostLikedPostsByBoardId(boardId);
     }
 }
