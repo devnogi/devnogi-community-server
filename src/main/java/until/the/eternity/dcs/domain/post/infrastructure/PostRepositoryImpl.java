@@ -11,6 +11,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -236,6 +237,8 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     @Override
     public List<Post> findPopularPostsByBoardId(Board board) {
+        LocalDateTime sixHoursAgo = LocalDateTime.now().minusHours(6);
+
         JPAQuery<Post> query =
                 queryFactory
                         .selectFrom(post)
@@ -247,7 +250,8 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                                 post.isDeleted.eq(false),
                                 postMeta.viewCount.add(postMeta.commentCount.multiply(3)).goe(50),
                                 postMeta.likeCount.goe(30),
-                                post.board.eq(board));
+                                post.board.eq(board),
+                                post.createdAt.goe(sixHoursAgo));
 
         return query.fetch();
     }
