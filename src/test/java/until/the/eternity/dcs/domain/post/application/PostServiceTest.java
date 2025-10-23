@@ -540,7 +540,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("인기글 조회")
+    @DisplayName("게시판 별 인기글 조회")
     public void getPopularPostByBoardId() {
         // given
         List<Post> posts = Arrays.asList(mockPost3);
