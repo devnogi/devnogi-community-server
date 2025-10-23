@@ -2,7 +2,6 @@ package until.the.eternity.dcs.domain.notice.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.EVENT;
@@ -131,8 +130,8 @@ class NoticeServiceTest {
         when(noticeUserRepository.findByNoticeIdAndUserId(id, id))
                 .thenReturn(Optional.of(noticeUser));
         SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-        given(authentication.getPrincipal()).willReturn("1");
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn("1");
 
         // when
         NoticeCommonResponse response = noticeService.getDetailNotice(id);
