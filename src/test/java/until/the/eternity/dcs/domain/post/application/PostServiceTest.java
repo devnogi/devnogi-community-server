@@ -68,9 +68,11 @@ class PostServiceTest {
 
     private PostMeta postMeta;
     private PostMeta postMeta2;
+    private PostMeta postMeta3;
     private UserSummary mockUser;
     private Post mockPost;
     private Post mockPost2;
+    private Post mockPost3;
     private PostCreateRequest createRequest;
     private PostUpdateRequest updateRequest;
     private PostSummaryResponse mockSummaryResponse;
@@ -113,6 +115,19 @@ class PostServiceTest {
                         .postTags(new ArrayList<>())
                         .build();
 
+        mockPost3 =
+                Post.builder()
+                        .id(3L)
+                        .board(mockBoard)
+                        .title("Test Title3")
+                        .content("Test Content3")
+                        .userId(1L)
+                        .isDraft(false)
+                        .isBlocked(false)
+                        .comments(new ArrayList<>())
+                        .postTags(new ArrayList<>())
+                        .build();
+
         mockPost2.setIsDeleted(false);
 
         createRequest =
@@ -142,6 +157,8 @@ class PostServiceTest {
 
         postMeta = PostMeta.builder().postId(1L).viewCount(0).likeCount(0).build();
         postMeta2 = PostMeta.builder().postId(2L).viewCount(0).likeCount(0).build();
+        postMeta3 =
+                PostMeta.builder().postId(3L).viewCount(22).likeCount(30).commentCount(10).build();
     }
 
     @Nested
@@ -520,5 +537,49 @@ class PostServiceTest {
         assertThat(list.get(1).id()).isEqualTo(2);
         assertThat(list.get(0).title()).isEqualTo(mockPost.getTitle());
         assertThat(list.get(1).title()).isEqualTo(mockPost2.getTitle());
+    }
+
+    @Test
+    @DisplayName("인기글 조회")
+    public void getPopularPostByBoardId() {
+        // given
+        List<Post> posts = Arrays.asList(mockPost3);
+        given(boardService.findBoardById(1L)).willReturn(mockBoard);
+        given(postRepository.findPopularPostsByBoardId(mockBoard)).willReturn(posts);
+        given(postMetaService.getPostMeta(mockPost3.getId())).willReturn(postMeta3);
+
+        // when
+        List<PostSummaryResponse> result = postService.getPopularPostsByBoardId(mockBoard.getId());
+
+        // then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).id()).isEqualTo(3);
+        assertThat(result.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
+        assertThat(result.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
+        assertThat(result.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
+        assertThat(result.getFirst().viewCount() + 3 * (result.getFirst().commentCount()))
+                .isGreaterThanOrEqualTo(50);
+    }
+
+    @Test
+    @DisplayName("게시판별 좋아요 30개 이상 게시글 조회")
+    public void getMostLikedPostsByBoardId() {
+        // given
+        List<Post> posts = Arrays.asList(mockPost3);
+        given(boardService.findBoardById(1L)).willReturn(mockBoard);
+        given(postRepository.findMostLikedPostsByBoardId(mockBoard)).willReturn(posts);
+        given(postMetaService.getPostMeta(mockPost3.getId())).willReturn(postMeta3);
+
+        // when
+        List<PostSummaryResponse> result =
+                postService.getMostLikedPostsByBoardId(mockBoard.getId());
+
+        // then
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).id()).isEqualTo(3);
+        assertThat(result.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
+        assertThat(result.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
+        assertThat(result.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
+        assertThat(result.getFirst().likeCount()).isGreaterThanOrEqualTo(30);
     }
 }

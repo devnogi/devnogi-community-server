@@ -198,7 +198,7 @@ public class PostController {
 
     @GetMapping("/{boardId}/mostLiked")
     @Operation(
-            summary = "게시판별 인기 게시글 조회 API",
+            summary = "게시판별 좋아요 30개 이상 게시글 조회 API",
             description =
                     """
 				- Description : 이 API는 게시판 별 좋아요 수가 30개 이상인 게시글 리스트를 조회합니다.
