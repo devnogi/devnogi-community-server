@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -192,8 +191,9 @@ public class PostController {
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
-    public List<PostSummaryResponse> getPopularPostsByBoardId(@PathVariable Long boardId) {
-        return postService.getPopularPostsByBoardId(boardId);
+    public CustomPageResponse<PostSummaryResponse> getPopularPostsByBoardId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+        return CustomPageResponse.from(postService.getPopularPostsByBoardId(request, boardId));
     }
 
     @GetMapping("/{boardId}/mostLiked")
@@ -207,7 +207,8 @@ public class PostController {
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
-    public List<PostSummaryResponse> getMostLikedPostsByBoardId(@PathVariable Long boardId) {
-        return postService.getMostLikedPostsByBoardId(boardId);
+    public CustomPageResponse<PostSummaryResponse> getMostLikedPostsByBoardId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+        return CustomPageResponse.from((postService.getMostLikedPostsByBoardId(request, boardId)));
     }
 }

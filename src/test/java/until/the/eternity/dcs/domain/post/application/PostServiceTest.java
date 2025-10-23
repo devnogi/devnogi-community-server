@@ -543,21 +543,26 @@ class PostServiceTest {
     @DisplayName("게시판 별 인기글 조회")
     public void getPopularPostByBoardId() {
         // given
+        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost3);
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
-        given(postRepository.findPopularPostsByBoardId(mockBoard)).willReturn(posts);
+        given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMeta(mockPost3.getId())).willReturn(postMeta3);
 
         // when
-        List<PostSummaryResponse> result = postService.getPopularPostsByBoardId(mockBoard.getId());
+        Page<PostSummaryResponse> result =
+                postService.getPopularPostsByBoardId(pageRequest, mockBoard.getId());
 
         // then
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).id()).isEqualTo(3);
-        assertThat(result.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
-        assertThat(result.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
-        assertThat(result.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
-        assertThat(result.getFirst().viewCount() + 3 * (result.getFirst().commentCount()))
+        List<PostSummaryResponse> list = result.stream().toList();
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0).id()).isEqualTo(3);
+        assertThat(list.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
+        assertThat(list.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
+        assertThat(list.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
+        assertThat(list.getFirst().viewCount() + 3 * (list.getFirst().commentCount()))
                 .isGreaterThanOrEqualTo(50);
     }
 
@@ -565,21 +570,25 @@ class PostServiceTest {
     @DisplayName("게시판별 좋아요 30개 이상 게시글 조회")
     public void getMostLikedPostsByBoardId() {
         // given
+        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost3);
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
-        given(postRepository.findMostLikedPostsByBoardId(mockBoard)).willReturn(posts);
+        given(postRepository.findMostLikedPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMeta(mockPost3.getId())).willReturn(postMeta3);
 
         // when
-        List<PostSummaryResponse> result =
-                postService.getMostLikedPostsByBoardId(mockBoard.getId());
+        Page<PostSummaryResponse> result =
+                postService.getMostLikedPostsByBoardId(pageRequest, mockBoard.getId());
 
         // then
-        assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).id()).isEqualTo(3);
-        assertThat(result.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
-        assertThat(result.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
-        assertThat(result.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
-        assertThat(result.getFirst().likeCount()).isGreaterThanOrEqualTo(30);
+        List<PostSummaryResponse> list = result.stream().toList();
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(list.get(0).id()).isEqualTo(3);
+        assertThat(list.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
+        assertThat(list.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
+        assertThat(list.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
+        assertThat(list.getFirst().likeCount()).isGreaterThanOrEqualTo(30);
     }
 }
