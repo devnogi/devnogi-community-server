@@ -9,7 +9,7 @@ import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
 
 @Repository
 public interface NoticeUserRepository extends JpaRepository<NoticeUser, Long> {
-    Optional<NoticeUser> findByNoticeId(Long id);
+    Optional<NoticeUser> findByNoticeIdAndUserId(Long noticeId, Long userId);
 
     List<NoticeUser> findByCreatedAtGreaterThanEqualAndUserIdOrderByCreatedAtDesc(
             LocalDateTime date, Long userId);

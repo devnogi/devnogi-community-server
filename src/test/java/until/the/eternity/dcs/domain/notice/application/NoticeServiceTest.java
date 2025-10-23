@@ -2,6 +2,7 @@ package until.the.eternity.dcs.domain.notice.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.mock;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.EVENT;
@@ -14,6 +15,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
@@ -34,6 +38,9 @@ class NoticeServiceTest {
     NoticeUserConverter noticeUserConverter = new NoticeUserConverter();
     UserSummaryRepository userSummaryRepository = mock(UserSummaryRepository.class);
     NoticePermissionEvaluator noticePermissionEvaluator = mock(NoticePermissionEvaluator.class);
+
+    private final SecurityContext securityContext = mock(SecurityContext.class);
+    private Authentication authentication = mock(Authentication.class);
 
     NoticeService noticeService;
 
@@ -121,7 +128,11 @@ class NoticeServiceTest {
     void getDetailNotice_Success() {
         // given
         when(noticeRepository.findById(id)).thenReturn(Optional.of(notice));
-        when(noticeUserRepository.findByNoticeId(id)).thenReturn(Optional.of(noticeUser));
+        when(noticeUserRepository.findByNoticeIdAndUserId(id, id))
+                .thenReturn(Optional.of(noticeUser));
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn("1");
 
         // when
         NoticeCommonResponse response = noticeService.getDetailNotice(id);
