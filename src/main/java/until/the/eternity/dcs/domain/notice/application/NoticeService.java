@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
@@ -56,9 +57,13 @@ public class NoticeService {
         Notice notice =
                 noticeRepository.findById(id).orElseThrow(() -> new NoticeNotFoundException(id));
 
+        String authUserId =
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        Long userId = Long.parseLong(authUserId);
+
         NoticeUser noticeUser =
                 noticeUserRepository
-                        .findByNoticeId(id)
+                        .findByNoticeIdAndUserId(id, userId)
                         .orElseThrow(() -> new NoticeNotFoundException(id));
         noticeUser.read();
 

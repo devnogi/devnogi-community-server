@@ -14,6 +14,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticeCommonResponse;
 import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
@@ -34,6 +37,9 @@ class NoticeServiceTest {
     NoticeUserConverter noticeUserConverter = new NoticeUserConverter();
     UserSummaryRepository userSummaryRepository = mock(UserSummaryRepository.class);
     NoticePermissionEvaluator noticePermissionEvaluator = mock(NoticePermissionEvaluator.class);
+
+    private final SecurityContext securityContext = mock(SecurityContext.class);
+    private Authentication authentication = mock(Authentication.class);
 
     NoticeService noticeService;
 
@@ -121,7 +127,11 @@ class NoticeServiceTest {
     void getDetailNotice_Success() {
         // given
         when(noticeRepository.findById(id)).thenReturn(Optional.of(notice));
-        when(noticeUserRepository.findByNoticeId(id)).thenReturn(Optional.of(noticeUser));
+        when(noticeUserRepository.findByNoticeIdAndUserId(id, id))
+                .thenReturn(Optional.of(noticeUser));
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn("1");
 
         // when
         NoticeCommonResponse response = noticeService.getDetailNotice(id);
