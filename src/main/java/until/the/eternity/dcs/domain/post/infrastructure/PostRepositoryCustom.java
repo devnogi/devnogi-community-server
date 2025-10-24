@@ -16,4 +16,8 @@ public interface PostRepositoryCustom {
     Page<Post> findWithPostMetaByBoardIdAndKeyword(Pageable pageable, Board board, String keyword);
 
     Page<Post> findWithPostMetaByUserId(Pageable pageable, Long userId);
+
+    Page<Post> findPopularPostsByBoardId(Pageable pageable, Board board);
+
+    Page<Post> findMostLikedPostsByBoardId(Pageable pageable, Board board);
 }

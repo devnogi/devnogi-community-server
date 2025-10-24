@@ -238,6 +238,30 @@ public class PostService {
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
     }
 
+    public Page<PostSummaryResponse> getPopularPostsByBoardId(
+            CustomPageRequest request, Long boardId) {
+        Board board = boardService.findBoardById(boardId);
+        Page<Post> posts = postRepository.findPopularPostsByBoardId(request.toPageable(), board);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
+    }
+
+    public Page<PostSummaryResponse> getMostLikedPostsByBoardId(
+            CustomPageRequest request, Long boardId) {
+        Board board = boardService.findBoardById(boardId);
+        Page<Post> posts = postRepository.findMostLikedPostsByBoardId(request.toPageable(), board);
+        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
+        for (Post post : posts) {
+            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMetaMap.put(post.getId(), postMeta);
+        }
+        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
+    }
+
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }

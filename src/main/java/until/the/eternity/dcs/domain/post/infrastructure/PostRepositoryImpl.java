@@ -11,6 +11,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -232,6 +233,114 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         .fetchOne();
 
         return new PageImpl<>(content, pageable, count != null ? count : 0);
+    }
+
+    @Override
+    public Page<Post> findPopularPostsByBoardId(Pageable pageable, Board board) {
+        LocalDateTime sixHoursAgo = LocalDateTime.now().minusHours(6);
+
+        JPAQuery<Post> query =
+                queryFactory
+                        .selectFrom(post)
+                        .leftJoin(postMeta)
+                        .on(post.id.eq(postMeta.postId))
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false),
+                                postMeta.viewCount.add(postMeta.commentCount.multiply(3)).goe(50),
+                                postMeta.likeCount.goe(30),
+                                post.board.eq(board),
+                                post.createdAt.goe(sixHoursAgo))
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize());
+
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty();
+            Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+
+            switch (property) {
+                case "likeCount":
+                    query.orderBy(new OrderSpecifier<>(direction, postMeta.likeCount));
+                    break;
+                case "viewCount":
+                    query.orderBy(new OrderSpecifier<>(direction, postMeta.viewCount));
+                    break;
+                default:
+                    PathBuilder<Post> pathBuilder =
+                            new PathBuilder<>(post.getType(), post.getMetadata());
+                    query.orderBy(
+                            new OrderSpecifier<>(
+                                    direction, pathBuilder.get(property, Comparable.class)));
+                    break;
+            }
+        }
+        List<Post> content = query.fetch();
+
+        JPAQuery<Long> countQuery =
+                queryFactory
+                        .select(post.count())
+                        .from(post)
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false),
+                                postMeta.viewCount.add(postMeta.commentCount.multiply(3)).goe(50),
+                                postMeta.likeCount.goe(30),
+                                post.board.eq(board),
+                                post.createdAt.goe(sixHoursAgo));
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public Page<Post> findMostLikedPostsByBoardId(Pageable pageable, Board board) {
+        JPAQuery<Post> query =
+                queryFactory
+                        .selectFrom(post)
+                        .leftJoin(postMeta)
+                        .on(post.id.eq(postMeta.postId))
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false),
+                                postMeta.likeCount.goe(30),
+                                post.board.eq(board))
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize());
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty();
+            Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+
+            switch (property) {
+                case "likeCount":
+                    query.orderBy(new OrderSpecifier<>(direction, postMeta.likeCount));
+                    break;
+                case "viewCount":
+                    query.orderBy(new OrderSpecifier<>(direction, postMeta.viewCount));
+                    break;
+                default:
+                    PathBuilder<Post> pathBuilder =
+                            new PathBuilder<>(post.getType(), post.getMetadata());
+                    query.orderBy(
+                            new OrderSpecifier<>(
+                                    direction, pathBuilder.get(property, Comparable.class)));
+                    break;
+            }
+        }
+        List<Post> content = query.fetch();
+
+        JPAQuery<Long> countQuery =
+                queryFactory
+                        .select(post.count())
+                        .from(post)
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false),
+                                postMeta.likeCount.goe(30),
+                                post.board.eq(board));
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     private String toBooleanQuery(String keyword) {
