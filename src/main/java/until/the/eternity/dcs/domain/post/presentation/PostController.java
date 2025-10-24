@@ -179,4 +179,36 @@ public class PostController {
             @ModelAttribute CustomPageRequest request, @PathVariable Long userId) {
         return CustomPageResponse.from(postService.searchPostsByUserId(request, userId));
     }
+
+    @GetMapping("/{boardId}/popular")
+    @Operation(
+            summary = "게시판별 인기 게시글 조회 API",
+            description =
+                    """
+				- Description : 이 API는 게시판 별 인기 게시글 리스트를 조회합니다.
+				- Assignee : 고범수
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> getPopularPostsByBoardId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+        return CustomPageResponse.from(postService.getPopularPostsByBoardId(request, boardId));
+    }
+
+    @GetMapping("/{boardId}/mostLiked")
+    @Operation(
+            summary = "게시판별 좋아요 30개 이상 게시글 조회 API",
+            description =
+                    """
+				- Description : 이 API는 게시판 별 좋아요 수가 30개 이상인 게시글 리스트를 조회합니다.
+				- Assignee : 고범수
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> getMostLikedPostsByBoardId(
+            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+        return CustomPageResponse.from((postService.getMostLikedPostsByBoardId(request, boardId)));
+    }
 }
