@@ -3,6 +3,7 @@ DELETE from post_tag;
 DELETE from post_like;
 DELETE from comment_like;
 DELETE from tag;
+DELETE from announcement;
 DELETE from post;
 DELETE from board;
 DELETE from user_summary;
