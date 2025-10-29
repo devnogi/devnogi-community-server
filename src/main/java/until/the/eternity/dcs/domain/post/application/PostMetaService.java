@@ -1,9 +1,11 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
@@ -24,86 +26,102 @@ public class PostMetaService {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.VIEW.getCode(), userIp);
 
-        if (!canDoMethod(postId, PostMetaType.VIEW.getCode(), userIp)) {
+        Boolean isFirstTime =
+                redisTemplate.opsForValue().setIfAbsent(methodKey, "1", 1, TimeUnit.HOURS);
+        if (!isFirstTime) {
             return;
         }
+        if (!redisTemplate.hasKey(key)) {
+            PostMeta postMeta = getPostMeta(postId);
+        }
 
-        PostMeta postMeta = getPostMeta(postId);
-
-        postMeta.viewPost();
-        redisTemplate.opsForValue().set(key, postMeta);
-        redisTemplate.opsForValue().set(methodKey, postMeta, 1, TimeUnit.HOURS);
+        redisTemplate.opsForHash().increment(key, "viewCount", 1);
     }
 
     public void likePost(Long postId, String userIp) {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.LIKE.getCode(), userIp);
 
-        if (!canDoMethod(postId, PostMetaType.LIKE.getCode(), userIp)) {
+        Boolean isFirstTime =
+                redisTemplate.opsForValue().setIfAbsent(methodKey, "1", 12, TimeUnit.HOURS);
+        if (!isFirstTime) {
             return;
         }
+        if (!redisTemplate.hasKey(key)) {
+            PostMeta postMeta = getPostMeta(postId);
+        }
 
-        PostMeta postMeta = getPostMeta(postId);
-
-        postMeta.like();
-        redisTemplate.opsForValue().set(key, postMeta);
-        redisTemplate.opsForValue().set(methodKey, postMeta, 12, TimeUnit.HOURS);
+        redisTemplate.opsForHash().increment(key, "likeCount", 1);
     }
 
     public void unlikePost(Long postId, String userIp) {
         String key = generateKey(postId);
         String methodKey = generateMethodKey(postId, PostMetaType.UNLIKE.getCode(), userIp);
 
-        if (!canDoMethod(postId, PostMetaType.UNLIKE.getCode(), userIp)) {
+        Boolean isFirstTime =
+                redisTemplate.opsForValue().setIfAbsent(methodKey, "1", 12, TimeUnit.HOURS);
+        if (!isFirstTime) {
             return;
         }
+        if (!redisTemplate.hasKey(key)) {
+            PostMeta postMeta = getPostMeta(postId);
+        }
 
-        PostMeta postMeta = getPostMeta(postId);
-
-        postMeta.unlike();
-        redisTemplate.opsForValue().set(key, postMeta);
-        redisTemplate.opsForValue().set(methodKey, postMeta, 12, TimeUnit.HOURS);
+        redisTemplate.opsForHash().increment(key, "likeCount", -1);
     }
 
     public void addComment(Long postId, String userIp) {
         String key = generateKey(postId);
-        String methodKey = generateMethodKey(postId, PostMetaType.ADD_COMMENT.getCode(), userIp);
+        //        String methodKey = generateMethodKey(postId, PostMetaType.ADD_COMMENT.getCode(),
+        // userIp);
+        //
+        //        Boolean isFirstTime =
+        //                redisTemplate.opsForValue().setIfAbsent(methodKey, "1", 12,
+        // TimeUnit.HOURS);
+        //        if (!isFirstTime) {
+        //            return;
+        //        }
+        if (!redisTemplate.hasKey(key)) {
+            PostMeta postMeta = getPostMeta(postId);
+        }
 
-        PostMeta postMeta = getPostMeta(postId);
-
-        postMeta.addComment();
-        redisTemplate.opsForValue().set(key, postMeta);
-        redisTemplate.opsForValue().set(methodKey, postMeta);
+        redisTemplate.opsForHash().increment(key, "commentCount", 1);
     }
 
     public void deleteComment(Long postId, String userIp) {
         String key = generateKey(postId);
-        String methodKey = generateMethodKey(postId, PostMetaType.DELETE_COMMENT.getCode(), userIp);
+        //        String methodKey = generateMethodKey(postId,
+        // PostMetaType.DELETE_COMMENT.getCode(), userIp);
+        //
+        //        Boolean isFirstTime =
+        //                redisTemplate.opsForValue().setIfAbsent(methodKey, "1", 12,
+        // TimeUnit.HOURS);
+        //        if (!isFirstTime) {
+        //            return;
+        //        }
+        if (!redisTemplate.hasKey(key)) {
+            PostMeta postMeta = getPostMeta(postId);
+        }
 
-        PostMeta postMeta = getPostMeta(postId);
-
-        postMeta.deleteComment();
-        redisTemplate.opsForValue().set(key, postMeta);
-        redisTemplate.opsForValue().set(methodKey, postMeta);
+        redisTemplate.opsForHash().increment(key, "commentCount", -1);
     }
 
     public PostMeta getPostMeta(Long postId) {
         String key = generateKey(postId);
 
-        Object rawData = redisTemplate.opsForValue().get(key);
+        HashOperations<String, String, Object> hashOperations = redisTemplate.opsForHash();
+        Map<String, Object> rawData = hashOperations.entries(key);
 
-        if (rawData != null) {
+        if (!rawData.isEmpty()) {
             return objectMapper.convertValue(rawData, PostMeta.class);
         } else {
-
             Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
             PostMeta postMetaFromDb =
                     postMetaRepository
                             .findById(postId)
                             .orElseGet(() -> PostMeta.create(postId, commentCount));
 
-            redisTemplate.opsForValue().set(key, postMetaFromDb);
-
+            hashOperations.putAll(key, postMetaFromDb.toMap());
             return postMetaFromDb;
         }
     }

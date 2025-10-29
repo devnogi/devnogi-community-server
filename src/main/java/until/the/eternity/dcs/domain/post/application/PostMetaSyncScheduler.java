@@ -3,8 +3,10 @@ package until.the.eternity.dcs.domain.post.application;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
@@ -27,10 +29,16 @@ public class PostMetaSyncScheduler {
     public void syncPostMetaToDb() {
         // 1. "postMeta:*" 패턴의 모든 키를 SCAN 명령어로 안전하게 조회
         Set<String> keys = scanKeys("postMeta:*");
+        Set<String> filteredKeys =
+                keys.stream()
+                        .filter(key -> key.split(":").length == 2) // ✨ 핵심 필터링 로직
+                        .collect(Collectors.toSet());
 
-        for (String key : keys) {
-            Object rawData = redisTemplate.opsForValue().get(key);
-            if (rawData == null) continue;
+        for (String key : filteredKeys) {
+            Map<Object, Object> rawData = redisTemplate.opsForHash().entries(key);
+            if (rawData.isEmpty()) {
+                continue;
+            }
 
             PostMeta postMetaInRedis = objectMapper.convertValue(rawData, PostMeta.class);
 
