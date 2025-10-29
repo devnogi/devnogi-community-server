@@ -27,12 +27,9 @@ public class PostMetaSyncScheduler {
     @Scheduled(cron = "0 */1 * * * *")
     @Transactional
     public void syncPostMetaToDb() {
-        // 1. "postMeta:*" 패턴의 모든 키를 SCAN 명령어로 안전하게 조회
         Set<String> keys = scanKeys("postMeta:*");
         Set<String> filteredKeys =
-                keys.stream()
-                        .filter(key -> key.split(":").length == 2) // ✨ 핵심 필터링 로직
-                        .collect(Collectors.toSet());
+                keys.stream().filter(key -> key.split(":").length == 2).collect(Collectors.toSet());
 
         for (String key : filteredKeys) {
             Map<Object, Object> rawData = redisTemplate.opsForHash().entries(key);
@@ -47,26 +44,21 @@ public class PostMetaSyncScheduler {
 
             PostMeta postMetaToSave;
             if (optionalPostMetaInDb.isPresent()) {
-                // 2-1. [UPDATE] DB에 데이터가 있으면, Builder로 새 객체를 만듭니다.
-                // ID는 기존 엔티티의 것을 그대로 사용합니다.
                 postMetaToSave =
                         PostMeta.builder()
-                                .postId(optionalPostMetaInDb.get().getPostId()) // 기존 ID 사용
-                                .likeCount(postMetaInRedis.getLikeCount()) // Redis 값으로 업데이트
-                                .viewCount(postMetaInRedis.getViewCount()) // Redis 값으로 업데이트
-                                .commentCount(postMetaInRedis.getCommentCount()) // Redis 값으로 업데이트
+                                .postId(optionalPostMetaInDb.get().getPostId())
+                                .likeCount(postMetaInRedis.getLikeCount())
+                                .viewCount(postMetaInRedis.getViewCount())
+                                .commentCount(postMetaInRedis.getCommentCount())
                                 .build();
             } else {
-                // 2-2. [INSERT] DB에 데이터가 없으면, Redis에 있던 객체를 그대로 사용합니다.
                 postMetaToSave = postMetaInRedis;
             }
 
-            // 3. JPA save 실행 (ID 존재 여부에 따라 INSERT 또는 UPDATE 실행)
             postMetaRepository.save(postMetaToSave);
         }
     }
 
-    /** SCAN을 사용하여 패턴에 맞는 키를 안전하게 조회하는 메서드 */
     private Set<String> scanKeys(String pattern) {
         return redisTemplate.execute(
                 (RedisCallback<Set<String>>)
