@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
@@ -31,12 +32,28 @@ public class PostMetaService {
         if (!isFirstTime) {
             return;
         }
-        if (!redisTemplate.hasKey(key)) {
-            setPostMeta(postId);
-        }
+        String lockKey = generateLockKey(postId);
+        if (Boolean.TRUE.equals(setLocked(lockKey))) {
+            try {
+                if (!redisTemplate.hasKey(key)) {
 
-        redisTemplate.opsForHash().increment(key, "viewCount", 1);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+                    setPostMeta(postId);
+                }
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
+        }
+        redisTemplate.executePipelined(
+                (RedisCallback<Object>)
+                        connection -> {
+                            connection
+                                    .hashCommands()
+                                    .hIncrBy(key.getBytes(), "viewCount".getBytes(), 1);
+                            connection
+                                    .keyCommands()
+                                    .expire(key.getBytes(), TimeUnit.HOURS.toSeconds(24));
+                            return null;
+                        });
     }
 
     public void likePost(Long postId, String userIp) {
@@ -48,12 +65,29 @@ public class PostMetaService {
         if (!isFirstTime) {
             return;
         }
-        if (!redisTemplate.hasKey(key)) {
-            setPostMeta(postId);
+        String lockKey = generateLockKey(postId);
+        if (Boolean.TRUE.equals(setLocked(lockKey))) {
+            try {
+                if (!redisTemplate.hasKey(key)) {
+
+                    setPostMeta(postId);
+                }
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
         }
 
-        redisTemplate.opsForHash().increment(key, "likeCount", 1);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        redisTemplate.executePipelined(
+                (RedisCallback<Object>)
+                        connection -> {
+                            connection
+                                    .hashCommands()
+                                    .hIncrBy(key.getBytes(), "likeCount".getBytes(), 1);
+                            connection
+                                    .keyCommands()
+                                    .expire(key.getBytes(), TimeUnit.HOURS.toSeconds(24));
+                            return null;
+                        });
     }
 
     public void unlikePost(Long postId, String userIp) {
@@ -65,33 +99,83 @@ public class PostMetaService {
         if (!isFirstTime) {
             return;
         }
-        if (!redisTemplate.hasKey(key)) {
-            setPostMeta(postId);
+        String lockKey = generateLockKey(postId);
+        if (Boolean.TRUE.equals(setLocked(lockKey))) {
+            try {
+                if (!redisTemplate.hasKey(key)) {
+
+                    setPostMeta(postId);
+                }
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
         }
 
-        redisTemplate.opsForHash().increment(key, "likeCount", -1);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        redisTemplate.executePipelined(
+                (RedisCallback<Object>)
+                        connection -> {
+                            connection
+                                    .hashCommands()
+                                    .hIncrBy(key.getBytes(), "likeCount".getBytes(), -1);
+                            connection
+                                    .keyCommands()
+                                    .expire(key.getBytes(), TimeUnit.HOURS.toSeconds(24));
+                            return null;
+                        });
     }
 
     public void addComment(Long postId, String userIp) {
         String key = generateKey(postId);
-        if (!redisTemplate.hasKey(key)) {
-            setPostMeta(postId);
+        String lockKey = generateLockKey(postId);
+        if (Boolean.TRUE.equals(setLocked(lockKey))) {
+            try {
+                if (!redisTemplate.hasKey(key)) {
+
+                    setPostMeta(postId);
+                }
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
         }
 
-        redisTemplate.opsForHash().increment(key, "commentCount", 1);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        redisTemplate.executePipelined(
+                (RedisCallback<Object>)
+                        connection -> {
+                            connection
+                                    .hashCommands()
+                                    .hIncrBy(key.getBytes(), "commentCount".getBytes(), 1);
+                            connection
+                                    .keyCommands()
+                                    .expire(key.getBytes(), TimeUnit.HOURS.toSeconds(24));
+                            return null;
+                        });
     }
 
     public void deleteComment(Long postId, String userIp) {
         String key = generateKey(postId);
+        String lockKey = generateLockKey(postId);
+        if (Boolean.TRUE.equals(setLocked(lockKey))) {
+            try {
+                if (!redisTemplate.hasKey(key)) {
 
-        if (!redisTemplate.hasKey(key)) {
-            setPostMeta(postId);
+                    setPostMeta(postId);
+                }
+            } finally {
+                redisTemplate.delete(lockKey);
+            }
         }
 
-        redisTemplate.opsForHash().increment(key, "commentCount", -1);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        redisTemplate.executePipelined(
+                (RedisCallback<Object>)
+                        connection -> {
+                            connection
+                                    .hashCommands()
+                                    .hIncrBy(key.getBytes(), "commentCount".getBytes(), -1);
+                            connection
+                                    .keyCommands()
+                                    .expire(key.getBytes(), TimeUnit.HOURS.toSeconds(24));
+                            return null;
+                        });
     }
 
     public PostMeta getPostMeta(Long postId) {
@@ -137,6 +221,10 @@ public class PostMetaService {
         return "postMeta:" + postId + ":" + method + ":" + userId;
     }
 
+    private String generateLockKey(Long postId) {
+        return "postMeta:" + postId + ":" + "lock";
+    }
+
     private void setPostMeta(Long postId) {
         String key = generateKey(postId);
 
@@ -149,5 +237,9 @@ public class PostMetaService {
                         .orElseGet(() -> PostMeta.create(postId, commentCount));
 
         hashOperations.putAll(key, postMetaFromDb.toMap());
+    }
+
+    private Boolean setLocked(String lockKey) {
+        return redisTemplate.opsForValue().setIfAbsent(lockKey, "1", 10, TimeUnit.SECONDS);
     }
 }
