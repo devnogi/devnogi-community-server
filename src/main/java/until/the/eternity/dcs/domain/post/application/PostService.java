@@ -166,7 +166,7 @@ public class PostService {
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
-            postMetaService.likePost(postId, userIp);
+            postMetaService.likePost2(postId, userIp);
 
             redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
             return;
