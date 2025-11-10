@@ -145,7 +145,7 @@ public class CommentService {
         post.getComments().add(save);
         postRepository.save(post);
 
-        postMetaService.addComment(postId, userId);
+        postMetaService.addComment(postId);
     }
 
     private void disconnectCommentWithPost(Comment comment) {
@@ -155,7 +155,7 @@ public class CommentService {
         Post post = findPostById(postId);
         post.getComments().remove(comment);
         comment.disconnectWithPost();
-        postMetaService.deleteComment(postId, userId);
+        postMetaService.deleteComment(postId);
     }
 
     private void sendCommentCreatedNotice(Long postId, Long parentId) {
