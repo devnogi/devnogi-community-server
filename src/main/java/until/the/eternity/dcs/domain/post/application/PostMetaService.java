@@ -31,6 +31,7 @@ public class PostMetaService {
     private static final String LIKE_COUNT_FIELD = "likeCount";
     private static final String VIEW_COUNT_FIELD = "viewCount";
     private static final String COMMENT_COUNT_FIELD = "commentCount";
+    private static final String POST_ID_FIELD = "postId";
     private static final String RATE_LIMIT_VALUE = "1";
     private final RedissonClient redissonClient;
 
@@ -50,13 +51,14 @@ public class PostMetaService {
         if (Boolean.FALSE.equals(isFirstTime)) {
             return;
         }
+
         redisTemplate.opsForHash().increment(key, VIEW_COUNT_FIELD, 1);
 
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
 
-        Long currentFieldCount = redisTemplate.opsForHash().size(key);
+        boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
 
-        if (currentFieldCount == 1) {
+        if (!isCachePopulated) {
 
             String lockKey = generateLockKey(postId);
 
@@ -117,9 +119,9 @@ public class PostMetaService {
 
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
 
-        Long currentFieldCount = redisTemplate.opsForHash().size(key);
+        boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
 
-        if (currentFieldCount == 1) {
+        if (!isCachePopulated) {
 
             String lockKey = generateLockKey(postId);
             RLock lock = redissonClient.getLock(lockKey);
@@ -130,22 +132,24 @@ public class PostMetaService {
                 iGotTheLock = lock.tryLock(0, POST_META_LOCK_SECONDS, TimeUnit.SECONDS);
 
                 if (iGotTheLock) {
+                    isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
+                    if (!isCachePopulated) {
+                        PostMeta postMetaFromDb = getPostMetaFromDB(postId);
+                        long dbLikeCount = postMetaFromDb.getLikeCount();
 
-                    PostMeta postMetaFromDb = getPostMetaFromDB(postId);
-                    long dbLikeCount = postMetaFromDb.getLikeCount();
+                        Object latestRedisLikesObj =
+                                redisTemplate.opsForHash().get(key, LIKE_COUNT_FIELD);
+                        long latestRedisDelta =
+                                (latestRedisLikesObj != null)
+                                        ? Long.parseLong(latestRedisLikesObj.toString())
+                                        : 0;
+                        long correctLikeCount = dbLikeCount + latestRedisDelta;
 
-                    Object latestRedisLikesObj =
-                            redisTemplate.opsForHash().get(key, LIKE_COUNT_FIELD);
-                    long latestRedisDelta =
-                            (latestRedisLikesObj != null)
-                                    ? Long.parseLong(latestRedisLikesObj.toString())
-                                    : 0;
-                    long correctLikeCount = dbLikeCount + latestRedisDelta;
+                        Map<String, Object> dataToCache = postMetaFromDb.toMap();
+                        dataToCache.put(LIKE_COUNT_FIELD, correctLikeCount);
 
-                    Map<String, Object> dataToCache = postMetaFromDb.toMap();
-                    dataToCache.put(LIKE_COUNT_FIELD, correctLikeCount);
-
-                    redisTemplate.opsForHash().putAll(key, dataToCache);
+                        redisTemplate.opsForHash().putAll(key, dataToCache);
+                    }
                     redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
                 }
             } catch (InterruptedException e) {
@@ -178,9 +182,9 @@ public class PostMetaService {
 
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
 
-        Long currentFieldCount = redisTemplate.opsForHash().size(key);
+        boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
 
-        if (currentFieldCount == 1) {
+        if (!isCachePopulated) {
 
             String lockKey = generateLockKey(postId);
             RLock lock = redissonClient.getLock(lockKey);
@@ -191,22 +195,24 @@ public class PostMetaService {
                 iGotTheLock = lock.tryLock(0, POST_META_LOCK_SECONDS, TimeUnit.SECONDS);
 
                 if (iGotTheLock) {
+                    isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
+                    if (!isCachePopulated) {
+                        PostMeta postMetaFromDb = getPostMetaFromDB(postId);
+                        long dbLikeCount = postMetaFromDb.getLikeCount();
 
-                    PostMeta postMetaFromDb = getPostMetaFromDB(postId);
-                    long dbLikeCount = postMetaFromDb.getLikeCount();
+                        Object latestRedisLikesObj =
+                                redisTemplate.opsForHash().get(key, LIKE_COUNT_FIELD);
+                        long latestRedisDelta =
+                                (latestRedisLikesObj != null)
+                                        ? Long.parseLong(latestRedisLikesObj.toString())
+                                        : 0;
+                        long correctLikeCount = dbLikeCount + latestRedisDelta;
 
-                    Object latestRedisLikesObj =
-                            redisTemplate.opsForHash().get(key, LIKE_COUNT_FIELD);
-                    long latestRedisDelta =
-                            (latestRedisLikesObj != null)
-                                    ? Long.parseLong(latestRedisLikesObj.toString())
-                                    : 0;
-                    long correctLikeCount = dbLikeCount + latestRedisDelta;
+                        Map<String, Object> dataToCache = postMetaFromDb.toMap();
+                        dataToCache.put(LIKE_COUNT_FIELD, correctLikeCount);
 
-                    Map<String, Object> dataToCache = postMetaFromDb.toMap();
-                    dataToCache.put(LIKE_COUNT_FIELD, correctLikeCount);
-
-                    redisTemplate.opsForHash().putAll(key, dataToCache);
+                        redisTemplate.opsForHash().putAll(key, dataToCache);
+                    }
                     redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
                 }
             } catch (InterruptedException e) {
@@ -239,9 +245,9 @@ public class PostMetaService {
 
         try {
 
-            Long currentFieldCount = redisTemplate.opsForHash().size(key);
+            boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
 
-            if (currentFieldCount == 1) {
+            if (!isCachePopulated) {
                 setPostMeta(postId);
             }
 
@@ -286,9 +292,9 @@ public class PostMetaService {
 
         try {
 
-            Long currentFieldCount = redisTemplate.opsForHash().size(key);
+            boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
 
-            if (currentFieldCount == 1) {
+            if (!isCachePopulated) {
                 setPostMeta(postId);
             }
 
