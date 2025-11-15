@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(exclude = {org.redisson.spring.starter.RedissonAutoConfigurationV2.class})
+@SpringBootApplication
 @EnableJpaAuditing
 @EnableScheduling
 public class DcsApplication {
