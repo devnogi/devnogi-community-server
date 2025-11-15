@@ -1,14 +1,9 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
@@ -20,20 +15,16 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 @RequiredArgsConstructor
 public class PostMetaService {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper;
     private final PostMetaRepository postMetaRepository;
     private final CommentRepository commentRepository;
 
     private static final long IP_RATE_LIKE_LIMIT_HOURS = 12;
     private static final long IP_RATE_VIEW_LIMIT_HOURS = 1;
-    private static final long POST_META_LOCK_SECONDS = 10;
     private static final long POST_META_TTL_HOURS = 24;
     private static final String LIKE_COUNT_FIELD = "likeCount";
     private static final String VIEW_COUNT_FIELD = "viewCount";
     private static final String COMMENT_COUNT_FIELD = "commentCount";
-    private static final String POST_ID_FIELD = "postId";
     private static final String RATE_LIMIT_VALUE = "1";
-    private final RedissonClient redissonClient;
 
     public void viewPost(Long postId, String userIp) {
 
@@ -53,50 +44,7 @@ public class PostMetaService {
         }
 
         redisTemplate.opsForHash().increment(key, VIEW_COUNT_FIELD, 1);
-
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
-
-        boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-
-        if (!isCachePopulated) {
-
-            String lockKey = generateLockKey(postId);
-
-            RLock lock = redissonClient.getLock(lockKey);
-
-            boolean iGotTheLock = false;
-
-            try {
-                iGotTheLock = lock.tryLock(0, POST_META_LOCK_SECONDS, TimeUnit.SECONDS);
-
-                if (iGotTheLock) {
-
-                    PostMeta postMetaFromDb = getPostMetaFromDB(postId);
-                    long dbViewCount = postMetaFromDb.getViewCount();
-
-                    Object latestRedisViewObj =
-                            redisTemplate.opsForHash().get(key, VIEW_COUNT_FIELD);
-                    long latestRedisDelta =
-                            (latestRedisViewObj != null)
-                                    ? Long.parseLong(latestRedisViewObj.toString())
-                                    : 0;
-
-                    long correctViewCount = dbViewCount + latestRedisDelta;
-
-                    Map<String, Object> dataToCache = postMetaFromDb.toMap();
-                    dataToCache.put(VIEW_COUNT_FIELD, correctViewCount);
-
-                    redisTemplate.opsForHash().putAll(key, dataToCache);
-                    redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                if (iGotTheLock && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
-            }
-        }
     }
 
     public void likePost(Long postId, String userIp) {
@@ -118,48 +66,6 @@ public class PostMetaService {
         redisTemplate.opsForHash().increment(key, LIKE_COUNT_FIELD, 1);
 
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
-
-        boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-
-        if (!isCachePopulated) {
-
-            String lockKey = generateLockKey(postId);
-            RLock lock = redissonClient.getLock(lockKey);
-
-            boolean iGotTheLock = false;
-            try {
-
-                iGotTheLock = lock.tryLock(0, POST_META_LOCK_SECONDS, TimeUnit.SECONDS);
-
-                if (iGotTheLock) {
-                    isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-                    if (!isCachePopulated) {
-                        PostMeta postMetaFromDb = getPostMetaFromDB(postId);
-                        long dbLikeCount = postMetaFromDb.getLikeCount();
-
-                        Object latestRedisLikesObj =
-                                redisTemplate.opsForHash().get(key, LIKE_COUNT_FIELD);
-                        long latestRedisDelta =
-                                (latestRedisLikesObj != null)
-                                        ? Long.parseLong(latestRedisLikesObj.toString())
-                                        : 0;
-                        long correctLikeCount = dbLikeCount + latestRedisDelta;
-
-                        Map<String, Object> dataToCache = postMetaFromDb.toMap();
-                        dataToCache.put(LIKE_COUNT_FIELD, correctLikeCount);
-
-                        redisTemplate.opsForHash().putAll(key, dataToCache);
-                    }
-                    redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                if (iGotTheLock && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
-            }
-        }
     }
 
     public void unlikePost(Long postId, String userIp) {
@@ -181,158 +87,21 @@ public class PostMetaService {
         redisTemplate.opsForHash().increment(key, LIKE_COUNT_FIELD, -1);
 
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
-
-        boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-
-        if (!isCachePopulated) {
-
-            String lockKey = generateLockKey(postId);
-            RLock lock = redissonClient.getLock(lockKey);
-
-            boolean iGotTheLock = false;
-            try {
-
-                iGotTheLock = lock.tryLock(0, POST_META_LOCK_SECONDS, TimeUnit.SECONDS);
-
-                if (iGotTheLock) {
-                    isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-                    if (!isCachePopulated) {
-                        PostMeta postMetaFromDb = getPostMetaFromDB(postId);
-                        long dbLikeCount = postMetaFromDb.getLikeCount();
-
-                        Object latestRedisLikesObj =
-                                redisTemplate.opsForHash().get(key, LIKE_COUNT_FIELD);
-                        long latestRedisDelta =
-                                (latestRedisLikesObj != null)
-                                        ? Long.parseLong(latestRedisLikesObj.toString())
-                                        : 0;
-                        long correctLikeCount = dbLikeCount + latestRedisDelta;
-
-                        Map<String, Object> dataToCache = postMetaFromDb.toMap();
-                        dataToCache.put(LIKE_COUNT_FIELD, correctLikeCount);
-
-                        redisTemplate.opsForHash().putAll(key, dataToCache);
-                    }
-                    redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                if (iGotTheLock && lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
-            }
-        }
     }
 
     public void addComment(Long postId) {
         String key = generateKey(postId);
-        String lockKey = generateLockKey(postId);
 
-        RLock lock = redissonClient.getLock(lockKey);
+        redisTemplate.opsForHash().increment(key, COMMENT_COUNT_FIELD, 1);
 
-        boolean isLocked = false;
-        try {
-            isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("락 대기 중 인터럽트", e);
-        }
-
-        if (!isLocked) {
-            throw new RuntimeException("댓글 락 획득 실패 (타임아웃)");
-        }
-
-        try {
-
-            boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-
-            if (!isCachePopulated) {
-                setPostMeta(postId);
-            }
-
-            redisTemplate.executePipelined(
-                    (RedisCallback<Object>)
-                            connection -> {
-                                connection
-                                        .hashCommands()
-                                        .hIncrBy(key.getBytes(), COMMENT_COUNT_FIELD.getBytes(), 1);
-                                connection
-                                        .keyCommands()
-                                        .expire(
-                                                key.getBytes(),
-                                                TimeUnit.HOURS.toSeconds(POST_META_TTL_HOURS));
-                                return null;
-                            });
-
-        } finally {
-            if (lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
+        redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
     }
 
     public void deleteComment(Long postId) {
         String key = generateKey(postId);
-        String lockKey = generateLockKey(postId);
+        redisTemplate.opsForHash().increment(key, COMMENT_COUNT_FIELD, -1);
 
-        RLock lock = redissonClient.getLock(lockKey);
-
-        boolean isLocked = false;
-        try {
-            isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("락 대기 중 인터럽트", e);
-        }
-
-        if (!isLocked) {
-            throw new RuntimeException("댓글 락 획득 실패 (타임아웃)");
-        }
-
-        try {
-
-            boolean isCachePopulated = redisTemplate.opsForHash().hasKey(key, POST_ID_FIELD);
-
-            if (!isCachePopulated) {
-                setPostMeta(postId);
-            }
-
-            redisTemplate.executePipelined(
-                    (RedisCallback<Object>)
-                            connection -> {
-                                connection
-                                        .hashCommands()
-                                        .hIncrBy(key.getBytes(), COMMENT_COUNT_FIELD.getBytes(), 1);
-                                connection
-                                        .keyCommands()
-                                        .expire(
-                                                key.getBytes(),
-                                                TimeUnit.HOURS.toSeconds(POST_META_TTL_HOURS));
-                                return null;
-                            });
-
-        } finally {
-            if (lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-        }
-    }
-
-    public PostMeta getPostMeta(Long postId) {
-        String key = generateKey(postId);
-
-        HashOperations<String, String, Object> hashOperations = redisTemplate.opsForHash();
-        Map<String, Object> rawData = hashOperations.entries(key);
-
-        if (rawData.size() == 4) {
-            return objectMapper.convertValue(rawData, PostMeta.class);
-        } else {
-            PostMeta postMetaFromDb = getPostMetaFromDB(postId);
-
-            hashOperations.putAll(key, postMetaFromDb.toMap());
-            return postMetaFromDb;
-        }
+        redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
     }
 
     public boolean canDoMethod(Long postId, String method, String userIp) {
@@ -350,6 +119,30 @@ public class PostMetaService {
         redisTemplate.delete(keySet);
     }
 
+    public PostMeta getPostMetaInfo(Long postId) {
+        PostMeta postMeta =
+                postMetaRepository
+                        .findById(postId)
+                        .orElseGet(
+                                () ->
+                                        PostMeta.create(
+                                                postId,
+                                                commentRepository.countByPostIdAndIsDeletedFalse(
+                                                        postId)));
+
+        String key = generateKey(postId);
+        Map<Object, Object> postMetaInRedis = redisTemplate.opsForHash().entries(key);
+        int viewsToAdd = parseIntFromMap(postMetaInRedis, VIEW_COUNT_FIELD);
+        int likesToAdd = parseIntFromMap(postMetaInRedis, LIKE_COUNT_FIELD);
+        int commentsToAdd = parseIntFromMap(postMetaInRedis, COMMENT_COUNT_FIELD);
+
+        postMeta.update(
+                postMeta.getViewCount() + viewsToAdd,
+                postMeta.getLikeCount() + likesToAdd,
+                postMeta.getCommentCount() + commentsToAdd);
+        return postMeta;
+    }
+
     private String generateKey(Long postId) {
         return "postMeta:" + postId;
     }
@@ -358,28 +151,15 @@ public class PostMetaService {
         return "postMeta:" + postId + ":" + method + ":" + userId;
     }
 
-    private String generateLockKey(Long postId) {
-        return "postMeta:" + postId + ":" + "lock";
-    }
-
-    private void setPostMeta(Long postId) {
-        String key = generateKey(postId);
-
-        HashOperations<String, String, Object> hashOperations = redisTemplate.opsForHash();
-
-        Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-        PostMeta postMetaFromDb =
-                postMetaRepository
-                        .findById(postId)
-                        .orElseGet(() -> PostMeta.create(postId, commentCount));
-
-        hashOperations.putAll(key, postMetaFromDb.toMap());
-    }
-
-    private PostMeta getPostMetaFromDB(Long postId) {
-        Integer commentCount = commentRepository.countByPostIdAndIsDeletedFalse(postId);
-        return postMetaRepository
-                .findById(postId)
-                .orElseGet(() -> PostMeta.create(postId, commentCount));
+    private int parseIntFromMap(Map<Object, Object> map, String field) {
+        Object value = map.get(field);
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

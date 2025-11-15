@@ -7,6 +7,7 @@ DELETE from announcement;
 DELETE from post;
 DELETE from board;
 DELETE from user_summary;
+DELETE from post_meta;
 
 -- board 더미 데이터
 INSERT INTO board (id, name, description, top_category, sub_category)
@@ -109,3 +110,14 @@ VALUES
     (3, 9, 1, NOW()),
     (4, 14, 3, NOW()),
     (5, 18, 2, NOW());
+
+INSERT INTO post_meta (post_id, view_count, like_count, comment_count)
+SELECT
+    p.id,
+    0,
+    COUNT(DISTINCT pl.id),
+    COUNT(DISTINCT c.id)
+FROM post p
+         LEFT JOIN post_like pl ON p.id = pl.post_id
+         LEFT JOIN comment c ON p.id = c.post_id
+GROUP BY p.id;

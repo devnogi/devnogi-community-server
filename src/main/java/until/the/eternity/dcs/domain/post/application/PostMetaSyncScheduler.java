@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,7 +21,6 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 public class PostMetaSyncScheduler {
     private final RedisTemplate<String, Object> redisTemplate;
     private final PostMetaRepository postMetaRepository;
-    private final ObjectMapper objectMapper;
 
     @Scheduled(cron = "0 */1 * * * *")
     @Transactional
@@ -37,25 +35,46 @@ public class PostMetaSyncScheduler {
                 continue;
             }
 
-            PostMeta postMetaInRedis = objectMapper.convertValue(rawData, PostMeta.class);
+            Long postId;
+            try {
+                postId = Long.parseLong(key.split(":")[1]);
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            int viewsToAdd = parseIntFromMap(rawData, "viewCount");
+            int likesToAdd = parseIntFromMap(rawData, "likeCount");
+            int commentsToAdd = parseIntFromMap(rawData, "commentCount");
 
-            Optional<PostMeta> optionalPostMetaInDb =
-                    postMetaRepository.findById(postMetaInRedis.getPostId());
+            Optional<PostMeta> optionalPostMetaInDb = postMetaRepository.findById(postId);
 
             PostMeta postMetaToSave;
             if (optionalPostMetaInDb.isPresent()) {
+                PostMeta dbMeta = optionalPostMetaInDb.get();
+                dbMeta.update(
+                        dbMeta.getViewCount() + viewsToAdd,
+                        dbMeta.getLikeCount() + likesToAdd,
+                        dbMeta.getCommentCount() + commentsToAdd);
+                postMetaToSave = dbMeta;
+            } else {
                 postMetaToSave =
                         PostMeta.builder()
-                                .postId(optionalPostMetaInDb.get().getPostId())
-                                .likeCount(postMetaInRedis.getLikeCount())
-                                .viewCount(postMetaInRedis.getViewCount())
-                                .commentCount(postMetaInRedis.getCommentCount())
+                                .postId(postId)
+                                .viewCount(viewsToAdd)
+                                .likeCount(likesToAdd)
+                                .commentCount(commentsToAdd)
                                 .build();
-            } else {
-                postMetaToSave = postMetaInRedis;
             }
-
             postMetaRepository.save(postMetaToSave);
+
+            if (viewsToAdd != 0L) {
+                redisTemplate.opsForHash().increment(key, "viewCount", -viewsToAdd);
+            }
+            if (likesToAdd != 0L) {
+                redisTemplate.opsForHash().increment(key, "likeCount", -likesToAdd);
+            }
+            if (commentsToAdd != 0L) {
+                redisTemplate.opsForHash().increment(key, "commentCount", -commentsToAdd);
+            }
         }
     }
 
@@ -75,5 +94,17 @@ public class PostMetaSyncScheduler {
                             }
                             return keys;
                         });
+    }
+
+    private int parseIntFromMap(Map<Object, Object> map, String field) {
+        Object value = map.get(field);
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

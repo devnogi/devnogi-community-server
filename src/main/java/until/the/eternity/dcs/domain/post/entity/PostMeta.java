@@ -54,6 +54,12 @@ public class PostMeta {
         this.commentCount--;
     }
 
+    public void update(int viewCount, int likeCount, int commentCount) {
+        this.viewCount = viewCount;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+    }
+
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("postId", postId);

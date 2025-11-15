@@ -41,7 +41,7 @@ public class AnnouncementService {
         duplicateCheck(postId);
 
         Post post = getPost(postId);
-        PostMeta postMeta = getPostMeta(postId);
+        PostMeta postMeta = getPostMetaInfo(postId);
 
         Announcement announcement = converter.fromCreateRequestAndPost(request, post, postMeta);
         Announcement saved = repository.save(announcement);
@@ -91,8 +91,8 @@ public class AnnouncementService {
                 .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
-    private PostMeta getPostMeta(Long postId) {
-        return postMetaService.getPostMeta(postId);
+    private PostMeta getPostMetaInfo(Long postId) {
+        return postMetaService.getPostMetaInfo(postId);
     }
 
     private Announcement findById(Long id) {

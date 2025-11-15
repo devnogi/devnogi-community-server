@@ -81,7 +81,7 @@ public class PostService {
         String userIp =
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         postMetaService.viewPost(id, userIp);
-        PostMeta postMeta = postMetaService.getPostMeta(id);
+        PostMeta postMeta = postMetaService.getPostMetaInfo(id);
         return postConverter.fromPostToPostDetailResponse(post, postMeta);
     }
 
@@ -91,7 +91,7 @@ public class PostService {
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -195,7 +195,7 @@ public class PostService {
         }
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -206,7 +206,7 @@ public class PostService {
 
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -221,7 +221,7 @@ public class PostService {
 
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -232,7 +232,7 @@ public class PostService {
 
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -244,7 +244,7 @@ public class PostService {
         Page<Post> posts = postRepository.findPopularPostsByBoardId(request.toPageable(), board);
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
@@ -256,7 +256,7 @@ public class PostService {
         Page<Post> posts = postRepository.findMostLikedPostsByBoardId(request.toPageable(), board);
         Map<Long, PostMeta> PostMetaMap = new HashMap<>();
         for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMeta(post.getId());
+            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
             PostMetaMap.put(post.getId(), postMeta);
         }
         return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
