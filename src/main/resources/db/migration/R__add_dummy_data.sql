@@ -114,7 +114,7 @@ VALUES
 INSERT INTO post_meta (post_id, view_count, like_count, comment_count)
 SELECT
     p.id,
-    0,
+    GREATEST(COUNT(DISTINCT pl.id),COUNT(DISTINCT c.id)),
     COUNT(DISTINCT pl.id),
     COUNT(DISTINCT c.id)
 FROM post p
