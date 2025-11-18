@@ -66,13 +66,13 @@ public class PostMetaSyncScheduler {
             }
             postMetaRepository.save(postMetaToSave);
 
-            if (viewsToAdd != 0L) {
+            if (viewsToAdd != 0) {
                 redisTemplate.opsForHash().increment(key, "viewCount", -viewsToAdd);
             }
-            if (likesToAdd != 0L) {
+            if (likesToAdd != 0) {
                 redisTemplate.opsForHash().increment(key, "likeCount", -likesToAdd);
             }
-            if (commentsToAdd != 0L) {
+            if (commentsToAdd != 0) {
                 redisTemplate.opsForHash().increment(key, "commentCount", -commentsToAdd);
             }
         }
