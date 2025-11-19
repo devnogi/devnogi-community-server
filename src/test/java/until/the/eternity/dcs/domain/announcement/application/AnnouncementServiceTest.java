@@ -76,7 +76,7 @@ class AnnouncementServiceTest {
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
-        when(postMetaService.getPostMeta(id)).thenReturn(postMeta);
+        when(postMetaService.getPostMetaInfo(id)).thenReturn(postMeta);
         AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
 
         // when

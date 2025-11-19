@@ -1,11 +1,11 @@
 package until.the.eternity.dcs.domain.post.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.*;
 
+@ToString
 @Entity
 @Table(name = "post_meta")
 @Getter
@@ -52,5 +52,20 @@ public class PostMeta {
 
     public void deleteComment() {
         this.commentCount--;
+    }
+
+    public void update(int viewCount, int likeCount, int commentCount) {
+        this.viewCount = viewCount;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("postId", postId);
+        map.put("likeCount", likeCount);
+        map.put("viewCount", viewCount);
+        map.put("commentCount", commentCount);
+        return map;
     }
 }

@@ -208,7 +208,7 @@ class PostServiceTest {
                             .userId(1L)
                             .comments(comments)
                             .build();
-            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
             given(postRepository.findWithTagsById(postId))
                     .willReturn(Optional.of(postWithComments));
             given(postConverter.fromPostToPostDetailResponse(postWithComments, postMeta))
@@ -252,8 +252,8 @@ class PostServiceTest {
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
-            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMeta(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
@@ -279,8 +279,8 @@ class PostServiceTest {
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
                     .willReturn(postPage);
-            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMeta(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -306,8 +306,8 @@ class PostServiceTest {
             given(postRepository.findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard)))
                     .willReturn(postPage);
             given(boardService.findBoardById(boardId)).willReturn(mockBoard);
-            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMeta(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
+            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -468,8 +468,8 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
 
         given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
-        given(postMetaService.getPostMeta(mockPost.getId())).willReturn(postMeta);
-        given(postMetaService.getPostMeta(mockPost2.getId())).willReturn(postMeta2);
+        given(postMetaService.getPostMetaInfo(mockPost.getId())).willReturn(postMeta);
+        given(postMetaService.getPostMetaInfo(mockPost2.getId())).willReturn(postMeta2);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPosts(pageRequest, keyword);
@@ -497,8 +497,8 @@ class PostServiceTest {
         given(boardService.findBoardById(boardId)).willReturn(mockBoard);
         given(postRepository.findWithPostMetaByBoardIdAndKeyword(pageable, mockBoard, keyword))
                 .willReturn(postPage);
-        given(postMetaService.getPostMeta(mockPost.getId())).willReturn(postMeta);
-        given(postMetaService.getPostMeta(mockPost2.getId())).willReturn(postMeta2);
+        given(postMetaService.getPostMetaInfo(mockPost.getId())).willReturn(postMeta);
+        given(postMetaService.getPostMetaInfo(mockPost2.getId())).willReturn(postMeta2);
 
         // when
         Page<PostSummaryResponse> responses =
@@ -524,8 +524,8 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
 
         given(postRepository.findWithPostMetaByUserId(pageable, userId)).willReturn(postPage);
-        given(postMetaService.getPostMeta(mockPost.getId())).willReturn(postMeta);
-        given(postMetaService.getPostMeta(mockPost2.getId())).willReturn(postMeta2);
+        given(postMetaService.getPostMetaInfo(mockPost.getId())).willReturn(postMeta);
+        given(postMetaService.getPostMetaInfo(mockPost2.getId())).willReturn(postMeta2);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPostsByUserId(pageRequest, userId);
@@ -549,7 +549,7 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
-        given(postMetaService.getPostMeta(mockPost3.getId())).willReturn(postMeta3);
+        given(postMetaService.getPostMetaInfo(mockPost3.getId())).willReturn(postMeta3);
 
         // when
         Page<PostSummaryResponse> result =
@@ -576,7 +576,7 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findMostLikedPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
-        given(postMetaService.getPostMeta(mockPost3.getId())).willReturn(postMeta3);
+        given(postMetaService.getPostMetaInfo(mockPost3.getId())).willReturn(postMeta3);
 
         // when
         Page<PostSummaryResponse> result =
