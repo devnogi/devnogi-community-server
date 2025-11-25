@@ -133,15 +133,7 @@ public class PostMetaService {
     }
 
     public PostMeta getPostMetaInfo(Long postId) {
-        PostMeta postMeta =
-                postMetaRepository
-                        .findById(postId)
-                        .orElseGet(
-                                () ->
-                                        PostMeta.create(
-                                                postId,
-                                                commentRepository.countByPostIdAndIsDeletedFalse(
-                                                        postId)));
+        PostMeta postMeta = postMetaRepository.findByPostId(postId);
 
         String key = generateKey(postId);
         Map<Object, Object> postMetaInRedis = redisTemplate.opsForHash().entries(key);
@@ -157,13 +149,12 @@ public class PostMetaService {
     }
 
     public Map<Long, PostMeta> getPostMetaInfos(List<Long> postIdList) {
-        // 1. DB 조회 (이제 무조건 데이터가 있다고 가정)
+
         List<PostMeta> dbMetas = postMetaRepository.findAllByPostIdIn(postIdList);
 
         Map<Long, PostMeta> dbMetaMap =
                 dbMetas.stream().collect(Collectors.toMap(PostMeta::getPostId, meta -> meta));
 
-        // 2. Redis Pipelining (동일함)
         List<Object> pipelineResults =
                 redisTemplate.executePipelined(
                         new SessionCallback<Object>() {
@@ -177,19 +168,14 @@ public class PostMetaService {
                             }
                         });
 
-        // 3. 병합
         Map<Long, PostMeta> resultMap = new HashMap<>();
 
         for (int i = 0; i < postIdList.size(); i++) {
             Long postId = postIdList.get(i);
 
-            // [변경점] getOrDefault 삭제 -> 그냥 get 사용
             PostMeta postMeta = dbMetaMap.get(postId);
 
-            // [방어 로직] DB 데이터 꼬임 방지 (개발 단계에서 버그 잡기용)
             if (postMeta == null) {
-                // 로직상 절대 발생하면 안 되는 상황이므로 로그를 남기거나 예외 처리
-                // log.error("PostMeta not found for postId: {}", postId);
                 continue;
             }
 
