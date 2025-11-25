@@ -1,17 +1,24 @@
 package until.the.eternity.dcs.domain.post.application;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostMetaService {
     private final RedisTemplate<String, Object> redisTemplate;
@@ -25,6 +32,12 @@ public class PostMetaService {
     private static final String VIEW_COUNT_FIELD = "viewCount";
     private static final String COMMENT_COUNT_FIELD = "commentCount";
     private static final String RATE_LIMIT_VALUE = "1";
+
+    @Transactional
+    public void createPostMeta(Long postId) {
+        PostMeta pm = PostMeta.create(postId, 0);
+        postMetaRepository.save(pm);
+    }
 
     public void viewPost(Long postId, String userIp) {
 
@@ -141,6 +154,60 @@ public class PostMetaService {
                 postMeta.getLikeCount() + likesToAdd,
                 postMeta.getCommentCount() + commentsToAdd);
         return postMeta;
+    }
+
+    public Map<Long, PostMeta> getPostMetaInfos(List<Long> postIdList) {
+        // 1. DB 조회 (이제 무조건 데이터가 있다고 가정)
+        List<PostMeta> dbMetas = postMetaRepository.findAllByPostIdIn(postIdList);
+
+        Map<Long, PostMeta> dbMetaMap =
+                dbMetas.stream().collect(Collectors.toMap(PostMeta::getPostId, meta -> meta));
+
+        // 2. Redis Pipelining (동일함)
+        List<Object> pipelineResults =
+                redisTemplate.executePipelined(
+                        new SessionCallback<Object>() {
+                            @Override
+                            public <K, V> Object execute(RedisOperations<K, V> operations) {
+                                for (Long postId : postIdList) {
+                                    String key = generateKey(postId);
+                                    operations.opsForHash().entries((K) key);
+                                }
+                                return null;
+                            }
+                        });
+
+        // 3. 병합
+        Map<Long, PostMeta> resultMap = new HashMap<>();
+
+        for (int i = 0; i < postIdList.size(); i++) {
+            Long postId = postIdList.get(i);
+
+            // [변경점] getOrDefault 삭제 -> 그냥 get 사용
+            PostMeta postMeta = dbMetaMap.get(postId);
+
+            // [방어 로직] DB 데이터 꼬임 방지 (개발 단계에서 버그 잡기용)
+            if (postMeta == null) {
+                // 로직상 절대 발생하면 안 되는 상황이므로 로그를 남기거나 예외 처리
+                // log.error("PostMeta not found for postId: {}", postId);
+                continue;
+            }
+
+            // Redis 데이터 병합
+            Map<Object, Object> redisData = (Map<Object, Object>) pipelineResults.get(i);
+
+            if (redisData != null && !redisData.isEmpty()) {
+                postMeta.update(
+                        postMeta.getViewCount() + parseIntFromMap(redisData, VIEW_COUNT_FIELD),
+                        postMeta.getLikeCount() + parseIntFromMap(redisData, LIKE_COUNT_FIELD),
+                        postMeta.getCommentCount()
+                                + parseIntFromMap(redisData, COMMENT_COUNT_FIELD));
+            }
+
+            resultMap.put(postId, postMeta);
+        }
+
+        return resultMap;
     }
 
     private String generateKey(Long postId) {

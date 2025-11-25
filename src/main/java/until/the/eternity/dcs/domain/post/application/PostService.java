@@ -71,7 +71,7 @@ public class PostService {
                         .collect(Collectors.toList());
 
         postTagService.savePostTags(postTags);
-
+        postMetaService.createPostMeta(post.getId());
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }
 
@@ -89,12 +89,11 @@ public class PostService {
         Pageable pageable = request.toPageable();
 
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
-        Map<Long, PostMeta> PostMetaMap = new HashMap<>();
-        for (Post post : posts) {
-            PostMeta postMeta = postMetaService.getPostMetaInfo(post.getId());
-            PostMetaMap.put(post.getId(), postMeta);
-        }
-        return posts.map(post -> PostSummaryResponse.from(post, PostMetaMap.get(post.getId())));
+        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
+
+        // 3. 개선된 Bulk 서비스 메서드 호출 (여기서 DB 1회, Redis 1회 수행)
+        Map<Long, PostMeta> postMetaMap = postMetaService.getPostMetaInfos(postIds);
+        return posts.map(post -> PostSummaryResponse.from(post, postMetaMap.get(post.getId())));
     }
 
     @Transactional
