@@ -91,7 +91,6 @@ public class PostService {
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
         List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
 
-        // 3. 개선된 Bulk 서비스 메서드 호출 (여기서 DB 1회, Redis 1회 수행)
         Map<Long, PostMeta> postMetaMap = postMetaService.getPostMetaInfos(postIds);
         return posts.map(post -> PostSummaryResponse.from(post, postMetaMap.get(post.getId())));
     }
