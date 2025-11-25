@@ -5,10 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -243,8 +240,13 @@ class PostServiceTest {
         @DisplayName("게시글 목록 조회 성공")
         void findPosts_Success() {
             // Given
+            List<Long> postIdList = new ArrayList<>();
+            postIdList.add(1L);
+            postIdList.add(2L);
             CustomPageRequest pageRequest = mock(CustomPageRequest.class);
-
+            Map<Long, PostMeta> dbMetaMap = new HashMap<>();
+            dbMetaMap.put(postIdList.get(0), postMeta);
+            dbMetaMap.put(postIdList.get(1), postMeta2);
             Pageable pageable = PageRequest.of(1, 10);
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
@@ -252,8 +254,7 @@ class PostServiceTest {
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
-            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
