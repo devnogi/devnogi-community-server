@@ -257,7 +257,7 @@ class PostServiceTest {
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
-            given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+            given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
@@ -287,7 +287,7 @@ class PostServiceTest {
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
                     .willReturn(postPage);
-            given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+            given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -316,7 +316,7 @@ class PostServiceTest {
             given(postRepository.findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard)))
                     .willReturn(postPage);
             given(boardService.findBoardById(boardId)).willReturn(mockBoard);
-            given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+            given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -480,7 +480,7 @@ class PostServiceTest {
         dbMetaMap.put(postIdList.get(0), postMeta);
         dbMetaMap.put(postIdList.get(1), postMeta2);
         given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPosts(pageRequest, keyword);
@@ -511,7 +511,7 @@ class PostServiceTest {
         given(boardService.findBoardById(boardId)).willReturn(mockBoard);
         given(postRepository.findWithPostMetaByBoardIdAndKeyword(pageable, mockBoard, keyword))
                 .willReturn(postPage);
-        given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> responses =
@@ -540,7 +540,7 @@ class PostServiceTest {
         dbMetaMap.put(postIdList.get(0), postMeta);
         dbMetaMap.put(postIdList.get(1), postMeta2);
         given(postRepository.findWithPostMetaByUserId(pageable, userId)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPostsByUserId(pageRequest, userId);
@@ -566,7 +566,7 @@ class PostServiceTest {
         dbMetaMap.put(postIdList.get(0), postMeta3);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> result =
@@ -595,7 +595,7 @@ class PostServiceTest {
         dbMetaMap.put(postIdList.get(0), postMeta3);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findMostLikedPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfos(postIdList)).willReturn(dbMetaMap);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> result =
