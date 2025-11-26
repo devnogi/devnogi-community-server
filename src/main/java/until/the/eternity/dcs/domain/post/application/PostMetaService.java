@@ -1,9 +1,6 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -132,8 +129,15 @@ public class PostMetaService {
         redisTemplate.delete(keySet);
     }
 
+    @Transactional
     public PostMeta getPostMetaInfo(Long postId) {
-        PostMeta postMeta = postMetaRepository.findByPostId(postId);
+        PostMeta postMeta =
+                postMetaRepository
+                        .findByPostId(postId)
+                        .orElse(
+                                PostMeta.create(
+                                        postId,
+                                        commentRepository.countByPostIdAndIsDeletedFalse(postId)));
 
         String key = generateKey(postId);
         Map<Object, Object> postMetaInRedis = redisTemplate.opsForHash().entries(key);
@@ -148,6 +152,7 @@ public class PostMetaService {
         return postMeta;
     }
 
+    @Transactional
     public Map<Long, PostMeta> getPostMetaInfos(List<Long> postIdList) {
 
         List<PostMeta> dbMetas = postMetaRepository.findAllByPostIdIn(postIdList);
@@ -179,7 +184,6 @@ public class PostMetaService {
                 continue;
             }
 
-            // Redis 데이터 병합
             Map<Object, Object> redisData = (Map<Object, Object>) pipelineResults.get(i);
 
             if (redisData != null && !redisData.isEmpty()) {

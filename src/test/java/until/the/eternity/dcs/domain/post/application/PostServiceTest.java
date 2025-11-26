@@ -278,7 +278,7 @@ class PostServiceTest {
 
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, posts.size());
-            Map<Long, PostMeta> dbMetaMap = new HashMap<>();
+
             postIdList.add(1L);
             postIdList.add(2L);
             dbMetaMap.put(postIdList.get(0), postMeta);

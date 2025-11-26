@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.infrastructure;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -9,7 +10,7 @@ import until.the.eternity.dcs.domain.post.entity.PostMeta;
 
 public interface PostMetaRepository extends JpaRepository<PostMeta, Long> {
 
-    PostMeta findByPostId(Long postId);
+    Optional<PostMeta> findByPostId(Long postId);
 
     @Modifying
     @Query("DELETE FROM PostMeta pm WHERE pm.postId IN :postIdList")
