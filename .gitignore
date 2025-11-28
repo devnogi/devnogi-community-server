@@ -38,5 +38,3 @@ out/
 
 ### Docker-Compose ###
 .env
-
-local-run/
