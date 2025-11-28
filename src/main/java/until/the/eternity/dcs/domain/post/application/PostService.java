@@ -70,7 +70,7 @@ public class PostService {
                         .collect(Collectors.toList());
 
         postTagService.savePostTags(postTags);
-        postMetaService.createPostMeta(post.getId());
+        postMetaService.createPostMeta(savedPost.getId());
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }
 
