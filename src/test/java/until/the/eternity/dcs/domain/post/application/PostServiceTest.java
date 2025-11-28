@@ -5,10 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -78,8 +75,10 @@ class PostServiceTest {
     private PostSummaryResponse mockSummaryResponse;
     private PostDetailResponse mockDetailResponse;
     private PostPersistResponse mockPersistResponse;
+    List<Long> postIdList;
     Long userId = 1L;
     Board mockBoard;
+    Map<Long, PostMeta> dbMetaMap;
 
     @BeforeEach
     void setUp() {
@@ -159,6 +158,8 @@ class PostServiceTest {
         postMeta2 = PostMeta.builder().postId(2L).viewCount(0).likeCount(0).build();
         postMeta3 =
                 PostMeta.builder().postId(3L).viewCount(22).likeCount(30).commentCount(10).build();
+        postIdList = new ArrayList<>();
+        dbMetaMap = new HashMap<>();
     }
 
     @Nested
@@ -243,8 +244,12 @@ class PostServiceTest {
         @DisplayName("게시글 목록 조회 성공")
         void findPosts_Success() {
             // Given
+            postIdList.add(1L);
+            postIdList.add(2L);
             CustomPageRequest pageRequest = mock(CustomPageRequest.class);
 
+            dbMetaMap.put(postIdList.get(0), postMeta);
+            dbMetaMap.put(postIdList.get(1), postMeta2);
             Pageable pageable = PageRequest.of(1, 10);
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
@@ -252,8 +257,7 @@ class PostServiceTest {
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
-            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
@@ -275,12 +279,15 @@ class PostServiceTest {
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, posts.size());
 
+            postIdList.add(1L);
+            postIdList.add(2L);
+            dbMetaMap.put(postIdList.get(0), postMeta);
+            dbMetaMap.put(postIdList.get(1), postMeta2);
             given(
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
                     .willReturn(postPage);
-            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -302,12 +309,14 @@ class PostServiceTest {
 
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, posts.size());
-
+            postIdList.add(1L);
+            postIdList.add(2L);
+            dbMetaMap.put(postIdList.get(0), postMeta);
+            dbMetaMap.put(postIdList.get(1), postMeta2);
             given(postRepository.findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard)))
                     .willReturn(postPage);
             given(boardService.findBoardById(boardId)).willReturn(mockBoard);
-            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
-            given(postMetaService.getPostMetaInfo(2L)).willReturn(postMeta2);
+            given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -466,10 +475,12 @@ class PostServiceTest {
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
-
+        postIdList.add(1L);
+        postIdList.add(2L);
+        dbMetaMap.put(postIdList.get(0), postMeta);
+        dbMetaMap.put(postIdList.get(1), postMeta2);
         given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfo(mockPost.getId())).willReturn(postMeta);
-        given(postMetaService.getPostMetaInfo(mockPost2.getId())).willReturn(postMeta2);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPosts(pageRequest, keyword);
@@ -493,12 +504,14 @@ class PostServiceTest {
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
-
+        postIdList.add(1L);
+        postIdList.add(2L);
+        dbMetaMap.put(postIdList.get(0), postMeta);
+        dbMetaMap.put(postIdList.get(1), postMeta2);
         given(boardService.findBoardById(boardId)).willReturn(mockBoard);
         given(postRepository.findWithPostMetaByBoardIdAndKeyword(pageable, mockBoard, keyword))
                 .willReturn(postPage);
-        given(postMetaService.getPostMetaInfo(mockPost.getId())).willReturn(postMeta);
-        given(postMetaService.getPostMetaInfo(mockPost2.getId())).willReturn(postMeta2);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> responses =
@@ -522,10 +535,12 @@ class PostServiceTest {
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
-
+        postIdList.add(1L);
+        postIdList.add(2L);
+        dbMetaMap.put(postIdList.get(0), postMeta);
+        dbMetaMap.put(postIdList.get(1), postMeta2);
         given(postRepository.findWithPostMetaByUserId(pageable, userId)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfo(mockPost.getId())).willReturn(postMeta);
-        given(postMetaService.getPostMetaInfo(mockPost2.getId())).willReturn(postMeta2);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPostsByUserId(pageRequest, userId);
@@ -547,9 +562,11 @@ class PostServiceTest {
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+        postIdList.add(3L);
+        dbMetaMap.put(postIdList.get(0), postMeta3);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfo(mockPost3.getId())).willReturn(postMeta3);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> result =
@@ -574,9 +591,11 @@ class PostServiceTest {
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+        postIdList.add(3L);
+        dbMetaMap.put(postIdList.get(0), postMeta3);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findMostLikedPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
-        given(postMetaService.getPostMetaInfo(mockPost3.getId())).willReturn(postMeta3);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
         // when
         Page<PostSummaryResponse> result =
