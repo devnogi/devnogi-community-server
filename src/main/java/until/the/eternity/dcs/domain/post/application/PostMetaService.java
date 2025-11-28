@@ -1,17 +1,21 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostMetaService {
     private final RedisTemplate<String, Object> redisTemplate;
@@ -25,6 +29,12 @@ public class PostMetaService {
     private static final String VIEW_COUNT_FIELD = "viewCount";
     private static final String COMMENT_COUNT_FIELD = "commentCount";
     private static final String RATE_LIMIT_VALUE = "1";
+
+    @Transactional
+    public void createPostMeta(Long postId) {
+        PostMeta pm = PostMeta.create(postId, 0);
+        postMetaRepository.save(pm);
+    }
 
     public void viewPost(Long postId, String userIp) {
 
@@ -119,16 +129,15 @@ public class PostMetaService {
         redisTemplate.delete(keySet);
     }
 
+    @Transactional
     public PostMeta getPostMetaInfo(Long postId) {
         PostMeta postMeta =
                 postMetaRepository
-                        .findById(postId)
-                        .orElseGet(
-                                () ->
-                                        PostMeta.create(
-                                                postId,
-                                                commentRepository.countByPostIdAndIsDeletedFalse(
-                                                        postId)));
+                        .findByPostId(postId)
+                        .orElse(
+                                PostMeta.create(
+                                        postId,
+                                        commentRepository.countByPostIdAndIsDeletedFalse(postId)));
 
         String key = generateKey(postId);
         Map<Object, Object> postMetaInRedis = redisTemplate.opsForHash().entries(key);
@@ -141,6 +150,54 @@ public class PostMetaService {
                 postMeta.getLikeCount() + likesToAdd,
                 postMeta.getCommentCount() + commentsToAdd);
         return postMeta;
+    }
+
+    @Transactional
+    public Map<Long, PostMeta> getPostMetaInfos(List<Long> postIdList) {
+
+        List<PostMeta> dbMetas = postMetaRepository.findAllByPostIdIn(postIdList);
+
+        Map<Long, PostMeta> dbMetaMap =
+                dbMetas.stream().collect(Collectors.toMap(PostMeta::getPostId, meta -> meta));
+
+        List<Object> pipelineResults =
+                redisTemplate.executePipelined(
+                        new SessionCallback<Object>() {
+                            @Override
+                            public <K, V> Object execute(RedisOperations<K, V> operations) {
+                                for (Long postId : postIdList) {
+                                    String key = generateKey(postId);
+                                    operations.opsForHash().entries((K) key);
+                                }
+                                return null;
+                            }
+                        });
+
+        Map<Long, PostMeta> resultMap = new HashMap<>();
+
+        for (int i = 0; i < postIdList.size(); i++) {
+            Long postId = postIdList.get(i);
+
+            PostMeta postMeta = dbMetaMap.get(postId);
+
+            if (postMeta == null) {
+                continue;
+            }
+
+            Map<Object, Object> redisData = (Map<Object, Object>) pipelineResults.get(i);
+
+            if (redisData != null && !redisData.isEmpty()) {
+                postMeta.update(
+                        postMeta.getViewCount() + parseIntFromMap(redisData, VIEW_COUNT_FIELD),
+                        postMeta.getLikeCount() + parseIntFromMap(redisData, LIKE_COUNT_FIELD),
+                        postMeta.getCommentCount()
+                                + parseIntFromMap(redisData, COMMENT_COUNT_FIELD));
+            }
+
+            resultMap.put(postId, postMeta);
+        }
+
+        return resultMap;
     }
 
     private String generateKey(Long postId) {

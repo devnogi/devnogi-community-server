@@ -15,4 +15,6 @@ public interface PostMetaRepository extends JpaRepository<PostMeta, Long> {
     @Modifying
     @Query("DELETE FROM PostMeta pm WHERE pm.postId IN :postIdList")
     void deleteAllByPostIdIn(@Param("postIdList") List<Long> postIdList);
+
+    List<PostMeta> findAllByPostIdIn(List<Long> postIdList);
 }
