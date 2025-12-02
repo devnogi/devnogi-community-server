@@ -148,7 +148,6 @@ public class PostMetaService {
         return PostMetaResponse.of(postMeta, viewsToAdd, likesToAdd, commentsToAdd);
     }
 
-    @Transactional
     public Map<Long, PostMetaResponse> getPostMetaInfos(List<Long> postIdList) {
 
         List<PostMeta> dbMetas = postMetaRepository.findAllByPostIdIn(postIdList);
