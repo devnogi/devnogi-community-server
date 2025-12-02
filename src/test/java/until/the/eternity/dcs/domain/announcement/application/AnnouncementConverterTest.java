@@ -10,6 +10,7 @@ import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersi
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
 import until.the.eternity.dcs.domain.board.entity.Board;
+import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 
@@ -40,10 +41,10 @@ class AnnouncementConverterTest {
                         .isDraft(false)
                         .build();
         PostMeta postMeta = PostMeta.create(id, commentCount);
-
+        PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
         // when
         Announcement announcement =
-                announcementConverter.fromCreateRequestAndPost(request, post, postMeta);
+                announcementConverter.fromCreateRequestAndPost(request, post, postMetaResponse);
 
         // then
         assertThat(announcement).isNotNull();

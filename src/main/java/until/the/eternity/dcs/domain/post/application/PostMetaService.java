@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
+import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -129,8 +130,7 @@ public class PostMetaService {
         redisTemplate.delete(keySet);
     }
 
-    @Transactional
-    public PostMeta getPostMetaInfo(Long postId) {
+    public PostMetaResponse getPostMetaInfo(Long postId) {
         PostMeta postMeta =
                 postMetaRepository
                         .findByPostId(postId)
@@ -145,15 +145,11 @@ public class PostMetaService {
         int likesToAdd = parseIntFromMap(postMetaInRedis, LIKE_COUNT_FIELD);
         int commentsToAdd = parseIntFromMap(postMetaInRedis, COMMENT_COUNT_FIELD);
 
-        postMeta.update(
-                postMeta.getViewCount() + viewsToAdd,
-                postMeta.getLikeCount() + likesToAdd,
-                postMeta.getCommentCount() + commentsToAdd);
-        return postMeta;
+        return PostMetaResponse.of(postMeta, viewsToAdd, likesToAdd, commentsToAdd);
     }
 
     @Transactional
-    public Map<Long, PostMeta> getPostMetaInfos(List<Long> postIdList) {
+    public Map<Long, PostMetaResponse> getPostMetaInfos(List<Long> postIdList) {
 
         List<PostMeta> dbMetas = postMetaRepository.findAllByPostIdIn(postIdList);
 
@@ -173,7 +169,7 @@ public class PostMetaService {
                             }
                         });
 
-        Map<Long, PostMeta> resultMap = new HashMap<>();
+        Map<Long, PostMetaResponse> resultMap = new HashMap<>();
 
         for (int i = 0; i < postIdList.size(); i++) {
             Long postId = postIdList.get(i);
@@ -186,15 +182,18 @@ public class PostMetaService {
 
             Map<Object, Object> redisData = (Map<Object, Object>) pipelineResults.get(i);
 
+            PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
+
             if (redisData != null && !redisData.isEmpty()) {
-                postMeta.update(
-                        postMeta.getViewCount() + parseIntFromMap(redisData, VIEW_COUNT_FIELD),
-                        postMeta.getLikeCount() + parseIntFromMap(redisData, LIKE_COUNT_FIELD),
-                        postMeta.getCommentCount()
-                                + parseIntFromMap(redisData, COMMENT_COUNT_FIELD));
+                postMetaResponse =
+                        PostMetaResponse.of(
+                                postMeta,
+                                parseIntFromMap(redisData, VIEW_COUNT_FIELD),
+                                parseIntFromMap(redisData, LIKE_COUNT_FIELD),
+                                parseIntFromMap(redisData, COMMENT_COUNT_FIELD));
             }
 
-            resultMap.put(postId, postMeta);
+            resultMap.put(postId, postMetaResponse);
         }
 
         return resultMap;

@@ -27,6 +27,7 @@ import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -78,7 +79,10 @@ class PostServiceTest {
     List<Long> postIdList;
     Long userId = 1L;
     Board mockBoard;
-    Map<Long, PostMeta> dbMetaMap;
+    Map<Long, PostMetaResponse> dbMetaMap;
+    PostMetaResponse postMetaResponse;
+    PostMetaResponse postMetaResponse2;
+    PostMetaResponse postMetaResponse3;
 
     @BeforeEach
     void setUp() {
@@ -160,6 +164,10 @@ class PostServiceTest {
                 PostMeta.builder().postId(3L).viewCount(22).likeCount(30).commentCount(10).build();
         postIdList = new ArrayList<>();
         dbMetaMap = new HashMap<>();
+
+        postMetaResponse = PostMetaResponse.from(postMeta);
+        postMetaResponse2 = PostMetaResponse.from(postMeta2);
+        postMetaResponse3 = PostMetaResponse.from(postMeta3);
     }
 
     @Nested
@@ -209,10 +217,11 @@ class PostServiceTest {
                             .userId(1L)
                             .comments(comments)
                             .build();
-            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMeta);
+
+            given(postMetaService.getPostMetaInfo(1L)).willReturn(postMetaResponse);
             given(postRepository.findWithTagsById(postId))
                     .willReturn(Optional.of(postWithComments));
-            given(postConverter.fromPostToPostDetailResponse(postWithComments, postMeta))
+            given(postConverter.fromPostToPostDetailResponse(postWithComments, postMetaResponse))
                     .willReturn(mockDetailResponse);
             int cnt = postMeta.getViewCount();
             // When
@@ -223,7 +232,7 @@ class PostServiceTest {
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);
             verify(postRepository).findWithTagsById(postId);
-            verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMeta);
+            verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMetaResponse);
         }
 
         @Test
@@ -248,8 +257,8 @@ class PostServiceTest {
             postIdList.add(2L);
             CustomPageRequest pageRequest = mock(CustomPageRequest.class);
 
-            dbMetaMap.put(postIdList.get(0), postMeta);
-            dbMetaMap.put(postIdList.get(1), postMeta2);
+            dbMetaMap.put(postIdList.get(0), postMetaResponse);
+            dbMetaMap.put(postIdList.get(1), postMetaResponse2);
             Pageable pageable = PageRequest.of(1, 10);
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
@@ -281,8 +290,8 @@ class PostServiceTest {
 
             postIdList.add(1L);
             postIdList.add(2L);
-            dbMetaMap.put(postIdList.get(0), postMeta);
-            dbMetaMap.put(postIdList.get(1), postMeta2);
+            dbMetaMap.put(postIdList.get(0), postMetaResponse);
+            dbMetaMap.put(postIdList.get(1), postMetaResponse2);
             given(
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
@@ -311,8 +320,9 @@ class PostServiceTest {
             Page<Post> postPage = new PageImpl<>(posts, pageable, posts.size());
             postIdList.add(1L);
             postIdList.add(2L);
-            dbMetaMap.put(postIdList.get(0), postMeta);
-            dbMetaMap.put(postIdList.get(1), postMeta2);
+            dbMetaMap.put(postIdList.get(0), postMetaResponse);
+            dbMetaMap.put(postIdList.get(1), postMetaResponse2);
+            ;
             given(postRepository.findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard)))
                     .willReturn(postPage);
             given(boardService.findBoardById(boardId)).willReturn(mockBoard);
@@ -452,7 +462,6 @@ class PostServiceTest {
             given(postLikeRepository.existsByUserIdAndPostId(mockUser.getId(), mockPost.getId()))
                     .willReturn(true);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
-            //            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
             given(postMetaService.canDoMethod(1L, "unlike", "1")).willReturn(true);
             int cnt = postMeta.getLikeCount();
             // when
@@ -477,8 +486,8 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         postIdList.add(1L);
         postIdList.add(2L);
-        dbMetaMap.put(postIdList.get(0), postMeta);
-        dbMetaMap.put(postIdList.get(1), postMeta2);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse);
+        dbMetaMap.put(postIdList.get(1), postMetaResponse2);
         given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
@@ -506,8 +515,8 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         postIdList.add(1L);
         postIdList.add(2L);
-        dbMetaMap.put(postIdList.get(0), postMeta);
-        dbMetaMap.put(postIdList.get(1), postMeta2);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse);
+        dbMetaMap.put(postIdList.get(1), postMetaResponse2);
         given(boardService.findBoardById(boardId)).willReturn(mockBoard);
         given(postRepository.findWithPostMetaByBoardIdAndKeyword(pageable, mockBoard, keyword))
                 .willReturn(postPage);
@@ -537,8 +546,8 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         postIdList.add(1L);
         postIdList.add(2L);
-        dbMetaMap.put(postIdList.get(0), postMeta);
-        dbMetaMap.put(postIdList.get(1), postMeta2);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse);
+        dbMetaMap.put(postIdList.get(1), postMetaResponse2);
         given(postRepository.findWithPostMetaByUserId(pageable, userId)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
 
@@ -563,7 +572,7 @@ class PostServiceTest {
         List<Post> posts = Arrays.asList(mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         postIdList.add(3L);
-        dbMetaMap.put(postIdList.get(0), postMeta3);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse3);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
@@ -592,7 +601,7 @@ class PostServiceTest {
         List<Post> posts = Arrays.asList(mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         postIdList.add(3L);
-        dbMetaMap.put(postIdList.get(0), postMeta3);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse3);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findMostLikedPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);

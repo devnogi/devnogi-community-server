@@ -21,6 +21,7 @@ import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicat
 import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
+import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
@@ -38,6 +39,7 @@ class AnnouncementServiceTest {
     Long userId = 1L;
     PostMeta postMeta;
     Integer commentCount = 1;
+    PostMetaResponse postMetaResponse;
 
     @BeforeEach
     void init() {
@@ -67,6 +69,7 @@ class AnnouncementServiceTest {
                         .board(Board.builder().announcements(new ArrayList<>()).build())
                         .build();
         postMeta = PostMeta.create(id, commentCount);
+        postMetaResponse = PostMetaResponse.from(postMeta);
     }
 
     @Test
@@ -76,7 +79,7 @@ class AnnouncementServiceTest {
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(post));
         when(announcementRepository.save(Mockito.any(Announcement.class))).thenReturn(announcement);
-        when(postMetaService.getPostMetaInfo(id)).thenReturn(postMeta);
+        when(postMetaService.getPostMetaInfo(id)).thenReturn(postMetaResponse);
         AnnouncementCreateRequest request = new AnnouncementCreateRequest(true);
 
         // when
