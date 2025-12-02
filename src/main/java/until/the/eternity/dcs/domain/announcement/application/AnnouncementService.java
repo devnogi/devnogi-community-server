@@ -45,8 +45,6 @@ public class AnnouncementService {
 
         Announcement announcement = converter.fromCreateRequestAndPost(request, post, postMeta);
         Announcement saved = repository.save(announcement);
-        // todo 이 부분이 어떤 역할을 하는지 물어보기
-        // postMetaRepository.save(postMeta);
 
         Board board = post.getBoard();
         board.getAnnouncements().add(announcement);
