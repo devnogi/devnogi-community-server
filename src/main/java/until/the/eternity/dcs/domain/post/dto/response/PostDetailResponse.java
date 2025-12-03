@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.entity.PostMeta;
 
 @Builder
 public record PostDetailResponse(
@@ -24,16 +23,16 @@ public record PostDetailResponse(
                 LocalDateTime createdAt,
         @Schema(description = "수정일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime updatedAt) {
-    public static PostDetailResponse from(Post post, PostMeta postMeta) {
+    public static PostDetailResponse from(Post post, PostMetaResponse postMeta) {
         return PostDetailResponse.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
                 .userId(post.getUserId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .viewCount(postMeta.getViewCount())
-                .likeCount(postMeta.getLikeCount())
-                .commentCount(postMeta.getCommentCount())
+                .viewCount(postMeta.viewCount())
+                .likeCount(postMeta.likeCount())
+                .commentCount(postMeta.commentCount())
                 .isDraft(post.getIsDraft())
                 .isBlocked(post.getIsBlocked())
                 .createdAt(post.getCreatedAt())

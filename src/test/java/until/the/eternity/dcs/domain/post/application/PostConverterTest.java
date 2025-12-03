@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
@@ -70,9 +71,10 @@ public class PostConverterTest {
 
         Post post = Post.builder().id(1L).title(title).build();
         post.setCreatedAt(LocalDateTime.now());
-
+        PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
         // when
-        PostSummaryResponse result = postConverter.fromPostToPostSummaryResponse(post, postMeta);
+        PostSummaryResponse result =
+                postConverter.fromPostToPostSummaryResponse(post, postMetaResponse);
 
         // then
         assertThat(result).isNotNull();
@@ -109,8 +111,11 @@ public class PostConverterTest {
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
 
+        PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
+
         // when
-        PostDetailResponse result = postConverter.fromPostToPostDetailResponse(post, postMeta);
+        PostDetailResponse result =
+                postConverter.fromPostToPostDetailResponse(post, postMetaResponse);
 
         // then
         assertThat(result).isNotNull();

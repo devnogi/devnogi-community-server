@@ -19,8 +19,8 @@ import until.the.eternity.dcs.domain.announcement.exception.AnnouncementNotFound
 import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
+import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -41,11 +41,10 @@ public class AnnouncementService {
         duplicateCheck(postId);
 
         Post post = getPost(postId);
-        PostMeta postMeta = getPostMetaInfo(postId);
+        PostMetaResponse postMeta = getPostMetaInfo(postId);
 
         Announcement announcement = converter.fromCreateRequestAndPost(request, post, postMeta);
         Announcement saved = repository.save(announcement);
-        postMetaRepository.save(postMeta);
 
         Board board = post.getBoard();
         board.getAnnouncements().add(announcement);
@@ -91,7 +90,7 @@ public class AnnouncementService {
                 .orElseThrow(() -> new PostNotFoundException(postId));
     }
 
-    private PostMeta getPostMetaInfo(Long postId) {
+    private PostMetaResponse getPostMetaInfo(Long postId) {
         return postMetaService.getPostMetaInfo(postId);
     }
 
