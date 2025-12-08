@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # 1. Spring Boot 애플리케이션 (추가된 부분)
+  backend:
+    container_name: devnogi-community-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8093:8093"
+    environment:
+      # JVM 설정
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
+      - SPRING_PROFILES_ACTIVE=local
+
+      # application.yml 변수 매핑
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_SCHEMA=${DB_SCHEMA}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_PORT=6379
+      - REDIS_HOST=redis
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - my-network
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: devnogi-community-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - my-network
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0
+    container_name: devnogi-community-mysql
+    restart: unless-stopped
+    ports:
+      - "3319:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_SCHEMA}
+      MYSQL_USER: ${DB_USER:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      LANG: C.UTF_8
+      TZ: Asia/Seoul
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - my-network
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+09:00
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  my-network:
+    driver: bridge
