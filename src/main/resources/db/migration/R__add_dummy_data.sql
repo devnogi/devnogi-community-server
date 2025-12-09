@@ -111,13 +111,24 @@ VALUES
     (4, 14, 3, NOW()),
     (5, 18, 2, NOW());
 
+-- postMeta 더미데이터
 INSERT INTO post_meta (post_id, view_count, like_count, comment_count)
 SELECT
     p.id,
-    GREATEST(COUNT(DISTINCT pl.id),COUNT(DISTINCT c.id)),
-    COUNT(DISTINCT pl.id),
-    COUNT(DISTINCT c.id)
+    GREATEST(
+            COALESCE(l.like_count, 0),
+            COALESCE(c.comment_count, 0)
+    ) AS view_count,
+    COALESCE(l.like_count, 0) AS like_count,
+    COALESCE(c.comment_count, 0) AS comment_count
 FROM post p
-         LEFT JOIN post_like pl ON p.id = pl.post_id
-         LEFT JOIN comment c ON p.id = c.post_id
-GROUP BY p.id;
+         LEFT JOIN (
+    SELECT post_id, COUNT(*) AS like_count
+    FROM post_like
+    GROUP BY post_id
+) l ON p.id = l.post_id
+         LEFT JOIN (
+    SELECT post_id, COUNT(*) AS comment_count
+    FROM comment
+    GROUP BY post_id
+) c ON p.id = c.post_id;
