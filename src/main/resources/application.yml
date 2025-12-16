@@ -45,23 +45,22 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
     locations: classpath:db/migration
-  resources:
-    static-locations: classpath:/static/
   mvc:
     contentnegotiation:
       # URL 확장자에 의한 컨텐트 타입 결정
       favor-path-extension: true
       # Accept 헤더 무시
       ignore-accept-header: true
-  redis:
-    host: localhost
-    port: ${REDIS_PORT:6379}
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-        max-wait: -1ms
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
   cache:
     type: redis
     redis:
@@ -151,7 +150,7 @@ spring:
       on-profile: prod
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
-      ssl: true  # 운영환경에서는 SSL 사용
+      host: redis
+      port: 6379
+      ssl:
+        enabled: false
