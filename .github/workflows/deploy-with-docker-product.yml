@@ -35,13 +35,13 @@ jobs:
       - name: Build (Gradle) & Docker build/tag
         run: |
           ./gradlew clean build -x test
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:${{ github.sha }} .
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
 
       - name: Push Docker images
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:${{ github.sha }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
 
   deploy:
     runs-on: ubuntu-latest
