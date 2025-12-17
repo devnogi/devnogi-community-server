@@ -55,7 +55,7 @@ jobs:
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT }}
           script: |
-            cd /devnogi-community
+            cd devnogi-community
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             docker compose -f docker-compose.prod.yml --env-file .env.prod pull backend
             docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
