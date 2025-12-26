@@ -38,7 +38,7 @@ spring:
     properties:
       hibernate:
         default_batch_fetch_size: 100
-#    show-sql: true
+  #    show-sql: true
   flyway:
     enabled: true
     encoding: UTF-8
@@ -150,7 +150,8 @@ spring:
       on-profile: prod
   data:
     redis:
-      host: redis
-      port: 6379
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       ssl:
-        enabled: false
+        enabled: true
