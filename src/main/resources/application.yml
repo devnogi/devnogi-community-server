@@ -121,6 +121,13 @@ springdoc:
   swagger-ui:
     enabled: false
 
+#로컬용 설정
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: my-local-bucket-name
+
 
 # 환경별 redis 설정 분리
 ---
@@ -155,3 +162,4 @@ spring:
       password: ${REDIS_PASSWORD:}
       ssl:
         enabled: true
+
