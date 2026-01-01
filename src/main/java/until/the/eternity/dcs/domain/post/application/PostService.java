@@ -54,6 +54,7 @@ public class PostService {
     private final RedisSender redisSender;
     private final PostMetaService postMetaService;
     private final PostPermissionEvaluator postPermissionEvaluator;
+    private final MinioService minioService;
 
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
