@@ -126,7 +126,7 @@ minio:
   url: http://localhost:9000
   access-key: minioadmin
   secret-key: minioadmin
-  bucket: my-local-bucket-name
+  bucket: dcs-local-bucket
 
 
 # 환경별 redis 설정 분리
