@@ -62,6 +62,13 @@ public class Post extends SoftDeleteEntity {
             orphanRemoval = true)
     private List<PostTag> postTags;
 
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
+    private List<PostImage> images;
+
     public void update(
             String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId) {
         if (title != null) {
@@ -80,5 +87,16 @@ public class Post extends SoftDeleteEntity {
         if (userId != null) {
             this.setUpdatedBy(userId);
         }
+    }
+
+    public void addImage(String originalFileName, String storedFileName) {
+        PostImage image =
+                PostImage.builder()
+                        .originalFileName(originalFileName)
+                        .storedFileName(storedFileName)
+                        .post(this)
+                        .build();
+
+        this.images.add(image);
     }
 }
