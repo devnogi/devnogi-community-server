@@ -11,10 +11,10 @@ server:
 
 #로컬용 설정
 minio:
-  url: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket: dcs-local-bucket
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket: ${MINIO_BUCKET:dcs-local-bucket}
 
 
 management:
@@ -163,4 +163,5 @@ spring:
       password: ${REDIS_PASSWORD:}
       ssl:
         enabled: true
-
+minio:
+  url: http://minio:9000
