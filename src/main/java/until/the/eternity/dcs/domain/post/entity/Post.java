@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
@@ -67,7 +68,10 @@ public class Post extends SoftDeleteEntity {
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY,
             orphanRemoval = true)
-    private List<PostImage> images;
+    @Builder.Default
+    private List<PostImage> images = new ArrayList<>();
+
+    ;
 
     public void update(
             String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId) {

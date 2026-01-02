@@ -82,19 +82,17 @@ public class PostService {
                     String storedFileName = minioService.uploadFile(file);
                     uploadedFileNames.add(storedFileName);
 
-                    post.addImage(file.getOriginalFilename(), storedFileName);
+                    savedPost.addImage(file.getOriginalFilename(), storedFileName);
                 }
             }
             postTagService.savePostTags(postTags);
             postMetaService.createPostMeta(savedPost.getId());
             return postConverter.fromPostToPostPersistResponse(savedPost);
         } catch (Exception e) {
-            // [보상 트랜잭션] DB 저장 실패 시, MinIO에 올라간 파일들 삭제 (청소)
             for (String fileName : uploadedFileNames) {
                 try {
                     minioService.deleteFile(fileName);
                 } catch (Exception ignore) {
-                    // 롤백 중 에러는 로그만 남기고 넘어감
                 }
             }
             throw new RuntimeException("게시글 저장에 실패하여 롤백했습니다.", e);
