@@ -3,10 +3,13 @@ package until.the.eternity.dcs.domain.post.application;
 import io.minio.*;
 import io.minio.http.Method;
 import java.io.InputStream;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -29,27 +32,47 @@ public class MinioService {
 
     // 파일 업로드
     public String uploadFile(MultipartFile file) throws Exception {
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어있습니다.");
+        }
 
-        minioClient.putObject(
-                PutObjectArgs.builder().bucket(bucketName).object(fileName).stream(
-                                file.getInputStream(), file.getSize(), -1)
-                        .contentType(file.getContentType())
-                        .build());
+        try {
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String fileName = UUID.randomUUID() + extension;
 
-        return fileName;
+            InputStream inputStream = file.getInputStream();
+
+            minioClient.putObject(
+                    PutObjectArgs.builder().bucket(bucketName).object(fileName).stream(
+                                    inputStream, file.getSize(), -1)
+                            .contentType(file.getContentType())
+                            .build());
+
+            return fileName;
+        } catch (Exception e) {
+            throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
+        }
     }
 
     // 파일 다운로드
-    public InputStream downloadFile(String fileName) throws Exception {
-        return minioClient.getObject(
-                GetObjectArgs.builder().bucket(bucketName).object(fileName).build());
+    public InputStream downloadFile(String fileName) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder().bucket(bucketName).object(fileName).build());
+        } catch (Exception e) {
+            throw new RuntimeException("파일 다운로드 실패", e);
+        }
     }
 
     // 파일 삭제
-    public void deleteFile(String fileName) throws Exception {
-        minioClient.removeObject(
-                RemoveObjectArgs.builder().bucket(bucketName).object(fileName).build());
+    public void deleteFile(String fileName) {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder().bucket(bucketName).object(fileName).build());
+        } catch (Exception e) {
+            throw new RuntimeException("파일 삭제 실패", e);
+        }
     }
 
     // 파일 URL 가져오기
@@ -62,7 +85,7 @@ public class MinioService {
                             .method(Method.GET)
                             .build());
         } catch (Exception e) {
-            throw new RuntimeException("URL 생성 실패: " + e.getMessage());
+            throw new RuntimeException("URL 생성 실패", e);
         }
     }
 }

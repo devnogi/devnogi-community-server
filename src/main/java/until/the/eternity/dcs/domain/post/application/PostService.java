@@ -95,7 +95,7 @@ public class PostService {
                 } catch (Exception ignore) {
                 }
             }
-            throw new RuntimeException("게시글 저장에 실패하여 롤백했습니다.", e);
+            throw new RuntimeException("게시글 저장 실패: " + e.getMessage(), e);
         }
     }
 
