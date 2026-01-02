@@ -7,6 +7,5 @@ CREATE TABLE post_image
     CONSTRAINT fk_post_image_post FOREIGN KEY (post_id)
     REFERENCES post(id)
     ON DELETE CASCADE,
-    INDEX idx_post_id (post_id),
-    INDEX idx_display_order (display_order)
+    INDEX idx_post_id (post_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
