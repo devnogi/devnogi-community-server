@@ -24,7 +24,7 @@ public record PostDetailResponse(
                 LocalDateTime createdAt,
         @Schema(description = "수정일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime updatedAt,
-        @Schema(description = "게시글 제목", example = "게시글 제목입니다.") List<String> imageUrlList) {
+        @Schema(description = "이미지 URL 리스트", example = "") List<String> imageUrlList) {
     public static PostDetailResponse from(
             Post post, PostMetaResponse postMeta, List<String> imageUrlList) {
         return PostDetailResponse.builder()
