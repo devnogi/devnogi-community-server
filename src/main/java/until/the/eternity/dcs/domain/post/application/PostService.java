@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
@@ -58,21 +59,46 @@ public class PostService {
 
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
-    public PostPersistResponse createPost(PostCreateRequest request) {
+    public PostPersistResponse createPost(PostCreateRequest request, List<MultipartFile> files) {
 
-        Long userId = getCurrentUserId();
-        Post post = postConverter.fromCreateRequestToPost(request, userId);
-        Post savedPost = postRepository.save(post);
+        List<String> uploadedFileNames = new ArrayList<>();
 
-        List<PostTag> postTags =
-                request.tags().stream()
-                        .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
-                        .collect(Collectors.toList());
+        try {
+            Long userId = getCurrentUserId();
+            Post post = postConverter.fromCreateRequestToPost(request, userId);
+            Post savedPost = postRepository.save(post);
 
-        postTagService.savePostTags(postTags);
-        postMetaService.createPostMeta(savedPost.getId());
-        return postConverter.fromPostToPostPersistResponse(savedPost);
+            List<PostTag> postTags =
+                    request.tags().stream()
+                            .map(tagService::findOrCreateTag)
+                            .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
+                            .collect(Collectors.toList());
+            if (files != null && !files.isEmpty()) {
+                if (files.size() > 5) {
+                    throw new IllegalArgumentException("이미지는 최대 5개까지 업로드 가능합니다.");
+                }
+
+                for (MultipartFile file : files) {
+                    String storedFileName = minioService.uploadFile(file);
+                    uploadedFileNames.add(storedFileName);
+
+                    post.addImage(file.getOriginalFilename(), storedFileName);
+                }
+            }
+            postTagService.savePostTags(postTags);
+            postMetaService.createPostMeta(savedPost.getId());
+            return postConverter.fromPostToPostPersistResponse(savedPost);
+        } catch (Exception e) {
+            // [보상 트랜잭션] DB 저장 실패 시, MinIO에 올라간 파일들 삭제 (청소)
+            for (String fileName : uploadedFileNames) {
+                try {
+                    minioService.deleteFile(fileName);
+                } catch (Exception ignore) {
+                    // 롤백 중 에러는 로그만 남기고 넘어감
+                }
+            }
+            throw new RuntimeException("게시글 저장에 실패하여 롤백했습니다.", e);
+        }
     }
 
     public PostDetailResponse findPost(Long id) {
@@ -80,10 +106,15 @@ public class PostService {
 
         String userIp =
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
+
+        List<String> imageUrls =
+                post.getImages().stream()
+                        .map(image -> minioService.getFileUrl(image.getStoredFileName()))
+                        .collect(Collectors.toList());
+
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        List<String> dummyList = new ArrayList<>(); // 임시로 해둔값(차후 로직구현시 제거)
-        return postConverter.fromPostToPostDetailResponse(post, postMeta, dummyList);
+        return postConverter.fromPostToPostDetailResponse(post, postMeta, imageUrls);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {

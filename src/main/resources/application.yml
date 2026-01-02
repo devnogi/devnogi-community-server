@@ -9,6 +9,14 @@ server:
     mbeanregistry:
       enabled: true
 
+#로컬용 설정
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: dcs-local-bucket
+
+
 management:
   endpoints:
     web:
@@ -120,13 +128,6 @@ spring:
 springdoc:
   swagger-ui:
     enabled: false
-
-#로컬용 설정
-minio:
-  url: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket: dcs-local-bucket
 
 
 # 환경별 redis 설정 분리

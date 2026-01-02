@@ -14,7 +14,7 @@ public class MinioService {
 
     private final MinioClient minioClient;
 
-    @Value("${minio.bucket-name}")
+    @Value("${minio.bucket}")
     private String bucketName;
 
     // 버킷 존재 여부 확인 및 생성
@@ -53,12 +53,16 @@ public class MinioService {
     }
 
     // 파일 URL 가져오기
-    public String getPresignedUrl(String fileName) throws Exception {
-        return minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                        .bucket(bucketName)
-                        .object(fileName)
-                        .method(Method.GET)
-                        .build());
+    public String getFileUrl(String fileName) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .bucket(bucketName)
+                            .object(fileName)
+                            .method(Method.GET)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException("URL 생성 실패: " + e.getMessage());
+        }
     }
 }

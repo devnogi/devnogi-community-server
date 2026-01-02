@@ -7,9 +7,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.common.response.CustomPageResponse;
 import until.the.eternity.dcs.domain.post.application.PostService;
@@ -37,8 +39,9 @@ public class PostController {
             responseCode = "201",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public ResponseEntity<PostPersistResponse> createPost(
-            @Valid @RequestBody PostCreateRequest request) {
-        return ResponseEntity.status(CREATED).body(postService.createPost(request));
+            @Valid @RequestPart(value = "data") PostCreateRequest request,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        return ResponseEntity.status(CREATED).body(postService.createPost(request, files));
     }
 
     @GetMapping("/details/{id}")
