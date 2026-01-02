@@ -217,11 +217,13 @@ class PostServiceTest {
                             .userId(1L)
                             .comments(comments)
                             .build();
-
+            List<String> imageList = new ArrayList<>();
             given(postMetaService.getPostMetaInfo(1L)).willReturn(postMetaResponse);
             given(postRepository.findWithTagsById(postId))
                     .willReturn(Optional.of(postWithComments));
-            given(postConverter.fromPostToPostDetailResponse(postWithComments, postMetaResponse))
+            given(
+                            postConverter.fromPostToPostDetailResponse(
+                                    postWithComments, postMetaResponse, imageList))
                     .willReturn(mockDetailResponse);
             int cnt = postMeta.getViewCount();
             // When
@@ -232,7 +234,8 @@ class PostServiceTest {
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);
             verify(postRepository).findWithTagsById(postId);
-            verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMetaResponse);
+            verify(postConverter)
+                    .fromPostToPostDetailResponse(postWithComments, postMetaResponse, imageList);
         }
 
         @Test

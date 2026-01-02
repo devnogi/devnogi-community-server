@@ -82,7 +82,8 @@ public class PostService {
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(post, postMeta);
+        List<String> dummyList = new ArrayList<>(); // 임시로 해둔값(차후 로직구현시 제거)
+        return postConverter.fromPostToPostDetailResponse(post, postMeta, dummyList);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {

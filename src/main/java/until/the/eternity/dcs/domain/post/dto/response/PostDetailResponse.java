@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.post.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.post.entity.Post;
 
@@ -22,8 +23,10 @@ public record PostDetailResponse(
         @Schema(description = "생성일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime createdAt,
         @Schema(description = "수정일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-                LocalDateTime updatedAt) {
-    public static PostDetailResponse from(Post post, PostMetaResponse postMeta) {
+                LocalDateTime updatedAt,
+        @Schema(description = "게시글 제목", example = "게시글 제목입니다.") List<String> imageUrlList) {
+    public static PostDetailResponse from(
+            Post post, PostMetaResponse postMeta, List<String> imageUrlList) {
         return PostDetailResponse.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
@@ -37,6 +40,7 @@ public record PostDetailResponse(
                 .isBlocked(post.getIsBlocked())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
+                .imageUrlList(imageUrlList)
                 .build();
     }
 }
