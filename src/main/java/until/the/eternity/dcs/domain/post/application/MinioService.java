@@ -2,14 +2,18 @@ package until.the.eternity.dcs.domain.post.application;
 
 import io.minio.*;
 import io.minio.http.Method;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
+import until.the.eternity.dcs.domain.post.exception.InvalidExtensionException;
+import until.the.eternity.dcs.domain.post.exception.InvalidFileNameException;
+import until.the.eternity.dcs.domain.post.exception.MissingFileUploadException;
 
 @Service
 @RequiredArgsConstructor
@@ -31,16 +35,26 @@ public class MinioService {
     }
 
     // 파일 업로드
-    public String uploadFile(MultipartFile file) throws Exception {
+    public String uploadFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 비어있습니다.");
+            throw new MissingFileUploadException();
+        }
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null
+                || !originalFilename.contains(".")
+                || originalFilename.lastIndexOf('.') == originalFilename.length() - 1) {
+            throw new InvalidFileNameException();
+        }
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+
+        List<String> allowedExtensions = Arrays.asList(".jpg", ".jpeg", ".png", ".gif");
+
+        if (!allowedExtensions.contains(extension.toLowerCase())) {
+            throw new InvalidExtensionException();
         }
 
+        String fileName = UUID.randomUUID() + extension;
         try {
-            String originalFilename = file.getOriginalFilename();
-            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            String fileName = UUID.randomUUID() + extension;
-
             InputStream inputStream = file.getInputStream();
 
             minioClient.putObject(
@@ -50,6 +64,8 @@ public class MinioService {
                             .build());
 
             return fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("파일을 읽는 도중 오류가 발생했습니다.", e);
         } catch (Exception e) {
             throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
         }

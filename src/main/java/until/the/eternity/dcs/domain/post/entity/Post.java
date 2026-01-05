@@ -71,8 +71,6 @@ public class Post extends SoftDeleteEntity {
     @Builder.Default
     private List<PostImage> images = new ArrayList<>();
 
-    ;
-
     public void update(
             String title, String content, Boolean isDraft, List<PostTag> postTags, Long userId) {
         if (title != null) {

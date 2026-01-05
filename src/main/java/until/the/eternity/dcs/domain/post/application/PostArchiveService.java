@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostArchive;
@@ -16,6 +17,7 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.infrastructure.PostTagRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostArchiveService {
@@ -55,7 +57,7 @@ public class PostArchiveService {
             try {
                 minioService.deleteFile(fileName);
             } catch (Exception e) {
-                throw new RuntimeException("이미지를 삭제할 수 없습니다.", e);
+                log.error("MinIO 파일 삭제 실패 (파일명: {}): {}", fileName, e.getMessage());
             }
         }
     }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,7 @@ import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -63,40 +65,41 @@ public class PostService {
 
         List<String> uploadedFileNames = new ArrayList<>();
 
-        try {
-            Long userId = getCurrentUserId();
-            Post post = postConverter.fromCreateRequestToPost(request, userId);
-            Post savedPost = postRepository.save(post);
+        Long userId = getCurrentUserId();
+        Post post = postConverter.fromCreateRequestToPost(request, userId);
+        Post savedPost = postRepository.save(post);
 
-            List<PostTag> postTags =
-                    request.tags().stream()
-                            .map(tagService::findOrCreateTag)
-                            .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
-                            .collect(Collectors.toList());
-            if (files != null && !files.isEmpty()) {
-                if (files.size() > 5) {
-                    throw new IllegalArgumentException("이미지는 최대 5개까지 업로드 가능합니다.");
-                }
-
+        List<PostTag> postTags =
+                request.tags().stream()
+                        .map(tagService::findOrCreateTag)
+                        .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
+                        .collect(Collectors.toList());
+        if (files != null && !files.isEmpty()) {
+            if (files.size() > 5) {
+                throw new IllegalArgumentException("이미지는 최대 5개까지 업로드 가능합니다.");
+            }
+            try {
                 for (MultipartFile file : files) {
                     String storedFileName = minioService.uploadFile(file);
                     uploadedFileNames.add(storedFileName);
 
                     savedPost.addImage(file.getOriginalFilename(), storedFileName);
                 }
-            }
-            postTagService.savePostTags(postTags);
-            postMetaService.createPostMeta(savedPost.getId());
-            return postConverter.fromPostToPostPersistResponse(savedPost);
-        } catch (Exception e) {
-            for (String fileName : uploadedFileNames) {
-                try {
-                    minioService.deleteFile(fileName);
-                } catch (Exception ignore) {
+            } catch (Exception e) {
+                for (String fileName : uploadedFileNames) {
+                    try {
+                        minioService.deleteFile(fileName);
+                    } catch (Exception ignore) {
+                        log.error("롤백 중 파일 삭제 실패: {}", fileName);
+                    }
                 }
+                throw e;
             }
-            throw new RuntimeException("게시글 저장 실패: " + e.getMessage(), e);
         }
+
+        postTagService.savePostTags(postTags);
+        postMetaService.createPostMeta(savedPost.getId());
+        return postConverter.fromPostToPostPersistResponse(savedPost);
     }
 
     public PostDetailResponse findPost(Long id) {

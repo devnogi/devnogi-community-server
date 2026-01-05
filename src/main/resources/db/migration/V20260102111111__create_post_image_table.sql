@@ -1,4 +1,4 @@
-DROP TABLE post_image;
+DROP TABLE IF EXISTS post_image;
 
 
 CREATE TABLE post_image
