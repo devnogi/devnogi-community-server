@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
+import until.the.eternity.dcs.common.infrastructure.MinioService;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;

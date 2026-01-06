@@ -1,4 +1,6 @@
-package until.the.eternity.dcs.domain.post.application;
+package until.the.eternity.dcs.common.infrastructure;
+
+import static until.the.eternity.dcs.common.exception.PostImageExceptionCode.*;
 
 import io.minio.*;
 import io.minio.http.Method;
@@ -11,9 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import until.the.eternity.dcs.domain.post.exception.InvalidExtensionException;
-import until.the.eternity.dcs.domain.post.exception.InvalidFileNameException;
-import until.the.eternity.dcs.domain.post.exception.MissingFileUploadException;
+import until.the.eternity.dcs.common.exception.FileStorageException;
+import until.the.eternity.dcs.common.exception.InvalidExtensionException;
+import until.the.eternity.dcs.common.exception.InvalidFileNameException;
+import until.the.eternity.dcs.common.exception.MissingFileUploadException;
 
 @Service
 @RequiredArgsConstructor
@@ -65,9 +68,9 @@ public class MinioService {
 
             return fileName;
         } catch (IOException e) {
-            throw new RuntimeException("파일을 읽는 도중 오류가 발생했습니다.", e);
+            throw new FileStorageException(FILE_UPLOAD_FAILED_EXCEPTION);
         } catch (Exception e) {
-            throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
+            throw new FileStorageException(FILE_READ_FAILED_EXCEPTION);
         }
     }
 
@@ -77,7 +80,7 @@ public class MinioService {
             return minioClient.getObject(
                     GetObjectArgs.builder().bucket(bucketName).object(fileName).build());
         } catch (Exception e) {
-            throw new RuntimeException("파일 다운로드 실패", e);
+            throw new FileStorageException(FILE_DOWNLOAD_FAILED_EXCEPTION);
         }
     }
 
@@ -87,7 +90,7 @@ public class MinioService {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(fileName).build());
         } catch (Exception e) {
-            throw new RuntimeException("파일 삭제 실패", e);
+            throw new FileStorageException(FILE_DELETE_FAILED_EXCEPTION);
         }
     }
 
@@ -101,7 +104,7 @@ public class MinioService {
                             .method(Method.GET)
                             .build());
         } catch (Exception e) {
-            throw new RuntimeException("URL 생성 실패", e);
+            throw new FileStorageException(FILE_URL_GENERATION_FAILED_EXCEPTION);
         }
     }
 }

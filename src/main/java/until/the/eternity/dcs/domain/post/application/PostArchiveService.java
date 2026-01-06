@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import until.the.eternity.dcs.common.infrastructure.MinioService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostArchive;
 import until.the.eternity.dcs.domain.post.entity.PostImage;
@@ -43,10 +44,10 @@ public class PostArchiveService {
         postMetaRepository.deleteAllByPostIdIn(postIdList);
         List<String> filesToDelete = new ArrayList<>();
         for (Post post : postList) {
-            filesToDelete =
+            filesToDelete.addAll(
                     post.getImages().stream()
                             .map(PostImage::getStoredFileName)
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toList()));
         }
         for (Long postId : postIdList) {
             postMetaService.deletePostMeta(postId);
