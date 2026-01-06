@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.post.application;
 
+import java.util.List;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
@@ -27,8 +28,9 @@ public class PostConverter {
         return PostSummaryResponse.of(post, postMeta);
     }
 
-    public PostDetailResponse fromPostToPostDetailResponse(Post post, PostMetaResponse postMeta) {
-        return PostDetailResponse.from(post, postMeta);
+    public PostDetailResponse fromPostToPostDetailResponse(
+            Post post, PostMetaResponse postMeta, List<String> imageUrlList) {
+        return PostDetailResponse.from(post, postMeta, imageUrlList);
     }
 
     public PostPersistResponse fromPostToPostPersistResponse(Post post) {

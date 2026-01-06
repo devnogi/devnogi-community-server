@@ -18,6 +18,7 @@ import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.application.BoardService;
@@ -186,9 +187,9 @@ class PostServiceTest {
             given(postRepository.save(mockPost)).willReturn(mockPost);
             given(postConverter.fromPostToPostPersistResponse(mockPost))
                     .willReturn(mockPersistResponse);
-
+            List<MultipartFile> files = new ArrayList<>();
             // When
-            PostPersistResponse result = postService.createPost(createRequest);
+            PostPersistResponse result = postService.createPost(createRequest, files);
 
             // Then
             assertThat(result).isEqualTo(mockPersistResponse);
@@ -217,11 +218,13 @@ class PostServiceTest {
                             .userId(1L)
                             .comments(comments)
                             .build();
-
+            List<String> imageList = new ArrayList<>();
             given(postMetaService.getPostMetaInfo(1L)).willReturn(postMetaResponse);
             given(postRepository.findWithTagsById(postId))
                     .willReturn(Optional.of(postWithComments));
-            given(postConverter.fromPostToPostDetailResponse(postWithComments, postMetaResponse))
+            given(
+                            postConverter.fromPostToPostDetailResponse(
+                                    postWithComments, postMetaResponse, imageList))
                     .willReturn(mockDetailResponse);
             int cnt = postMeta.getViewCount();
             // When
@@ -232,7 +235,8 @@ class PostServiceTest {
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);
             verify(postRepository).findWithTagsById(postId);
-            verify(postConverter).fromPostToPostDetailResponse(postWithComments, postMetaResponse);
+            verify(postConverter)
+                    .fromPostToPostDetailResponse(postWithComments, postMetaResponse, imageList);
         }
 
         @Test

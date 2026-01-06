@@ -9,6 +9,14 @@ server:
     mbeanregistry:
       enabled: true
 
+#로컬용 설정
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket: ${MINIO_BUCKET:dcs-local-bucket}
+
+
 management:
   endpoints:
     web:
@@ -155,3 +163,5 @@ spring:
       password: ${REDIS_PASSWORD:}
       ssl:
         enabled: true
+minio:
+  url: http://minio:9000

@@ -13,6 +13,8 @@ services:
       # JVM 설정
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
       - SPRING_PROFILES_ACTIVE=local
+      - MINIO_URL=http://minio:9000
+      - MINIO_BUCKET=dcs-local-bucket
 
       # application.yml 변수 매핑
       - DB_HOST=mysql
@@ -27,6 +29,8 @@ services:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     networks:
       - my-network
@@ -75,6 +79,27 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio-local
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    volumes:
+      - ./local-minio-data:/data
+    command: server /data --console-address ":9001"
+
+    networks:
+      - my-network
+
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 networks:
   my-network:
     driver: bridge

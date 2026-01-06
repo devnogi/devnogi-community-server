@@ -40,6 +40,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("io.minio:minio:8.5.7")
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-mysql")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

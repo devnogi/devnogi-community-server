@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
+import until.the.eternity.dcs.common.infrastructure.MinioService;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
@@ -40,6 +43,7 @@ import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -54,10 +58,13 @@ public class PostService {
     private final RedisSender redisSender;
     private final PostMetaService postMetaService;
     private final PostPermissionEvaluator postPermissionEvaluator;
+    private final MinioService minioService;
 
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
-    public PostPersistResponse createPost(PostCreateRequest request) {
+    public PostPersistResponse createPost(PostCreateRequest request, List<MultipartFile> files) {
+
+        List<String> uploadedFileNames = new ArrayList<>();
 
         Long userId = getCurrentUserId();
         Post post = postConverter.fromCreateRequestToPost(request, userId);
@@ -68,6 +75,28 @@ public class PostService {
                         .map(tagService::findOrCreateTag)
                         .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
                         .collect(Collectors.toList());
+        if (files != null && !files.isEmpty()) {
+            if (files.size() > 5) {
+                throw new IllegalArgumentException("이미지는 최대 5개까지 업로드 가능합니다.");
+            }
+            try {
+                for (MultipartFile file : files) {
+                    String storedFileName = minioService.uploadFile(file);
+                    uploadedFileNames.add(storedFileName);
+
+                    savedPost.addImage(file.getOriginalFilename(), storedFileName);
+                }
+            } catch (Exception e) {
+                for (String fileName : uploadedFileNames) {
+                    try {
+                        minioService.deleteFile(fileName);
+                    } catch (Exception ignore) {
+                        log.error("롤백 중 파일 삭제 실패: {}", fileName);
+                    }
+                }
+                throw e;
+            }
+        }
 
         postTagService.savePostTags(postTags);
         postMetaService.createPostMeta(savedPost.getId());
@@ -79,9 +108,15 @@ public class PostService {
 
         String userIp =
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
+
+        List<String> imageUrls =
+                post.getImages().stream()
+                        .map(image -> minioService.getFileUrl(image.getStoredFileName()))
+                        .collect(Collectors.toList());
+
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(post, postMeta);
+        return postConverter.fromPostToPostDetailResponse(post, postMeta, imageUrls);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {

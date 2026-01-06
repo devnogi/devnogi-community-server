@@ -41,3 +41,6 @@ out/
 
 # MYSQL
 /data/
+
+### MinIO ###
+local-minio-data/
