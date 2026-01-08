@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   backend:
-    image: ${DOCKERHUB_USERNAME}/dcs-server:latest
     container_name: devnogi-community-server
+    image: ${DOCKERHUB_USERNAME}/dcs-server:latest # 개발 서버 이미지 (dcs-server)
     ports:
       - "80:8093"
     environment:
