@@ -6,12 +6,6 @@ on:
       [ "main", "chore/generate-ci/cd-pipeline" ]
   workflow_dispatch:
 
-env:
-  DOCKER_IMAGE_NAME: devnogi-community-server
-  DOCKER_TAG: latest
-  COMPOSE_SERVICE_NAME: backend
-
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -25,7 +19,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # 캐싱 여부에 대해 고민 해봐야겠다.
       - name: Cache Gradle wrapper & dependencies
         uses: actions/cache@v3
         with:
@@ -58,7 +51,7 @@ jobs:
 
 
   deploy:
-    needs: build-and-push # 빌드가 성공해야만 실행
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Deploy on prod server
@@ -68,15 +61,11 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          envs: COMPOSE_SERVICE_NAME
           script: |
             cd devnogi-community
             
-            # [중요] docker-compose.prod.yml에서 사용하는 변수들을 .env.prod에 기록
-            # 1. Compose 파일 내 image: ${DOCKERHUB_USERNAME}/... 부분 대응
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.prod
             
-            # 2. 포트 및 DB 정보
             echo "SERVICE_PORT=${{ secrets.SERVICE_PORT }}" >> .env.prod
             echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env.prod
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.prod
@@ -84,7 +73,6 @@ jobs:
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env.prod
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.prod
             
-            # 3. Redis & JWT & MinIO
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env.prod
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env.prod
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env.prod
@@ -93,14 +81,10 @@ jobs:
             echo "MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}" >> .env.prod
             echo "MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}" >> .env.prod
             
-            # 4. 도커 로그인
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            # 5. Docker Compose로 배포 실행
-            # Compose 파일이 변수(${DOCKERHUB_USERNAME} 등)를 .env.prod에서 읽어옴
             docker compose -f docker-compose.prod.yml --env-file .env.prod pull backend
             docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
             
-            # 6. 정리
             docker image prune -f
             docker compose -f docker-compose.prod.yml ps
