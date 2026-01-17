@@ -3,7 +3,7 @@ name: deploy-with-docker-prod.yml
 on:
   push:
     branches:
-      - [ "main", "chore/generate-ci/cd-pipeline" ]
+      [ "main", "chore/generate-ci/cd-pipeline" ]
   workflow_dispatch:
 
 env:
