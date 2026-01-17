@@ -60,6 +60,7 @@ jobs:
       - name: Lint Check With Spotless
         run: ./gradlew spotlessCheck
 
+  #행운을 빌어줘
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
