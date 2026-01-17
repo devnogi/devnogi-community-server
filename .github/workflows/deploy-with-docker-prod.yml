@@ -50,8 +50,8 @@ jobs:
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            docker compose -f docker-compose-prod.yml --env-file .env.prod pull backend
-            docker compose -f docker-compose-prod.yml --env-file .env.prod up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull backend
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
             
             docker image prune -f
-            docker compose -f docker-compose-prod.yml ps
+            docker compose -f docker-compose.prod.yml ps
