@@ -20,6 +20,10 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
 
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY} #ID
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY} #PASSWORD
+
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - TZ=Asia/Seoul
     restart: always
