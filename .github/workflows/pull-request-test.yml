@@ -60,7 +60,6 @@ jobs:
       - name: Lint Check With Spotless
         run: ./gradlew spotlessCheck
 
-  #행운을 빌어줘
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
@@ -99,10 +98,19 @@ jobs:
       - name: Build (Gradle) & Docker build/tag
         run: |
           ./gradlew clean build -x test
+          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server"
+          
+          # 브랜치에 따라 태그 결정 (dev -> dev, main -> latest)
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            TAG="latest"
+          else
+            TAG="dev"
+          fi
+          echo "Building for branch: ${{ github.ref_name }} with tag: $TAG"
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${TAG}
 
       - name: Push Docker images
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${TAG}
