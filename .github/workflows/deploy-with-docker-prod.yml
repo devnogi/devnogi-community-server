@@ -1,0 +1,107 @@
+name: deploy-with-docker-prod.yml
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKER_IMAGE_NAME: devnogi-community-server
+  DOCKER_TAG: latest
+  COMPOSE_SERVICE_NAME: backend
+
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 캐싱 여부에 대해 고민 해봐야겠다.
+      - name: Cache Gradle wrapper & dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 테스트는 CI에서 했으므로 생략(-x test)
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build (Gradle) & Docker build/tag
+        run: |
+          ./gradlew clean build -x test
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
+
+      - name: Push Docker images
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
+
+
+  deploy:
+    needs: build-and-push # 빌드가 성공해야만 실행
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy on prod server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          envs: COMPOSE_SERVICE_NAME
+          script: |
+            cd devnogi-community
+            
+            # [중요] docker-compose.prod.yml에서 사용하는 변수들을 .env.prod에 기록
+            # 1. Compose 파일 내 image: ${DOCKERHUB_USERNAME}/... 부분 대응
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.prod
+            
+            # 2. 포트 및 DB 정보
+            echo "SERVICE_PORT=${{ secrets.SERVICE_PORT }}" >> .env.prod
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env.prod
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.prod
+            echo "DB_SCHEMA=${{ secrets.DB_SCHEMA }}" >> .env.prod
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env.prod
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.prod
+            
+            # 3. Redis & JWT
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env.prod
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env.prod
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env.prod
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env.prod
+            
+            # 4. 도커 로그인
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            
+            # 5. Docker Compose로 배포 실행
+            # Compose 파일이 변수(${DOCKERHUB_USERNAME} 등)를 .env.prod에서 읽어옴
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull ${{ env.COMPOSE_SERVICE_NAME }}
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d ${{ env.COMPOSE_SERVICE_NAME }} --remove-orphans
+            
+            # 6. 정리
+            docker image prune -f
+            docker compose -f docker-compose.prod.yml ps
