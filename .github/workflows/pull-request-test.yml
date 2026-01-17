@@ -95,7 +95,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build (Gradle) & Docker build/tag
+      - name: Build (Gradle) & Docker build/tag & Push Docker images
         run: |
           ./gradlew clean build -x test
           IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server"
@@ -109,8 +109,6 @@ jobs:
           echo "Building for branch: ${{ github.ref_name }} with tag: $TAG"
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
           docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${TAG}
-
-      - name: Push Docker images
-        run: |
+          
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${TAG}
