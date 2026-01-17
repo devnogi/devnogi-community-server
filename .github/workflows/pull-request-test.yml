@@ -1,11 +1,13 @@
-name: pull-request-test.yml
+name: CI Pipeline (pull-request-test, Build & Push on Merge).yml
 on:
   pull_request:
     branches:
       - dev
+      - main
   push:
     branches:
       - dev
+      - main
   workflow_dispatch:
 
 permissions:
@@ -13,7 +15,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  build:
+  test:
     name: Run tests
     runs-on: ubuntu-latest
 
@@ -57,3 +59,49 @@ jobs:
 
       - name: Lint Check With Spotless
         run: ./gradlew spotlessCheck
+
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle wrapper & dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build (Gradle) & Docker build/tag
+        run: |
+          ./gradlew clean build -x test
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
+
+      - name: Push Docker images
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
