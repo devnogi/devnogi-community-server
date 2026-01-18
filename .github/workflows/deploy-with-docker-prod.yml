@@ -21,6 +21,19 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Docker Compose file to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USERNAME }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT }}
+          source: "docker-compose-prod.yml" # 프로젝트 내 실제 파일명
+          target: "/home/${{ secrets.PROD_SERVER_USERNAME }}/devnogi-community"
+
       - name: Deploy on prod server
         uses: appleboy/ssh-action@v1.2.2
         with:
@@ -50,8 +63,8 @@ jobs:
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            docker compose -f docker-compose.prod.yml --env-file .env.prod pull backend
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+            docker compose -f docker-compose-prod.yml --env-file .env.prod pull backend
+            docker compose -f docker-compose-prod.yml --env-file .env.prod up -d --remove-orphans
             
             docker image prune -f
-            docker compose -f docker-compose.prod.yml ps
+            docker compose -f docker-compose-prod.yml ps
