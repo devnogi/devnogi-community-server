@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.PROD_SERVER_USERNAME }}
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT }}
-          source: "docker-compose-prod.yml"
+          source: "docker-compose-prod.yaml"
           target: "/home/${{ secrets.PROD_SERVER_USERNAME }}/devnogi-community"
 
       - name: Deploy on prod server
