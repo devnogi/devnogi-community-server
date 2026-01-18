@@ -24,6 +24,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # [디버깅용] 파일 위치 추적 코드 (범인 찾기!)
+      - name: Debug - Find the file
+        run: |
+          echo "=== 현재 위치 ==="
+          pwd
+          echo "=== 파일 목록 (전체) ==="
+          ls -R
+          echo "=== docker-compose 파일 찾기 ==="
+          find . -name "docker-compose-prod.yml"
+
       - name: Copy Docker Compose file to Server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -31,7 +41,7 @@ jobs:
           username: ${{ secrets.PROD_SERVER_USERNAME }}
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT }}
-          source: "docker-compose-prod.yml" # 프로젝트 내 실제 파일명
+          source: "docker-compose-prod.yml"
           target: "/home/${{ secrets.PROD_SERVER_USERNAME }}/devnogi-community"
 
       - name: Deploy on prod server
