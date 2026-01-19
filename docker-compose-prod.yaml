@@ -4,7 +4,6 @@ services:
   backend:
     container_name: devnogi-community-server
     image: ${DOCKERHUB_USERNAME}/devnogi-community-server:latest # 배포 서버 이미지 (devnogi-community-server)
-    entrypoint: ["java", "-jar", "app.jar"]
     ports:
       - "${SERVICE_PORT:-8093}:8093"
     environment:
