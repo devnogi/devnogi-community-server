@@ -16,7 +16,6 @@ on:
 #
 #  workflow_dispatch:
 
-#테스트용 주석
 
 jobs:
   deploy-main:
