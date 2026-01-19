@@ -10,7 +10,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
       - SPRING_PROFILES_ACTIVE=prod
 
-      - DB_HOST=database
+      - DB_HOST=devnogi-mysql
       - DB_PORT=${DB_PORT}
       - DB_SCHEMA=${DB_SCHEMA}
       - DB_USER=${DB_USER}
