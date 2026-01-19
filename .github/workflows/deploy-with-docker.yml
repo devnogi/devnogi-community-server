@@ -1,18 +1,13 @@
 name: deploy-with-docker.yml
 
-
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
+    types:
+      - completed
     branches:
-      - chore/generate-ci/cd-pipeline # 현재 작업 중인 브랜치명
-#on:
-#  workflow_run:
-#    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
-#    types:
-#      - completed
-#    branches:
-#      - dev
-#      - chore/generate-ci/cd-pipeline # 테스트용
+      - dev
+      - chore/generate-ci/cd-pipeline # 테스트용
 
   workflow_dispatch:
 

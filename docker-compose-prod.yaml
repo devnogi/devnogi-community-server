@@ -10,13 +10,13 @@ services:
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
       - SPRING_PROFILES_ACTIVE=prod
 
-      - DB_HOST=${DB_HOST}
+      - DB_HOST=database
       - DB_PORT=${DB_PORT}
       - DB_SCHEMA=${DB_SCHEMA}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
 
-      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_HOST=redis
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
 
@@ -26,4 +26,40 @@ services:
 
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - TZ=Asia/Seoul
+      -
+    depends_on:
+      - database
+      - redis
     restart: always
+    networks:
+      - app-network
+
+  # 2. 데이터베이스
+  database:
+    image: mysql:8.0.42
+    container_name: devnogi-db
+    environment:
+      MYSQL_DATABASE: ${DB_SCHEMA}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: always
+    networks:
+      - app-network
+
+  # 3. Redis
+  redis:
+    image: redis:8.4.0
+    container_name: devnogi-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - ./redis_data:/data
+    restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
