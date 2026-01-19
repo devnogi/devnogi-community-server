@@ -32,7 +32,7 @@ jobs:
           echo "=== 파일 목록 (전체) ==="
           ls -R
           echo "=== docker-compose 파일 찾기 ==="
-          find . -name "docker-compose-prod.yml"
+          find . -name "docker-compose-prod.yaml"
 
       - name: Copy Docker Compose file to Server
         uses: appleboy/scp-action@v0.1.7
