@@ -54,27 +54,27 @@ jobs:
           script: |
             cd devnogi-community
             
-            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.prod
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             
-            echo "SERVICE_PORT=${{ secrets.PROD_SERVICE_PORT }}" >> .env.prod
-            echo "DB_HOST=${{ secrets.PROD_DB_HOST }}" >> .env.prod
-            echo "DB_PORT=${{ secrets.PROD_DB_PORT }}" >> .env.prod
-            echo "DB_SCHEMA=${{ secrets.PROD_DB_SCHEMA }}" >> .env.prod
-            echo "DB_USER=${{ secrets.PROD_DB_USER }}" >> .env.prod
-            echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env.prod
+            echo "SERVICE_PORT=${{ secrets.PROD_SERVICE_PORT }}" >> .env
+            echo "DB_HOST=${{ secrets.PROD_DB_HOST }}" >> .env
+            echo "DB_PORT=${{ secrets.PROD_DB_PORT }}" >> .env
+            echo "DB_SCHEMA=${{ secrets.PROD_DB_SCHEMA }}" >> .env
+            echo "DB_USER=${{ secrets.PROD_DB_USER }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env
             
-            echo "REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}" >> .env.prod
-            echo "REDIS_PORT=${{ secrets.PROD_REDIS_PORT }}" >> .env.prod
-            echo "REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}" >> .env.prod
-            echo "JWT_SECRET_KEY=${{ secrets.PROD_JWT_SECRET_KEY }}" >> .env.prod
-            echo "MINIO_ENDPOINT=${{ secrets.PROD_MINIO_ENDPOINT }}" >> .env.prod
-            echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env.prod
-            echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env.prod
+            echo "REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}" >> .env
+            echo "REDIS_PORT=${{ secrets.PROD_REDIS_PORT }}" >> .env
+            echo "REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.PROD_JWT_SECRET_KEY }}" >> .env
+            echo "MINIO_ENDPOINT=${{ secrets.PROD_MINIO_ENDPOINT }}" >> .env
+            echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env
+            echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            docker compose -f docker-compose-prod.yaml --env-file .env.prod pull backend
-            docker compose -f docker-compose-prod.yaml --env-file .env.prod up -d --remove-orphans
+            docker compose -f docker-compose-prod.yaml --env-file .env pull backend
+            docker compose -f docker-compose-prod.yaml --env-file .env up -d --remove-orphans
             
             docker image prune -f
             docker compose -f docker-compose-prod.yaml ps
