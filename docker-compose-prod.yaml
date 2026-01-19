@@ -35,5 +35,6 @@ services:
 
 networks:
   app-network:
+    driver: bridge
     name: infra_devnogi-network
     external: true

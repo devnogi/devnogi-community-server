@@ -141,7 +141,6 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-      protocol-version: RESP2
 
 ---
 spring:
@@ -162,7 +161,7 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
+      port: ${REDIS_PORT:6389}
       password: ${REDIS_PASSWORD:}
       ssl:
         enabled: false
