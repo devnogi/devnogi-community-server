@@ -28,8 +28,10 @@ services:
       - TZ=Asia/Seoul
 
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: always
     networks:
       - app-network
@@ -48,6 +50,11 @@ services:
     restart: always
     networks:
       - app-network
+    healthcheck:
+      test: "mysqladmin ping -h localhost -u root -p${DB_PASSWORD}"
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # 3. Redis
   redis:
@@ -59,6 +66,14 @@ services:
     restart: always
     networks:
       - app-network
+    healthcheck:
+      test: "redis-cli -a ${REDIS_PASSWORD} ping"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
 
 networks:
   app-network:
