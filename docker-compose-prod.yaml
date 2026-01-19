@@ -37,7 +37,7 @@ services:
       - app-network
 
   # 2. 데이터베이스
-  devnogi-mysql:
+  database:
     image: mysql:8.0.42
     container_name: devnogi-db
     environment:
