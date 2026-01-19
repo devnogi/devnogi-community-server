@@ -5,6 +5,8 @@ on:
     branches:
       - chore/generate-ci/cd-pipeline # 현재 작업 중인 브랜치명
 
+#다시 빌드
+
 #on:
 #  workflow_run:
 #    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
