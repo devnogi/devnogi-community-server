@@ -7,7 +7,7 @@ services:
     ports:
       - "${SERVICE_PORT:-8093}:8093"
     environment:
-      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -Dspring.profiles.active=prod
       - SPRING_PROFILES_ACTIVE=prod
 
       - DB_HOST=devnogi-mysql
