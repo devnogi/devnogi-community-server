@@ -16,6 +16,8 @@ on:
 #
 #  workflow_dispatch:
 
+#테스트용 주석
+
 jobs:
   deploy-main:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
