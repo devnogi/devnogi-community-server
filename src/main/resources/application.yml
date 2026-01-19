@@ -162,6 +162,6 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       ssl:
-        enabled: true
+        enabled: false
 minio:
   url: http://minio:9000
