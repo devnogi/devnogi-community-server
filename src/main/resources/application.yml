@@ -140,6 +140,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 ---
 spring:
@@ -148,8 +149,9 @@ spring:
       on-profile: docker  # 전체를 Docker로 실행할 때
   data:
     redis:
-      host: devnogi-community-redis
-      port: 6379
+      host: ${REDIS_HOST:devnogi-community-redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 ---
 spring:
