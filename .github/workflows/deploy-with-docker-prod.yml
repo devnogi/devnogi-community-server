@@ -66,7 +66,7 @@ jobs:
             echo "REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}" >> .env
             echo "REDIS_PORT=${{ secrets.PROD_REDIS_PORT }}" >> .env
             echo "REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}" >> .env
-            echo "JWT_SECRET_KEY=${{ secrets.PROD_JWT_SECRET_KEY }}" >> .env
+            echo "JWT_SECRET_KEY='${{ secrets.PROD_JWT_SECRET_KEY }}'" >> .env
             echo "MINIO_ENDPOINT=${{ secrets.PROD_MINIO_ENDPOINT }}" >> .env
             echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env
             echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env
