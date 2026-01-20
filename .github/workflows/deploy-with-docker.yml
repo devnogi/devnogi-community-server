@@ -1,15 +1,21 @@
 name: deploy-with-docker.yml
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
-    types:
-      - completed
+  push:
     branches:
       - dev
-      - chore/generate-ci/cd-pipeline # 테스트용
-
   workflow_dispatch:
+
+
+#on:
+#  workflow_run:
+#    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
+#    types:
+#      - completed
+#    branches:
+#      - dev
+#
+#  workflow_dispatch:
 
 jobs:
   deploy-to-dev:
@@ -29,5 +35,5 @@ jobs:
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             docker stop dcs-server || true
             docker rm dcs-server || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:dev
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest
             docker compose up -d

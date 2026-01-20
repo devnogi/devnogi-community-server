@@ -3,7 +3,8 @@ name: deploy-with-docker-prod.yml
 on:
   push:
     branches:
-      - chore/generate-ci/cd-pipeline # 현재 작업 중인 브랜치명
+      - main
+  workflow_dispatch:
 
 #다시 빌드
 
