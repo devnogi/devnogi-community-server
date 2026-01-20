@@ -106,13 +106,7 @@ jobs:
           else
             TAG="dev"
           fi
-#          echo "Building for branch: ${{ github.ref_name }} with tag: $TAG"
-#          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
-#          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${TAG}
-#
-#          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }}
-#          docker push ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${TAG}
-
+          echo "Building for branch: ${{ github.ref_name }} with tag: ${TAG}"
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} .
           docker tag ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest
           
