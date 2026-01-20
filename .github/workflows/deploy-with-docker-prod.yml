@@ -56,6 +56,7 @@ jobs:
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT }}
           script: |
+            mkdir -p /opt/community
             cd /opt/community
             
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.prod
