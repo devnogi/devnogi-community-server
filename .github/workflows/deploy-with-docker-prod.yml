@@ -46,7 +46,7 @@ jobs:
           key: ${{ secrets.PROD_SERVER_SSH_KEY }}
           port: ${{ secrets.PROD_SERVER_PORT }}
           source: "docker-compose-prod.yml"
-          target: "/home/${{ secrets.PROD_SERVER_USERNAME }}/devnogi-community"
+          target: "/opt/community"
 
       - name: Deploy on prod server
         uses: appleboy/ssh-action@v1.2.2
