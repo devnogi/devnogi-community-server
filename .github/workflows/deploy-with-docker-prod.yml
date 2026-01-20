@@ -77,6 +77,12 @@ jobs:
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
+            echo "=== Deploying with tag: ${IMAGE_TAG} ===" 
+                     
+            docker compose -f docker-compose-prod.yaml down
+          
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest || true
+            
             docker compose -f docker-compose-prod.yaml --env-file .env pull backend
             docker compose -f docker-compose-prod.yaml --env-file .env up -d --remove-orphans
             
