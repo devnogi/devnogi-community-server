@@ -1,0 +1,92 @@
+name: deploy-with-docker-prod.yml
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+#다시 빌드
+
+#on:
+#  workflow_run:
+#    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
+#    types:
+#      - completed
+#    branches:
+#      - main
+#      - chore/generate-ci/cd-pipeline # 테스트용
+#
+#  workflow_dispatch:
+
+#다시
+
+jobs:
+  deploy-main:
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+#      # [디버깅용] 파일 위치 추적 코드 (범인 찾기!)
+#      - name: Debug - Find the file
+#        run: |
+#          echo "=== 현재 위치 ==="
+#          pwd
+#          echo "=== 파일 목록 (전체) ==="
+#          ls -R
+#          echo "=== docker-compose 파일 찾기 ==="
+#          find . -name "docker-compose-prod.yml"
+
+      - name: Copy Docker Compose file to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USERNAME }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT }}
+          source: "docker-compose-prod.yml"
+          target: "/opt/community"
+
+      - name: Deploy on prod server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USERNAME }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT }}
+          script: |
+            mkdir -p /opt/community
+            cd /opt/community
+            
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.prod
+            
+            echo "SERVICE_PORT=${{ secrets.PROD_SERVICE_PORT }}" >> .env.prod
+            echo "DB_HOST=${{ secrets.PROD_DB_HOST }}" >> .env.prod
+            echo "DB_PORT=${{ secrets.PROD_DB_PORT }}" >> .env.prod
+            echo "DB_SCHEMA=${{ secrets.PROD_DB_SCHEMA }}" >> .env.prod
+            echo "DB_USER=${{ secrets.PROD_DB_USER }}" >> .env.prod
+            echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env.prod
+            
+            echo "REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}" >> .env.prod
+            echo "REDIS_PORT=${{ secrets.PROD_REDIS_PORT }}" >> .env.prod
+            echo "REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}" >> .env.prod
+            echo "JWT_SECRET_KEY='${{ secrets.PROD_JWT_SECRET_KEY }}'" >> .env.prod
+            echo "MINIO_ENDPOINT=${{ secrets.PROD_MINIO_ENDPOINT }}" >> .env.prod
+            echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env.prod
+            echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env.prod
+            
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            
+            echo "=== Deploying with tag: ${IMAGE_TAG} ===" 
+                     
+            docker compose -f docker-compose-prod.yml down
+          
+            docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/devnogi-community-server:latest || true
+            
+            docker compose -f docker-compose-prod.yml --env-file .env.prod pull backend
+            docker compose -f docker-compose-prod.yml --env-file .env.prod up -d --remove-orphans
+            
+            docker image prune -f
+            docker compose -f docker-compose-prod.yml ps

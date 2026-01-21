@@ -61,7 +61,7 @@ spring:
       ignore-accept-header: true
   data:
     redis:
-      host: localhost
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       lettuce:
         pool:
@@ -105,10 +105,11 @@ app:
     maxLen: 100000            # 스트림 길이
 
 ---
+# 로컬 개발 환경
 spring:
   config:
     activate:
-      on-profile: default
+      on-profile: local
 
 decorator:
   datasource:
@@ -120,38 +121,7 @@ logging:
     until.the.eternity: DEBUG
 
 ---
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-springdoc:
-  swagger-ui:
-    enabled: false
-
-
-# 환경별 redis 설정 분리
----
-spring:
-  config:
-    activate:
-      on-profile: local
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
----
-spring:
-  config:
-    activate:
-      on-profile: docker  # 전체를 Docker로 실행할 때
-  data:
-    redis:
-      host: devnogi-community-redis
-      port: 6379
-
----
+# 운영 환경
 spring:
   config:
     activate:
@@ -159,9 +129,35 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
+      port: ${REDIS_PORT:6389}
       password: ${REDIS_PASSWORD:}
       ssl:
-        enabled: true
+        enabled: false
+
+springdoc:
+  swagger-ui:
+    enabled: false
+
 minio:
   url: http://minio:9000
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false
+
+logging:
+  level:
+    until.the.eternity: INFO
+
+---
+# Docker 환경
+spring:
+  config:
+    activate:
+      on-profile: docker  # 전체를 Docker로 실행할 때
+  data:
+    redis:
+      host: ${REDIS_HOST:devnogi-community-redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
