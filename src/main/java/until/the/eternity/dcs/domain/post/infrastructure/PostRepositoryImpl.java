@@ -7,11 +7,12 @@ import static until.the.eternity.dcs.domain.tag.entity.QTag.tag;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -237,7 +238,13 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     @Override
     public Page<Post> findPopularPostsByBoardId(Pageable pageable, Board board) {
-        LocalDateTime sixHoursAgo = LocalDateTime.now().minusHours(6);
+        NumberExpression<Double> rankScore =
+                Expressions.numberTemplate(
+                        Double.class,
+                        "( ({0} + ({1} * 3)) - (TIMESTAMPDIFF(HOUR, {2}, NOW()) * 2) )",
+                        postMeta.viewCount.coalesce(0),
+                        postMeta.commentCount.coalesce(0),
+                        post.createdAt);
 
         JPAQuery<Post> query =
                 queryFactory
@@ -248,12 +255,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                                 post.isBlocked.eq(false),
                                 post.isDraft.eq(false),
                                 post.isDeleted.eq(false),
-                                postMeta.viewCount.add(postMeta.commentCount.multiply(3)).goe(50),
-                                postMeta.likeCount.goe(30),
-                                post.board.eq(board),
-                                post.createdAt.goe(sixHoursAgo))
+                                post.board.eq(board))
+                        .orderBy(rankScore.desc())
                         .offset(pageable.getOffset())
-                        .limit(pageable.getPageSize());
+                        .limit(5);
 
         for (Sort.Order order : pageable.getSort()) {
             String property = order.getProperty();
@@ -285,10 +290,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                                 post.isBlocked.eq(false),
                                 post.isDraft.eq(false),
                                 post.isDeleted.eq(false),
-                                postMeta.viewCount.add(postMeta.commentCount.multiply(3)).goe(50),
-                                postMeta.likeCount.goe(30),
-                                post.board.eq(board),
-                                post.createdAt.goe(sixHoursAgo));
+                                post.board.eq(board));
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
