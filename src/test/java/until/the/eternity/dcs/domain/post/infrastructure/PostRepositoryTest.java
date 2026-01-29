@@ -43,15 +43,15 @@ public class PostRepositoryTest {
         // Given: 데이터 준비 (저장 로직 포함)
 
         // 1위 후보 (130점): Post A (최신, 조회수100, 댓글10)
-        Post postA = createPost("Post A", 100, 10);
+        Post postA = createPost("Post A", 100, 10, 0);
 
         // 2위 후보 (100점): Post B (반응 좋지만 오래됨)
-        Post postB = createPost("Post B", 200, 20);
+        Post postB = createPost("Post B", 200, 20, 0);
         // [중요] DB에 저장된 시간을 강제로 과거(80시간 전)로 변경
         updateCreatedAt(postB.getId(), LocalDateTime.now().minusHours(80));
 
         // 3위 후보 (0점): Post C (최신, 반응 없음)
-        Post postC = createPost("Post C", 0, 0);
+        Post postC = createPost("Post C", 0, 0, 0);
 
         // [중요] 영속성 컨텍스트 초기화 (DB와 싱크 맞추기)
         em.flush();
@@ -76,8 +76,44 @@ public class PostRepositoryTest {
         content.forEach(p -> System.out.println("제목: " + p.getTitle()));
     }
 
+    @Test
+    @DisplayName("좋아요가 30개 이상인 게시글 로직 검증")
+    void verifyMostLikedPostRanking() {
+        // Given: 데이터 준비 (저장 로직 포함)
+
+        // 좋아요 10개
+        Post postA = createPost("Post A", 100, 10, 10);
+
+        // 좋아요 20개
+        Post postB = createPost("Post B", 200, 20, 20);
+
+        // 좋아요 30개
+        Post postC = createPost("Post C", 0, 0, 30);
+
+        // [중요] 영속성 컨텍스트 초기화 (DB와 싱크 맞추기)
+        em.flush();
+        em.clear();
+
+        // When: 조회
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Post> result = postRepository.findMostLikedPostsByBoardId(pageable, this.board);
+
+        // Then: 검증
+        List<Post> content = result.getContent();
+
+        // 1. 개수 확인
+        assertThat(content).hasSize(1);
+
+        // 2. 순서 확인 (제목도 일치시킴)
+        assertThat(content.get(0).getTitle()).isEqualTo("Post C");
+        assertThat(content.getFirst().getId()).isEqualTo(postC.getId());
+
+        // 출력 확인
+        content.forEach(p -> System.out.println("제목: " + p.getTitle()));
+    }
+
     // --- 데이터를 쉽게 만들기 위한 헬퍼 메서드 ---
-    private Post createPost(String title, int viewCount, int commentCount) {
+    private Post createPost(String title, int viewCount, int commentCount, int likeCount) {
         // 1. Post 객체 생성
         Post post =
                 Post.builder()
@@ -101,7 +137,7 @@ public class PostRepositoryTest {
                         .postId(post.getId()) // [중요] 실제 ID 연결
                         .viewCount(viewCount)
                         .commentCount(commentCount)
-                        .likeCount(0)
+                        .likeCount(likeCount)
                         .build();
 
         // 4. [필수] Meta DB 저장
