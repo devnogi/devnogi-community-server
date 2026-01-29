@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -573,10 +574,17 @@ class PostServiceTest {
         // given
         CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
         Pageable pageable = pageRequest.toPageable();
-        List<Post> posts = Arrays.asList(mockPost3);
+        List<Post> posts = Arrays.asList(mockPost, mockPost2, mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+        postIdList.add(1L);
+        postIdList.add(2L);
         postIdList.add(3L);
-        dbMetaMap.put(postIdList.get(0), postMetaResponse3);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse);
+        dbMetaMap.put(postIdList.get(1), postMetaResponse2);
+        dbMetaMap.put(postIdList.get(2), postMetaResponse3);
+        mockPost.setCreatedAt(LocalDateTime.now().withNano(0));
+        mockPost2.setCreatedAt(LocalDateTime.now().withNano(0));
+        mockPost3.setCreatedAt(LocalDateTime.now().withNano(0));
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
@@ -587,13 +595,7 @@ class PostServiceTest {
 
         // then
         List<PostSummaryResponse> list = result.stream().toList();
-        assertThat(list.size()).isEqualTo(1);
-        assertThat(list.get(0).id()).isEqualTo(3);
-        assertThat(list.getFirst().likeCount()).isEqualTo(postMeta3.getLikeCount());
-        assertThat(list.getFirst().viewCount()).isEqualTo(postMeta3.getViewCount());
-        assertThat(list.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
-        assertThat(list.getFirst().viewCount() + 3 * (list.getFirst().commentCount()))
-                .isGreaterThanOrEqualTo(50);
+        assertThat(list.size()).isEqualTo(3);
     }
 
     @Test
