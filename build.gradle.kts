@@ -38,6 +38,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    testRuntimeOnly("com.h2database:h2")
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("mysql:mysql-connector-java:8.0.33")
     implementation("io.minio:minio:8.5.7")

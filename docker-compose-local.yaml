@@ -9,6 +9,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8093:8093"
+    tty: true
+    stdin_open: true
     environment:
       # JVM 설정
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m

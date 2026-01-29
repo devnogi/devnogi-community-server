@@ -31,6 +31,9 @@ management:
 spring:
   application:
     name: devnogi-community-server
+  docker:
+    compose:
+      file: docker-compose-local.yaml
   web:
     resources:
       static-locations: classpath:/static/
