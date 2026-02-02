@@ -122,6 +122,7 @@ decorator:
 logging:
   level:
     until.the.eternity: DEBUG
+    until.the.eternity.dcs.common.filter: DEBUG
 
 ---
 # 운영 환경
