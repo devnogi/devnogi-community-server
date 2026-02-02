@@ -42,7 +42,11 @@ public class SecurityConfig {
             config.setAllowedHeaders(Collections.singletonList("*"));
             config.setAllowedMethods(
                     Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-            config.setAllowedOriginPatterns(Arrays.asList("http://localhost:8093"));
+            config.setAllowedOriginPatterns(Arrays.asList(
+                    "https://www.memonogi.com",
+                    "https://memonogi.com",
+                    "http://localhost:*"
+            ));
             config.setAllowCredentials(true);
             return config;
         };
