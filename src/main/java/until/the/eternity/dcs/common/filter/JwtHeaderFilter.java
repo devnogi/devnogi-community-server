@@ -34,8 +34,8 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String userIdCode = request.getHeader("X-USER-ID");
-        String userGradeCode = request.getHeader("X-USER-GRADE");
+        String userIdCode = request.getHeader("X-Auth-User-ID");
+        String userGradeCode = request.getHeader("X-Auth-Roles");
 
         log.debug(
                 "JWT Header Parsing - X-USER-ID: {}, X-USER-GRADE: {}", userIdCode, userGradeCode);
