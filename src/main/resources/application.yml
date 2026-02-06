@@ -165,3 +165,8 @@ spring:
       host: ${REDIS_HOST:devnogi-community-redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+
+logging:
+  level:
+    root: INFO
+    until.the.eternity: DEBUG

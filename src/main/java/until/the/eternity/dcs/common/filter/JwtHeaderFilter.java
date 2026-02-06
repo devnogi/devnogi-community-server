@@ -37,7 +37,8 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
         String userIdCode = request.getHeader("X-USER-ID");
         String userGradeCode = request.getHeader("X-USER-GRADE");
 
-        log.debug("JWT Header Parsing - X-USER-ID: {}, X-USER-GRADE: {}", userIdCode, userGradeCode);
+        log.debug(
+                "JWT Header Parsing - X-USER-ID: {}, X-USER-GRADE: {}", userIdCode, userGradeCode);
 
         UsernamePasswordAuthenticationToken authentication =
                 getAuthentication(userIdCode, userGradeCode);
@@ -53,8 +54,10 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        log.debug("Authentication set - Principal: {}, Authorities: {}",
-                authentication.getPrincipal(), authentication.getAuthorities());
+        log.debug(
+                "Authentication set - Principal: {}, Authorities: {}",
+                authentication.getPrincipal(),
+                authentication.getAuthorities());
 
         filterChain.doFilter(request, response);
     }

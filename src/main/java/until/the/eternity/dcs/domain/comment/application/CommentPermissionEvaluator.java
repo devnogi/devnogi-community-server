@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.comment.application;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
@@ -10,6 +11,7 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CommentPermissionEvaluator {
@@ -17,6 +19,7 @@ public class CommentPermissionEvaluator {
     private final CommentRepository commentRepository;
 
     public boolean canCreate(Authentication auth) {
+        log.info("comment creat시 auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -27,6 +30,7 @@ public class CommentPermissionEvaluator {
     }
 
     public boolean canUpdate(Authentication auth, Long id) {
+        log.info("comment update시 auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -42,6 +46,7 @@ public class CommentPermissionEvaluator {
     }
 
     public boolean canDelete(Authentication auth, Long id) {
+        log.info("comment delete시 auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -81,7 +86,9 @@ public class CommentPermissionEvaluator {
     }
 
     public void validateUserExists(Long currentUserId) {
+        log.info("validateUserExists currentUserId 값: {}", currentUserId);
         if (!userSummaryRepository.existsById(currentUserId)) {
+            log.info("comment 요청시 존재하지 않는 유저");
             throw new UserNotFoundException(currentUserId);
         }
     }
