@@ -38,7 +38,9 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
         String userGradeCode = request.getHeader("X-Auth-Roles");
 
         log.debug(
-                "JWT Header Parsing - X-USER-ID: {}, X-USER-GRADE: {}", userIdCode, userGradeCode);
+                "JWT Header Parsing - X-Auth-User-ID: {}, X-Auth-Roles: {}",
+                userIdCode,
+                userGradeCode);
 
         UsernamePasswordAuthenticationToken authentication =
                 getAuthentication(userIdCode, userGradeCode);
