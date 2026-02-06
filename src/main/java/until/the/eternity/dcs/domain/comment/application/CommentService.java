@@ -98,11 +98,11 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
-
+        log.info("댓글 조회시 파라미터: {}", request.toPageable());
         Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
 
         List<Long> commentIds = comments.stream().map(Comment::getId).toList();
-
+        log.info("댓글 조회 테스트");
         Map<Long, Integer> commentMetaMap =
                 commentMetaRepository.findByCommentIdIn(commentIds).stream()
                         .collect(
