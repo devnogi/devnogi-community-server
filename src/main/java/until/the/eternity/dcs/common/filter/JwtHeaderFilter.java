@@ -33,7 +33,9 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-
+        log.info("request: {}", request);
+        log.info("response: {}", response);
+        log.info("header: {}", request.getHeader("Authorization"));
         String userIdCode = request.getHeader("X-Auth-User-Id");
         String userGradeCode = request.getHeader("X-Auth-Roles");
 
