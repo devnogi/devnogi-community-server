@@ -34,11 +34,11 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String userIdCode = request.getHeader("X-Auth-User-ID");
+        String userIdCode = request.getHeader("X-Auth-User-Id");
         String userGradeCode = request.getHeader("X-Auth-Roles");
 
         log.debug(
-                "JWT Header Parsing - X-Auth-User-ID: {}, X-Auth-Roles: {}",
+                "JWT Header Parsing - X-Auth-User-Id: {}, X-Auth-Roles: {}",
                 userIdCode,
                 userGradeCode);
 
