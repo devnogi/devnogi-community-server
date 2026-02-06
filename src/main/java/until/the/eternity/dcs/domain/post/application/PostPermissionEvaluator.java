@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.common.util.RoleConstants;
@@ -10,6 +11,7 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PostPermissionEvaluator {
@@ -19,6 +21,7 @@ public class PostPermissionEvaluator {
     private static final String ROLE_PREFIX = RoleConstants.ROLE_PREFIX.getValue();
 
     public boolean canCreate(Authentication auth) {
+        log.info("auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -28,6 +31,7 @@ public class PostPermissionEvaluator {
     }
 
     private boolean canModify(Authentication auth, Long postId) {
+        log.info("auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -76,7 +80,9 @@ public class PostPermissionEvaluator {
     }
 
     public void validateUserExists(Long currentUserId) {
+        log.info("auth 값: {}", currentUserId);
         if (!userSummaryRepository.existsById(currentUserId)) {
+            log.info("post 요청시 존재하지 않는 유저");
             throw new UserNotFoundException(currentUserId);
         }
     }
