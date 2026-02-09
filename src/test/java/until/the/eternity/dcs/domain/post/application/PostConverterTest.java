@@ -20,6 +20,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostConverter 테스트")
@@ -27,6 +28,7 @@ public class PostConverterTest {
 
     @Mock private PostMeta postMeta;
     @InjectMocks private PostConverter postConverter;
+    @Mock private UserSummary mockUserSummary;
 
     @Test
     @DisplayName("정상적인 PostCreateRequest로 Post 객체를 생성한다")
@@ -74,7 +76,8 @@ public class PostConverterTest {
         PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
         // when
         PostSummaryResponse result =
-                postConverter.fromPostToPostSummaryResponse(post, postMetaResponse);
+                postConverter.fromPostToPostSummaryResponse(
+                        post, postMetaResponse, mockUserSummary);
 
         // then
         assertThat(result).isNotNull();

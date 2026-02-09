@@ -9,6 +9,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Component
 public class PostConverter {
@@ -24,8 +25,9 @@ public class PostConverter {
                 .build();
     }
 
-    public PostSummaryResponse fromPostToPostSummaryResponse(Post post, PostMetaResponse postMeta) {
-        return PostSummaryResponse.of(post, postMeta);
+    public PostSummaryResponse fromPostToPostSummaryResponse(
+            Post post, PostMetaResponse postMeta, UserSummary userSummary) {
+        return PostSummaryResponse.of(post, postMeta, userSummary);
     }
 
     public PostDetailResponse fromPostToPostDetailResponse(

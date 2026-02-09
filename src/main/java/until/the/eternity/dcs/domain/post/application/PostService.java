@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,7 @@ import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Slf4j
 @Service
@@ -131,10 +133,7 @@ public class PostService {
         Pageable pageable = request.toPageable();
 
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
-        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-
-        Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+        return getPostSummaryResponses(posts);
     }
 
     @Transactional
@@ -233,19 +232,14 @@ public class PostService {
                     postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                             pageable, boardId);
         }
-        log.info("게시판별 게시글 조회 로깅 테스트");
-        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-        log.info("게시글 id 리스트: {}", postIds.toString());
-        Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+
+        return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> searchPosts(CustomPageRequest request, String keyword) {
         Page<Post> posts = postRepository.findWithPostMetaByKeyword(request.toPageable(), keyword);
 
-        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-        Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+        return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> searchPostsByBoardId(
@@ -255,35 +249,44 @@ public class PostService {
                 postRepository.findWithPostMetaByBoardIdAndKeyword(
                         request.toPageable(), board, keyword);
 
+        return getPostSummaryResponses(posts);
+    }
+
+    @NonNull
+    private Page<PostSummaryResponse> getPostSummaryResponses(Page<Post> posts) {
         List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
+        List<Long> userIds = posts.getContent().stream().map(Post::getUserId).toList();
         Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+        Map<Long, UserSummary> userSummaryMap =
+                userSummaryService.findByIdIn(userIds).stream()
+                        .collect(Collectors.toMap(UserSummary::getId, u -> u));
+
+        return posts.map(
+                post ->
+                        PostSummaryResponse.of(
+                                post,
+                                postMetaMap.get(post.getId()),
+                                userSummaryMap.get(post.getUserId())));
     }
 
     public Page<PostSummaryResponse> searchPostsByUserId(CustomPageRequest request, Long userId) {
         Page<Post> posts = postRepository.findWithPostMetaByUserId(request.toPageable(), userId);
 
-        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-        Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+        return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> getPopularPostsByBoardId(
             CustomPageRequest request, Long boardId) {
         Board board = boardService.findBoardById(boardId);
         Page<Post> posts = postRepository.findPopularPostsByBoardId(request.toPageable(), board);
-        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-        Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+        return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> getMostLikedPostsByBoardId(
             CustomPageRequest request, Long boardId) {
         Board board = boardService.findBoardById(boardId);
         Page<Post> posts = postRepository.findMostLikedPostsByBoardId(request.toPageable(), board);
-        List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-        Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
-        return posts.map(post -> PostSummaryResponse.of(post, postMetaMap.get(post.getId())));
+        return getPostSummaryResponses(posts);
     }
 
     private Post findById(Long id) {

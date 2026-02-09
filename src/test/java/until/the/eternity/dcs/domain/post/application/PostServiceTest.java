@@ -89,6 +89,7 @@ class PostServiceTest {
     PostMetaResponse postMetaResponse;
     PostMetaResponse postMetaResponse2;
     PostMetaResponse postMetaResponse3;
+    List<UserSummary> userSummaryList;
 
     @BeforeEach
     void setUp() {
@@ -151,6 +152,8 @@ class PostServiceTest {
                 PostSummaryResponse.builder()
                         .id(1L)
                         .title("Test Title")
+                        .userId(1L)
+                        .username("testUser")
                         .viewCount(0)
                         .likeCount(0)
                         .build();
@@ -174,7 +177,9 @@ class PostServiceTest {
         postMetaResponse = PostMetaResponse.from(postMeta);
         postMetaResponse2 = PostMetaResponse.from(postMeta2);
         postMetaResponse3 = PostMetaResponse.from(postMeta3);
+
         mockUserSummaryDetailResponse = UserSummaryDetailResponse.from(mockUser);
+        userSummaryList = new ArrayList<>();
     }
 
     @Nested
@@ -274,13 +279,14 @@ class PostServiceTest {
             dbMetaMap.put(postIdList.get(0), postMetaResponse);
             dbMetaMap.put(postIdList.get(1), postMetaResponse2);
             Pageable pageable = PageRequest.of(1, 10);
+            userSummaryList.add(mockUser);
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
             Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
-
             given(pageRequest.toPageable()).willReturn(pageable);
             given(postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable))
                     .willReturn(postPage);
             given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+            given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
             // When
             Page<PostSummaryResponse> result = postService.findPosts(pageRequest);
@@ -306,11 +312,13 @@ class PostServiceTest {
             postIdList.add(2L);
             dbMetaMap.put(postIdList.get(0), postMetaResponse);
             dbMetaMap.put(postIdList.get(1), postMetaResponse2);
+            userSummaryList.add(mockUser);
             given(
                             postRepository.findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(
                                     pageable, boardId))
                     .willReturn(postPage);
             given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+            given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -336,11 +344,12 @@ class PostServiceTest {
             postIdList.add(2L);
             dbMetaMap.put(postIdList.get(0), postMetaResponse);
             dbMetaMap.put(postIdList.get(1), postMetaResponse2);
-            ;
+            userSummaryList.add(mockUser);
             given(postRepository.findWithPostMetaByBoardId(any(Pageable.class), eq(mockBoard)))
                     .willReturn(postPage);
             given(boardService.findBoardById(boardId)).willReturn(mockBoard);
             given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+            given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
             // When
             Page<PostSummaryResponse> result = postService.findPostsByBoardId(pageRequest, boardId);
@@ -502,8 +511,11 @@ class PostServiceTest {
         postIdList.add(2L);
         dbMetaMap.put(postIdList.get(0), postMetaResponse);
         dbMetaMap.put(postIdList.get(1), postMetaResponse2);
+        userSummaryList.add(mockUser);
         given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPosts(pageRequest, keyword);
@@ -527,6 +539,7 @@ class PostServiceTest {
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+        userSummaryList.add(mockUser);
         postIdList.add(1L);
         postIdList.add(2L);
         dbMetaMap.put(postIdList.get(0), postMetaResponse);
@@ -535,6 +548,7 @@ class PostServiceTest {
         given(postRepository.findWithPostMetaByBoardIdAndKeyword(pageable, mockBoard, keyword))
                 .willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
         // when
         Page<PostSummaryResponse> responses =
@@ -562,8 +576,10 @@ class PostServiceTest {
         postIdList.add(2L);
         dbMetaMap.put(postIdList.get(0), postMetaResponse);
         dbMetaMap.put(postIdList.get(1), postMetaResponse2);
+        userSummaryList.add(mockUser);
         given(postRepository.findWithPostMetaByUserId(pageable, userId)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPostsByUserId(pageRequest, userId);
@@ -594,9 +610,11 @@ class PostServiceTest {
         mockPost.setCreatedAt(LocalDateTime.now().withNano(0));
         mockPost2.setCreatedAt(LocalDateTime.now().withNano(0));
         mockPost3.setCreatedAt(LocalDateTime.now().withNano(0));
+        userSummaryList.add(mockUser);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findPopularPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
         // when
         Page<PostSummaryResponse> result =
@@ -617,9 +635,11 @@ class PostServiceTest {
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
         postIdList.add(3L);
         dbMetaMap.put(postIdList.get(0), postMetaResponse3);
+        userSummaryList.add(mockUser);
         given(boardService.findBoardById(1L)).willReturn(mockBoard);
         given(postRepository.findMostLikedPostsByBoardId(pageable, mockBoard)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
         // when
         Page<PostSummaryResponse> result =
