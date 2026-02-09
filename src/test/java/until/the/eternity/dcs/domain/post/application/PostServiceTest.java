@@ -39,6 +39,8 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,6 +66,7 @@ class PostServiceTest {
     @Mock private Authentication authentication;
     @Mock private PostMetaService postMetaService;
     @Mock private BoardService boardService;
+    @Mock private UserSummaryService userSummaryService;
     @InjectMocks private PostService postService;
 
     private PostMeta postMeta;
@@ -78,6 +81,7 @@ class PostServiceTest {
     private PostSummaryResponse mockSummaryResponse;
     private PostDetailResponse mockDetailResponse;
     private PostPersistResponse mockPersistResponse;
+    private UserSummaryDetailResponse mockUserSummaryDetailResponse;
     List<Long> postIdList;
     Long userId = 1L;
     Board mockBoard;
@@ -170,6 +174,7 @@ class PostServiceTest {
         postMetaResponse = PostMetaResponse.from(postMeta);
         postMetaResponse2 = PostMetaResponse.from(postMeta2);
         postMetaResponse3 = PostMetaResponse.from(postMeta3);
+        mockUserSummaryDetailResponse = UserSummaryDetailResponse.from(mockUser);
     }
 
     @Nested
@@ -210,6 +215,7 @@ class PostServiceTest {
             // Given
             Long postId = 1L;
             List<Comment> comments = new ArrayList<>();
+            String username = "testUser";
 
             Post postWithComments =
                     Post.builder()
@@ -225,8 +231,10 @@ class PostServiceTest {
                     .willReturn(Optional.of(postWithComments));
             given(
                             postConverter.fromPostToPostDetailResponse(
-                                    postWithComments, postMetaResponse, imageList))
+                                    postWithComments, postMetaResponse, imageList, username))
                     .willReturn(mockDetailResponse);
+            given(userSummaryService.findUserSummary(userId))
+                    .willReturn(mockUserSummaryDetailResponse);
             int cnt = postMeta.getViewCount();
             // When
             PostDetailResponse result = postService.findPost(postId);
@@ -237,7 +245,8 @@ class PostServiceTest {
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);
             verify(postRepository).findWithTagsById(postId);
             verify(postConverter)
-                    .fromPostToPostDetailResponse(postWithComments, postMetaResponse, imageList);
+                    .fromPostToPostDetailResponse(
+                            postWithComments, postMetaResponse, imageList, username);
         }
 
         @Test

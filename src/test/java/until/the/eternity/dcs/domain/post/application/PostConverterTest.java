@@ -98,6 +98,7 @@ public class PostConverterTest {
         Board board = Board.builder().id(boardId).build();
         List<PostTag> postTags = new ArrayList<>(); // 우선 빈 리스트 사용
         List<String> imageUrlList = new ArrayList<>();
+        String username = "testUser";
 
         Post post =
                 Post.builder()
@@ -116,7 +117,8 @@ public class PostConverterTest {
 
         // when
         PostDetailResponse result =
-                postConverter.fromPostToPostDetailResponse(post, postMetaResponse, imageUrlList);
+                postConverter.fromPostToPostDetailResponse(
+                        post, postMetaResponse, imageUrlList, username);
 
         // then
         assertThat(result).isNotNull();

@@ -42,6 +42,8 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
 import until.the.eternity.dcs.domain.tag.application.TagService;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 
 @Slf4j
 @Service
@@ -59,6 +61,7 @@ public class PostService {
     private final PostMetaService postMetaService;
     private final PostPermissionEvaluator postPermissionEvaluator;
     private final MinioService minioService;
+    private final UserSummaryService userSummaryService;
 
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
@@ -115,9 +118,13 @@ public class PostService {
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
 
+        UserSummaryDetailResponse userSummary =
+                userSummaryService.findUserSummary(post.getUserId());
+
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(post, postMeta, imageUrls);
+        return postConverter.fromPostToPostDetailResponse(
+                post, postMeta, imageUrls, userSummary.nickname());
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
