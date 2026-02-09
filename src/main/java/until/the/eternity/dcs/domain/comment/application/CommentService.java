@@ -161,8 +161,6 @@ public class CommentService {
 
     private void connectCommentWithPost(Long postId, Comment save) {
         Post post = findPostById(postId);
-        String userId =
-                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         post.getComments().add(save);
         postRepository.save(post);
 
@@ -171,8 +169,6 @@ public class CommentService {
 
     private void disconnectCommentWithPost(Comment comment) {
         Long postId = comment.getPost().getId();
-        String userId =
-                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         Post post = findPostById(postId);
         post.getComments().remove(comment);
         comment.disconnectWithPost();

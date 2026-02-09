@@ -33,7 +33,6 @@ public class NoticeService {
     private final NoticeUserRepository noticeUserRepository;
     private final NoticeUserConverter noticeUserConverter;
     private final UserSummaryRepository userSummaryRepository;
-    private final NoticePermissionEvaluator noticePermissionEvaluator;
 
     @Transactional
     public NoticePersistResponse createNotice(NoticeSendRequest request) {

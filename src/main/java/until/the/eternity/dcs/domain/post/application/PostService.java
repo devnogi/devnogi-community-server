@@ -336,8 +336,6 @@ public class PostService {
 
         Sort newSort = Sort.by(newOrders);
 
-        Pageable newPageable =
-                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), newSort);
-        return newPageable;
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), newSort);
     }
 }

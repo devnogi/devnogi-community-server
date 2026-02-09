@@ -43,9 +43,6 @@ public class PostConverterTest {
         Long userId = 100L;
         List<String> stringTagList = Arrays.asList("test1", "test2");
 
-        List<PostTag> postTagList =
-                Arrays.asList(PostTag.builder().id(1L).build(), PostTag.builder().id(2L).build());
-
         PostCreateRequest request =
                 new PostCreateRequest(boardId, title, content, isDraft, stringTagList);
 
@@ -66,10 +63,7 @@ public class PostConverterTest {
     void should_CreatePostSummaryResponse_When_ValidPost() {
 
         // given
-        Long boardId = 1L;
         String title = "테스트 게시글 제목";
-        String content = "테스트 게시글 내용";
-        Boolean isDraft = false;
 
         Post post = Post.builder().id(1L).title(title).build();
         post.setCreatedAt(LocalDateTime.now());

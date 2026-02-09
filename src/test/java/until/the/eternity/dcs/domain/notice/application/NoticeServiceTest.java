@@ -36,10 +36,9 @@ class NoticeServiceTest {
     NoticeUserRepository noticeUserRepository = mock(NoticeUserRepository.class);
     NoticeUserConverter noticeUserConverter = new NoticeUserConverter();
     UserSummaryRepository userSummaryRepository = mock(UserSummaryRepository.class);
-    NoticePermissionEvaluator noticePermissionEvaluator = mock(NoticePermissionEvaluator.class);
 
     private final SecurityContext securityContext = mock(SecurityContext.class);
-    private Authentication authentication = mock(Authentication.class);
+    private final Authentication authentication = mock(Authentication.class);
 
     NoticeService noticeService;
 
@@ -58,8 +57,7 @@ class NoticeServiceTest {
                         noticeConverter,
                         noticeUserRepository,
                         noticeUserConverter,
-                        userSummaryRepository,
-                        noticePermissionEvaluator);
+                        userSummaryRepository);
         notice =
                 Notice.builder()
                         .id(id)
