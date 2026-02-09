@@ -15,6 +15,7 @@ import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 public record NoticeCommonResponse(
         @Schema(description = "알림 아이디", example = "1", requiredMode = REQUIRED) Long id,
         @Schema(description = "수신자 아이디", example = "1", requiredMode = REQUIRED) Long userId,
+        @Schema(description = "수신자 유저이름", example = "홍길동", requiredMode = REQUIRED) String username,
         @Schema(description = "알림 제목", example = "게시글 좋아요", requiredMode = REQUIRED) String title,
         @Schema(
                         description = "알림 내용",
@@ -28,10 +29,11 @@ public record NoticeCommonResponse(
                 LocalDateTime createdAt,
         @Schema(description = "알림 확인 여부", example = "false", requiredMode = REQUIRED)
                 Boolean isRead) {
-    public static NoticeCommonResponse from(Notice notice, NoticeUser noticeUser) {
+    public static NoticeCommonResponse from(Notice notice, NoticeUser noticeUser, String username) {
         return NoticeCommonResponse.builder()
                 .id(notice.getId())
                 .userId(noticeUser.getUserId())
+                .username(username)
                 .title(notice.getTitle())
                 .contents(buildContents(notice.getNoticeType()))
                 .url(notice.getUrl())

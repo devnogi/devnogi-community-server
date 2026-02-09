@@ -20,6 +20,7 @@ class NoticeConverterTest {
     Long userId = 1L;
     NoticeType noticeType = POST_LIKE;
     String url = "api/posts/1";
+    String username = "username";
 
     @Test
     @DisplayName("fromSendRequest는 NoticeSendRequest를 Notice로 변환한다.")
@@ -58,7 +59,8 @@ class NoticeConverterTest {
                         .build();
 
         // when
-        NoticeCommonResponse response = noticeConverter.toNoticeCommonResponse(notice, noticeUser);
+        NoticeCommonResponse response =
+                noticeConverter.toNoticeCommonResponse(notice, noticeUser, username);
 
         // then
         assertThat(response).isNotNull();

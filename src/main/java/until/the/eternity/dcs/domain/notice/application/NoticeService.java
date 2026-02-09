@@ -67,7 +67,13 @@ public class NoticeService {
                         .orElseThrow(() -> new NoticeNotFoundException(id));
         noticeUser.read();
 
-        return noticeConverter.toNoticeCommonResponse(notice, noticeUser);
+        UserSummary userSummary =
+                userSummaryRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException(userId));
+
+        return noticeConverter.toNoticeCommonResponse(
+                notice, noticeUser, userSummary.getNickname());
     }
 
     @PreAuthorize("@noticePermissionEvaluator.canRead(authentication)")
@@ -86,11 +92,16 @@ public class NoticeService {
             map.put(noticeUser.getNoticeId(), noticeUser);
         }
 
+        UserSummary userSummary =
+                userSummaryRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new UserNotFoundException(userId));
+
         return noticeList.stream()
                 .map(
                         notice ->
                                 noticeConverter.toNoticeCommonResponse(
-                                        notice, map.get(notice.getId())))
+                                        notice, map.get(notice.getId()), userSummary.getNickname()))
                 .toList();
     }
 

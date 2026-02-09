@@ -132,6 +132,9 @@ class NoticeServiceTest {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn("1");
+        UserSummary userSummary = UserSummary.builder().grade(USER).build();
+        when(userSummaryRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(userSummary));
 
         // when
         NoticeCommonResponse response = noticeService.getDetailNotice(id);
@@ -166,6 +169,9 @@ class NoticeServiceTest {
         when(noticeUserRepository.findByCreatedAtGreaterThanEqualAndUserIdOrderByCreatedAtDesc(
                         any(), anyLong()))
                 .thenReturn(List.of(noticeUser));
+        UserSummary userSummary = UserSummary.builder().grade(USER).build();
+        when(userSummaryRepository.findById(anyLong()))
+                .thenReturn(Optional.ofNullable(userSummary));
 
         // when
         List<NoticeCommonResponse> response = noticeService.getNoticeList(userId, day);
