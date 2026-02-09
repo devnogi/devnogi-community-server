@@ -4,6 +4,7 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_LIKE
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_REPLY;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_COMMENT;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Slf4j
 @Service
@@ -108,6 +110,14 @@ public class CommentService {
                         .collect(
                                 Collectors.toMap(
                                         CommentMeta::getCommentId, CommentMeta::getLikeCount));
+
+        List<Long> userIds = comments.stream().map(Comment::getUserId).toList();
+        List<UserSummary> userSummaryList = userSummaryService.findByIdIn(userIds);
+        Map<Long, String> userIdToNameMap =
+                userSummaryList.stream()
+                        .collect(Collectors.toMap(UserSummary::getId, UserSummary::getNickname));
+        Map<Long, String> commentUsernameMap = new HashMap<>();
+
         if (!checkIsAnonymousUser()) {
             Long userId = getCurrentUserId();
 
@@ -116,17 +126,22 @@ public class CommentService {
                         commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
 
                 return comments.map(
-                        c ->
-                                commentConverter.fromCommentToPageResponse(
-                                        c,
-                                        likedCommentIds.contains(c.getId()),
-                                        commentMetaMap.getOrDefault(c.getId(), 0)));
+                        c -> {
+                            String username = userIdToNameMap.getOrDefault(c.getUserId(), "익명");
+                            return commentConverter.fromCommentToPageResponse(
+                                    c,
+                                    likedCommentIds.contains(c.getId()),
+                                    commentMetaMap.getOrDefault(c.getId(), 0),
+                                    username);
+                        });
             }
         }
         return comments.map(
-                c ->
-                        commentConverter.fromCommentToPageResponseNonAuth(
-                                c, commentMetaMap.getOrDefault(c.getId(), 0)));
+                c -> {
+                    String username = userIdToNameMap.getOrDefault(c.getUserId(), "익명");
+                    return commentConverter.fromCommentToPageResponseNonAuth(
+                            c, commentMetaMap.getOrDefault(c.getId(), 0), username);
+                });
     }
 
     @Transactional

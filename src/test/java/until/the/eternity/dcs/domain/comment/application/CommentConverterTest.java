@@ -27,6 +27,7 @@ class CommentConverterTest {
     Long id = 1L;
     String content = "content";
     Long userId = 2L;
+    String username = "username";
 
     @BeforeEach
     void init() {
@@ -96,7 +97,7 @@ class CommentConverterTest {
 
         // when
         CommentPageResponseItem response =
-                commentConverter.fromCommentToPageResponse(comment, false, 0);
+                commentConverter.fromCommentToPageResponse(comment, false, 0, username);
 
         // then
         assertNotNull(response);

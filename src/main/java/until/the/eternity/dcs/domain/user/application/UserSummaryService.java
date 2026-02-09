@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.user.application;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,5 +74,9 @@ public class UserSummaryService {
 
     public boolean existsUserSummaryById(Long userId) {
         return userSummaryRepository.existsById(userId);
+    }
+
+    public List<UserSummary> findByIdIn(List<Long> userIds) {
+        return userSummaryRepository.findByIdIn(userIds);
     }
 }
