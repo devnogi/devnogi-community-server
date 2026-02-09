@@ -40,7 +40,7 @@ public class ReportController {
 
     @GetMapping("/reported/{id}")
     @Operation(
-            summary = "접수된 신고 조회  API",
+            summary = "접수된 신고 조회 API",
             description = """
 			- Description : 이 API는 접수된 신고를 단건 조회합니다.
 			- Assignee : 고범수
@@ -55,7 +55,7 @@ public class ReportController {
 
     @GetMapping("/replied/{id}")
     @Operation(
-            summary = "처리된 신고 조회  API",
+            summary = "처리된 신고 조회 API",
             description = """
 			- Description : 이 API는 처리된 신고를 단건 조회합니다.
 			- Assignee : 고범수
