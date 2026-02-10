@@ -515,7 +515,6 @@ class PostServiceTest {
         given(postRepository.findWithPostMetaByKeyword(pageable, keyword)).willReturn(postPage);
         given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
         given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
-        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
 
         // when
         Page<PostSummaryResponse> responses = postService.searchPosts(pageRequest, keyword);
