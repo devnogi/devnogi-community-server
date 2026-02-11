@@ -21,11 +21,16 @@ public record PostSummaryResponse(
 
     public static PostSummaryResponse of(
             Post post, PostMetaResponse postMeta, UserSummary userSummary) {
+        String username = "알수없음";
+        if (userSummary != null) {
+            username = userSummary.getNickname();
+        }
+
         return PostSummaryResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())
-                .userId(userSummary.getId())
-                .username(userSummary.getNickname())
+                .userId(post.getUserId())
+                .username(username)
                 .viewCount(postMeta.viewCount())
                 .likeCount(postMeta.likeCount())
                 .commentCount(postMeta.commentCount())

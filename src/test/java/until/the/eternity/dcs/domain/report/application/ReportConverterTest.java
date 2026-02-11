@@ -31,6 +31,7 @@ class ReportConverterTest {
     private ReportCreateRequest reportCreateRequest;
     private Report report;
     Long userId = 1L;
+    String username = "userName";
     private UserSummaryDetailResponse userSummaryDetailResponse;
 
     @BeforeEach
@@ -93,12 +94,10 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportRevivedDetailResponse로 변환 - 정상 케이스")
     void fromReportToReportRevivedDetailResponse_Success() {
-        // given
-        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
 
         // when
         ReportRevivedDetailResponse result =
-                reportConverter.fromReportToReportRevivedDetailResponse(report);
+                reportConverter.fromReportToReportRevivedDetailResponse(report, username);
 
         // then
         assertThat(result).isNotNull();
@@ -117,7 +116,8 @@ class ReportConverterTest {
     @DisplayName("Report를 ReportRevivedDetailResponse로 변환 - null 입력값")
     void fromReportToReportRevivedDetailResponse_WithNullInput() {
         // when & then
-        assertThatThrownBy(() -> reportConverter.fromReportToReportRevivedDetailResponse(null))
+        assertThatThrownBy(
+                        () -> reportConverter.fromReportToReportRevivedDetailResponse(null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 

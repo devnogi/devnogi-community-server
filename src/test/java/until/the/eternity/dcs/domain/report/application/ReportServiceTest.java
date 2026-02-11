@@ -27,6 +27,8 @@ import until.the.eternity.dcs.domain.report.enums.ReportStatus;
 import until.the.eternity.dcs.domain.report.exception.ReportNotFoundException;
 import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
@@ -40,6 +42,8 @@ class ReportServiceTest {
 
     @Mock private RedisSender redisSender;
 
+    @Mock private UserSummaryService userSummaryService;
+
     @Mock private ReportPermissionEvaluator reportPermissionEvaluator;
     @Mock private SecurityContext securityContext;
     @Mock private Authentication authentication;
@@ -50,11 +54,13 @@ class ReportServiceTest {
     private UserSummary mockAdmin;
     Long userId = 1L;
     Long adminId = 2L;
+    String username = "username";
 
     @BeforeEach
     void setUp() {
         mockReport = Report.builder().id(1L).build();
-        mockUser = UserSummary.builder().id(userId).grade(UserGrade.USER).build();
+        mockUser =
+                UserSummary.builder().id(userId).nickname(username).grade(UserGrade.USER).build();
         mockAdmin = UserSummary.builder().id(adminId).grade(UserGrade.ADMIN).build();
     }
 
@@ -140,8 +146,12 @@ class ReportServiceTest {
             ReportRevivedDetailResponse expectedResponse = mock(ReportRevivedDetailResponse.class);
 
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
-            given(reportConverter.fromReportToReportRevivedDetailResponse(mockReport))
+            given(
+                            reportConverter.fromReportToReportRevivedDetailResponse(
+                                    mockReport, mockUser.getNickname()))
                     .willReturn(expectedResponse);
+            given(userSummaryService.findUserSummary(any()))
+                    .willReturn(UserSummaryDetailResponse.from(mockUser));
 
             // when
             ReportRevivedDetailResponse result = reportService.getRevivedReport(reportId);

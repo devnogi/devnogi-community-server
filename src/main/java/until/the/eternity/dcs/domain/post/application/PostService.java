@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +45,7 @@ import until.the.eternity.dcs.domain.tag.entity.PostTag;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 
 @Slf4j
 @Service
@@ -120,13 +120,17 @@ public class PostService {
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
 
-        UserSummaryDetailResponse userSummary =
-                userSummaryService.findUserSummary(post.getUserId());
+        String nickname = "알수없음";
+        UserSummaryDetailResponse userSummary;
+        try {
+            userSummary = userSummaryService.findUserSummary(post.getUserId());
+            nickname = userSummary.nickname();
+        } catch (UserNotFoundException ignore) {
+        }
 
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(
-                post, postMeta, imageUrls, userSummary.nickname());
+        return postConverter.fromPostToPostDetailResponse(post, postMeta, imageUrls, nickname);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
@@ -252,10 +256,9 @@ public class PostService {
         return getPostSummaryResponses(posts);
     }
 
-    @NonNull
     private Page<PostSummaryResponse> getPostSummaryResponses(Page<Post> posts) {
         List<Long> postIds = posts.getContent().stream().map(Post::getId).toList();
-        List<Long> userIds = posts.getContent().stream().map(Post::getUserId).toList();
+        List<Long> userIds = posts.getContent().stream().map(Post::getUserId).distinct().toList();
         Map<Long, PostMetaResponse> postMetaMap = postMetaService.getPostMetaInfos(postIds);
         Map<Long, UserSummary> userSummaryMap =
                 userSummaryService.findByIdIn(userIds).stream()

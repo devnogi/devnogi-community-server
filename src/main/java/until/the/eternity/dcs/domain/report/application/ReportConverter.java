@@ -41,16 +41,14 @@ public class ReportConverter {
                 .build();
     }
 
-    public ReportRevivedDetailResponse fromReportToReportRevivedDetailResponse(Report report) {
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
-
+    public ReportRevivedDetailResponse fromReportToReportRevivedDetailResponse(
+            Report report, String username) {
         return ReportRevivedDetailResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
-                .targetUserId(targetUserId)
-                .targetUsername(userSummary.nickname())
+                .targetUserId(report.getTargetUserId())
+                .targetUsername(username)
                 .userId(report.getUserId())
                 .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
@@ -91,6 +89,7 @@ public class ReportConverter {
     }
 
     public ReportRepliedSummaryResponse fromReportToReportRepliedSummaryResponse(Report report) {
+        // todo usersummaryservice 사용 부분 N+1 문제 발생 가능 -> 해결 예정
         Long targetUserId = report.getTargetUserId();
         UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
         return ReportRepliedSummaryResponse.builder()

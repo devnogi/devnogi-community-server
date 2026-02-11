@@ -4,7 +4,6 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_LIKE
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_REPLY;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_COMMENT;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -116,7 +115,6 @@ public class CommentService {
         Map<Long, String> userIdToNameMap =
                 userSummaryList.stream()
                         .collect(Collectors.toMap(UserSummary::getId, UserSummary::getNickname));
-        Map<Long, String> commentUsernameMap = new HashMap<>();
 
         if (!checkIsAnonymousUser()) {
             Long userId = getCurrentUserId();
