@@ -127,6 +127,8 @@ public class PostService {
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
+        List<String> tags =
+                post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
 
         String nickname = "알수없음";
         UserSummaryDetailResponse userSummary;
@@ -138,7 +140,8 @@ public class PostService {
 
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(post, postMeta, imageUrls, nickname);
+        return postConverter.fromPostToPostDetailResponse(
+                post, postMeta, imageUrls, nickname, tags);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
@@ -158,27 +161,29 @@ public class PostService {
         List<String> currentList =
                 post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
 
-        List<String> newTags = Optional.ofNullable(postUpdateRequest.tags()).orElseGet(List::of);
+        List<String> newTags = postUpdateRequest.tags();
 
-        List<PostTag> toDeleteTags =
-                currentList.stream()
-                        .filter(name -> !newTags.contains(name))
-                        .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
-                        .toList();
+        if (newTags != null) {
+            List<PostTag> toDeleteTags =
+                    currentList.stream()
+                            .filter(name -> !newTags.contains(name))
+                            .map(tagService::findOrCreateTag)
+                            .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                            .toList();
 
-        postTagService.deletePostTags(toDeleteTags);
+            postTagService.deletePostTags(toDeleteTags);
 
-        List<PostTag> toAddTags =
-                newTags.stream()
-                        .filter(name -> !currentList.contains(name))
-                        .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
-                        .toList();
+            List<PostTag> toAddTags =
+                    newTags.stream()
+                            .filter(name -> !currentList.contains(name))
+                            .map(tagService::findOrCreateTag)
+                            .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                            .toList();
 
-        postTagService.savePostTags(toAddTags);
+            postTagService.savePostTags(toAddTags);
 
-        post.getPostTags().clear();
+            post.getPostTags().clear();
+        }
 
         post.update(
                 postUpdateRequest.title(),
