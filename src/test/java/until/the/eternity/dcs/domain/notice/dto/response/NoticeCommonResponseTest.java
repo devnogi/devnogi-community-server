@@ -12,6 +12,7 @@ class NoticeCommonResponseTest {
 
     @Test
     void from_Success() {
+        String username = "username";
         Notice notice =
                 Notice.builder()
                         .id(1L)
@@ -29,7 +30,8 @@ class NoticeCommonResponseTest {
                         .createdAt(notice.getCreatedAt())
                         .build();
 
-        NoticeCommonResponse noticeResponse = NoticeCommonResponse.from(notice, noticeUser);
+        NoticeCommonResponse noticeResponse =
+                NoticeCommonResponse.from(notice, noticeUser, username);
 
         assertThat(noticeResponse).isNotNull();
         assertThat(noticeResponse.title()).isEqualTo(notice.getTitle());

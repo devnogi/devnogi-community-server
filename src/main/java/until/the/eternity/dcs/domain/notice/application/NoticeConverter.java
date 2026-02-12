@@ -25,8 +25,9 @@ public class NoticeConverter {
                 .build();
     }
 
-    public NoticeCommonResponse toNoticeCommonResponse(Notice notice, NoticeUser noticeUser) {
-        return NoticeCommonResponse.from(notice, noticeUser);
+    public NoticeCommonResponse toNoticeCommonResponse(
+            Notice notice, NoticeUser noticeUser, String username) {
+        return NoticeCommonResponse.from(notice, noticeUser, username);
     }
 
     public NoticePersistResponse toNoticePersistResponse(Notice notice) {

@@ -25,6 +25,8 @@ import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
 import until.the.eternity.dcs.domain.report.exception.ReportNotFoundException;
 import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class ReportService {
     private final ReportConverter reportConverter;
     private final RedisSender redisSender;
     private final ReportPermissionEvaluator reportPermissionEvaluator;
+    private final UserSummaryService userSummaryService;
 
     @Transactional
     @PreAuthorize("@reportPermissionEvaluator.canCreate(authentication)")
@@ -52,7 +55,11 @@ public class ReportService {
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportRevivedDetailResponse getRevivedReport(Long id) {
         Report report = findById(id);
-        return reportConverter.fromReportToReportRevivedDetailResponse(report);
+        UserSummaryDetailResponse userSummary =
+                userSummaryService.findUserSummary(report.getTargetUserId());
+
+        return reportConverter.fromReportToReportRevivedDetailResponse(
+                report, userSummary.nickname());
     }
 
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")

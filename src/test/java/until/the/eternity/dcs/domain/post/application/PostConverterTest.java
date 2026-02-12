@@ -20,6 +20,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostConverter 테스트")
@@ -27,6 +28,7 @@ public class PostConverterTest {
 
     @Mock private PostMeta postMeta;
     @InjectMocks private PostConverter postConverter;
+    @Mock private UserSummary mockUserSummary;
 
     @Test
     @DisplayName("정상적인 PostCreateRequest로 Post 객체를 생성한다")
@@ -40,9 +42,6 @@ public class PostConverterTest {
 
         Long userId = 100L;
         List<String> stringTagList = Arrays.asList("test1", "test2");
-
-        List<PostTag> postTagList =
-                Arrays.asList(PostTag.builder().id(1L).build(), PostTag.builder().id(2L).build());
 
         PostCreateRequest request =
                 new PostCreateRequest(boardId, title, content, isDraft, stringTagList);
@@ -64,17 +63,15 @@ public class PostConverterTest {
     void should_CreatePostSummaryResponse_When_ValidPost() {
 
         // given
-        Long boardId = 1L;
         String title = "테스트 게시글 제목";
-        String content = "테스트 게시글 내용";
-        Boolean isDraft = false;
 
         Post post = Post.builder().id(1L).title(title).build();
         post.setCreatedAt(LocalDateTime.now());
         PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
         // when
         PostSummaryResponse result =
-                postConverter.fromPostToPostSummaryResponse(post, postMetaResponse);
+                postConverter.fromPostToPostSummaryResponse(
+                        post, postMetaResponse, mockUserSummary);
 
         // then
         assertThat(result).isNotNull();
@@ -98,6 +95,7 @@ public class PostConverterTest {
         Board board = Board.builder().id(boardId).build();
         List<PostTag> postTags = new ArrayList<>(); // 우선 빈 리스트 사용
         List<String> imageUrlList = new ArrayList<>();
+        String username = "testUser";
 
         Post post =
                 Post.builder()
@@ -116,7 +114,8 @@ public class PostConverterTest {
 
         // when
         PostDetailResponse result =
-                postConverter.fromPostToPostDetailResponse(post, postMetaResponse, imageUrlList);
+                postConverter.fromPostToPostDetailResponse(
+                        post, postMetaResponse, imageUrlList, username);
 
         // then
         assertThat(result).isNotNull();

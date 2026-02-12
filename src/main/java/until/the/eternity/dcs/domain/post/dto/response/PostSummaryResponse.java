@@ -5,21 +5,32 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Builder
 public record PostSummaryResponse(
         @Schema(description = "게시글 ID", example = "1") Long id,
         @Schema(description = "게시글 제목", example = "게시글 제목입니다.") String title,
+        @Schema(description = "작성자 ID", example = "1") Long userId,
+        @Schema(description = "작성자 이름", example = "홍길동") String username,
         @Schema(description = "조회수", example = "10") Integer viewCount,
         @Schema(description = "좋아요 수", example = "5") Integer likeCount,
         @Schema(description = "댓글 수", example = "3") Integer commentCount,
         @Schema(description = "생성일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime createdAt) {
 
-    public static PostSummaryResponse of(Post post, PostMetaResponse postMeta) {
+    public static PostSummaryResponse of(
+            Post post, PostMetaResponse postMeta, UserSummary userSummary) {
+        String username = "알수없음";
+        if (userSummary != null) {
+            username = userSummary.getNickname();
+        }
+
         return PostSummaryResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())
+                .userId(post.getUserId())
+                .username(username)
                 .viewCount(postMeta.viewCount())
                 .likeCount(postMeta.likeCount())
                 .commentCount(postMeta.commentCount())

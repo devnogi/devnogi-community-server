@@ -40,6 +40,7 @@ import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Slf4j
 @Service
@@ -108,6 +109,13 @@ public class CommentService {
                         .collect(
                                 Collectors.toMap(
                                         CommentMeta::getCommentId, CommentMeta::getLikeCount));
+
+        List<Long> userIds = comments.stream().map(Comment::getUserId).toList();
+        List<UserSummary> userSummaryList = userSummaryService.findByIdIn(userIds);
+        Map<Long, String> userIdToNameMap =
+                userSummaryList.stream()
+                        .collect(Collectors.toMap(UserSummary::getId, UserSummary::getNickname));
+
         if (!checkIsAnonymousUser()) {
             Long userId = getCurrentUserId();
 
@@ -116,17 +124,22 @@ public class CommentService {
                         commentLikeRepository.findIdsByUserIdAndCommentIdIn(userId, commentIds);
 
                 return comments.map(
-                        c ->
-                                commentConverter.fromCommentToPageResponse(
-                                        c,
-                                        likedCommentIds.contains(c.getId()),
-                                        commentMetaMap.getOrDefault(c.getId(), 0)));
+                        c -> {
+                            String username = userIdToNameMap.getOrDefault(c.getUserId(), "익명");
+                            return commentConverter.fromCommentToPageResponse(
+                                    c,
+                                    likedCommentIds.contains(c.getId()),
+                                    commentMetaMap.getOrDefault(c.getId(), 0),
+                                    username);
+                        });
             }
         }
         return comments.map(
-                c ->
-                        commentConverter.fromCommentToPageResponseNonAuth(
-                                c, commentMetaMap.getOrDefault(c.getId(), 0)));
+                c -> {
+                    String username = userIdToNameMap.getOrDefault(c.getUserId(), "익명");
+                    return commentConverter.fromCommentToPageResponseNonAuth(
+                            c, commentMetaMap.getOrDefault(c.getId(), 0), username);
+                });
     }
 
     @Transactional
@@ -146,8 +159,6 @@ public class CommentService {
 
     private void connectCommentWithPost(Long postId, Comment save) {
         Post post = findPostById(postId);
-        String userId =
-                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         post.getComments().add(save);
         postRepository.save(post);
 
@@ -156,8 +167,6 @@ public class CommentService {
 
     private void disconnectCommentWithPost(Comment comment) {
         Long postId = comment.getPost().getId();
-        String userId =
-                checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         Post post = findPostById(postId);
         post.getComments().remove(comment);
         comment.disconnectWithPost();

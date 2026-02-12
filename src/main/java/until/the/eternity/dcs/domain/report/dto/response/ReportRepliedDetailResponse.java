@@ -16,6 +16,9 @@ public record ReportRepliedDetailResponse(
         @Schema(description = "신고 대상 사용자 ID", example = "1L")
                 @NotNull(message = "신고 대상 사용자 ID는 필수입니다")
                 Long targetUserId,
+        @Schema(description = "신고 대상 사용자 이름", example = "홍길동")
+                @NotNull(message = "신고 대상 사용자 이름은 필수입니다")
+                String targetUsername,
         @Schema(description = "신고한 사용자 ID", example = "2L") @NotNull(message = "신고한 사용자 ID는 필수입니다")
                 Long userId,
         @Schema(description = "신고 카테고리 타입", example = "스팸/도배") @Enumerated(EnumType.STRING)

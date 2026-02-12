@@ -2,6 +2,8 @@ package until.the.eternity.dcs.domain.report.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,22 +11,28 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportCategory;
 import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
+import until.the.eternity.dcs.domain.user.application.UserSummaryService;
+import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReportConverter 테스트")
 class ReportConverterTest {
-
+    @Mock private UserSummaryService userSummaryService;
     @InjectMocks private ReportConverter reportConverter;
 
     private ReportCreateRequest reportCreateRequest;
     private Report report;
     Long userId = 1L;
+    String username = "userName";
+    private UserSummaryDetailResponse userSummaryDetailResponse;
 
     @BeforeEach
     void setUp() {
@@ -53,6 +61,9 @@ class ReportConverterTest {
                         .repliedAt(testDateTime.plusDays(1))
                         .repliedBy(2L)
                         .build();
+
+        UserSummary userSummary = UserSummary.builder().id(userId).nickname("username").build();
+        userSummaryDetailResponse = UserSummaryDetailResponse.from(userSummary);
     }
 
     @Test
@@ -83,9 +94,10 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportRevivedDetailResponse로 변환 - 정상 케이스")
     void fromReportToReportRevivedDetailResponse_Success() {
+
         // when
         ReportRevivedDetailResponse result =
-                reportConverter.fromReportToReportRevivedDetailResponse(report);
+                reportConverter.fromReportToReportRevivedDetailResponse(report, username);
 
         // then
         assertThat(result).isNotNull();
@@ -104,13 +116,17 @@ class ReportConverterTest {
     @DisplayName("Report를 ReportRevivedDetailResponse로 변환 - null 입력값")
     void fromReportToReportRevivedDetailResponse_WithNullInput() {
         // when & then
-        assertThatThrownBy(() -> reportConverter.fromReportToReportRevivedDetailResponse(null))
+        assertThatThrownBy(
+                        () -> reportConverter.fromReportToReportRevivedDetailResponse(null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     @DisplayName("Report를 ReportRevivedSummaryResponse로 변환 - 정상 케이스")
     void fromReportToReportRevivedSummaryResponse_Success() {
+        // given
+        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
+
         // when
         ReportRevivedSummaryResponse result =
                 reportConverter.fromReportToReportRevivedSummaryResponse(report);
@@ -136,6 +152,9 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportRepliedDetailResponse로 변환 - 정상 케이스")
     void fromReportToReportRepliedDetailResponse_Success() {
+        // given
+        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
+
         // when
         ReportRepliedDetailResponse result =
                 reportConverter.fromReportToReportRepliedDetailResponse(report);
@@ -164,6 +183,9 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportRepliedSummaryResponse로 변환 - 정상 케이스")
     void fromReportToReportRepliedSummaryResponse_Success() {
+        // given
+        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
+
         // when
         ReportRepliedSummaryResponse result =
                 reportConverter.fromReportToReportRepliedSummaryResponse(report);
@@ -189,6 +211,9 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportReportedDetailResponse로 변환 - 정상 케이스")
     void fromReportToReportReportedDetailResponse_Success() {
+        // given
+        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
+
         // when
         ReportReportedDetailResponse result =
                 reportConverter.fromReportToReportReportedDetailResponse(report);
@@ -215,6 +240,9 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportReportedSummaryResponse로 변환 - 정상 케이스")
     void fromReportToReportReportedSummaryResponse_Success() {
+        // given
+        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
+
         // when
         ReportReportedSummaryResponse result =
                 reportConverter.fromReportToReportReportedSummaryResponse(report);

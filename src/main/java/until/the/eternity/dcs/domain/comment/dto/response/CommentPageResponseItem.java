@@ -11,6 +11,7 @@ import until.the.eternity.dcs.domain.comment.entity.Comment;
 public record CommentPageResponseItem(
         @Schema(description = "댓글 아이디", example = "1", requiredMode = REQUIRED) Long id,
         @Schema(description = "글쓴이 아이디", example = "1", requiredMode = REQUIRED) Long userId,
+        @Schema(description = "글쓴이 이름", example = "홍길동") String username,
         @Schema(description = "대댓글일 경우 상위 댓글의 아이디", example = "1", requiredMode = NOT_REQUIRED)
                 Long parentComment,
         @Schema(description = "댓글 내용", example = "정말 좋은 게시글이네요!!", requiredMode = REQUIRED)
@@ -23,11 +24,12 @@ public record CommentPageResponseItem(
         @Schema(description = "현재 로그인한 유저의 좋아요 여부", example = "false", requiredMode = REQUIRED)
                 Boolean isLiked) {
     public static CommentPageResponseItem from(
-            Comment comment, Boolean isLiked, Integer likeCount) {
+            Comment comment, Boolean isLiked, Integer likeCount, String username) {
         if (comment.getParentComment() == null) {
             return CommentPageResponseItem.builder()
                     .id(comment.getId())
                     .userId(comment.getUserId())
+                    .username(username)
                     .content(comment.getContent())
                     .likeCount(likeCount)
                     .isDeleted(comment.getIsDeleted())
@@ -39,6 +41,7 @@ public record CommentPageResponseItem(
         return CommentPageResponseItem.builder()
                 .id(comment.getId())
                 .userId(comment.getUserId())
+                .username(username)
                 .parentComment(comment.getParentComment().getId())
                 .content(comment.getContent())
                 .likeCount(likeCount)
