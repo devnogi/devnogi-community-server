@@ -144,4 +144,21 @@ class AnnouncementServiceTest {
         assertThat(response.get(0).title()).isEqualTo(announcement.getTitle());
         assertThat(response.get(0).isGlobal()).isEqualTo(announcement.getIsGlobal());
     }
+
+    @Test
+    @DisplayName("getGlobalAnnouncements는 전체 공개 공지만 조회한다.")
+    void getGlobalAnnouncements_Success() {
+        // given
+        when(announcementRepository.findByIsDraftFalseAndIsGlobalTrue())
+                .thenReturn(List.of(announcement));
+
+        // when
+        List<AnnouncementPageResponseItem> response = announcementService.getGlobalAnnouncements();
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).isGlobal()).isTrue();
+        assertThat(response.get(0).isDraft()).isEqualTo(announcement.getIsDraft());
+    }
 }

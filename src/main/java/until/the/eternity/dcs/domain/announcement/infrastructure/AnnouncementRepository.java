@@ -11,4 +11,6 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
     Boolean existsByPostId(Long postId);
 
     List<Announcement> findByBoardIdOrIsGlobalTrue(Long boardId);
+
+    List<Announcement> findByIsDraftFalseAndIsGlobalTrue();
 }

@@ -89,4 +89,19 @@ public class AnnouncementController {
     public List<AnnouncementPageResponseItem> getAnnouncements(@PathVariable Long boardId) {
         return announcementService.getAnnouncementByBoardId(boardId);
     }
+
+    @GetMapping
+    @Operation(
+            summary = "전역 공지글 전체 조회 API",
+            description = """
+	- Description : 이 API는 전체 공개 상태의 공지글만 조회합니다.
+	- Assignee : 이신행
+""")
+    @ApiResponse(
+            responseCode = "200",
+            content =
+                    @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
+    public List<AnnouncementPageResponseItem> getGlobalAnnouncements() {
+        return announcementService.getGlobalAnnouncements();
+    }
 }

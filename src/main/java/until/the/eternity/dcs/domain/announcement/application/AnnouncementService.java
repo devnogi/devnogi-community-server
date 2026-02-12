@@ -78,6 +78,13 @@ public class AnnouncementService {
         return announcements.stream().map(converter::fromEntityToPageResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AnnouncementPageResponseItem> getGlobalAnnouncements() {
+        List<Announcement> announcements = repository.findByIsDraftFalseAndIsGlobalTrue();
+
+        return announcements.stream().map(converter::fromEntityToPageResponse).toList();
+    }
+
     private void duplicateCheck(Long postId) {
         if (repository.existsByPostId(postId)) {
             throw new AnnouncementDuplicateException();
