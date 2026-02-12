@@ -128,7 +128,9 @@ public class PostService {
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
         List<String> tags =
-                post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
+                Optional.ofNullable(post.getPostTags()).orElseGet(List::of).stream()
+                        .map(postTag -> postTag.getTag().getName())
+                        .toList();
 
         String nickname = "알수없음";
         UserSummaryDetailResponse userSummary;
