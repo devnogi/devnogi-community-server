@@ -5,6 +5,7 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
+import until.the.eternity.dcs.domain.post.exception.PostDraftRequiredException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -70,13 +72,16 @@ public class PostService {
     public PostPersistResponse createPost(PostCreateRequest request, List<MultipartFile> files) {
 
         List<String> uploadedFileNames = new ArrayList<>();
+        if (request.isDraft() == null) {
+            throw new PostDraftRequiredException();
+        }
 
         Long userId = getCurrentUserId();
         Post post = postConverter.fromCreateRequestToPost(request, userId);
         Post savedPost = postRepository.save(post);
 
         List<PostTag> postTags =
-                request.tags().stream()
+                Optional.ofNullable(request.tags()).orElseGet(List::of).stream()
                         .map(tagService::findOrCreateTag)
                         .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
                         .collect(Collectors.toList());
@@ -150,7 +155,7 @@ public class PostService {
         List<String> currentList =
                 post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
 
-        List<String> newTags = postUpdateRequest.tags();
+        List<String> newTags = Optional.ofNullable(postUpdateRequest.tags()).orElseGet(List::of);
 
         List<PostTag> toDeleteTags =
                 currentList.stream()
