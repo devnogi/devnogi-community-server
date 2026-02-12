@@ -236,7 +236,11 @@ class PostServiceTest {
                     .willReturn(Optional.of(postWithComments));
             given(
                             postConverter.fromPostToPostDetailResponse(
-                                    postWithComments, postMetaResponse, imageList, username))
+                                    postWithComments,
+                                    postMetaResponse,
+                                    imageList,
+                                    username,
+                                    List.of()))
                     .willReturn(mockDetailResponse);
             given(userSummaryService.findUserSummary(userId))
                     .willReturn(mockUserSummaryDetailResponse);
@@ -251,7 +255,7 @@ class PostServiceTest {
             verify(postRepository).findWithTagsById(postId);
             verify(postConverter)
                     .fromPostToPostDetailResponse(
-                            postWithComments, postMetaResponse, imageList, username);
+                            postWithComments, postMetaResponse, imageList, username, List.of());
         }
 
         @Test

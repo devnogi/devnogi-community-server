@@ -31,8 +31,17 @@ public class PostConverter {
     }
 
     public PostDetailResponse fromPostToPostDetailResponse(
+            Post post,
+            PostMetaResponse postMeta,
+            List<String> imageUrlList,
+            String username,
+            List<String> tags) {
+        return PostDetailResponse.from(post, postMeta, imageUrlList, username, tags);
+    }
+
+    public PostDetailResponse fromPostToPostDetailResponse(
             Post post, PostMetaResponse postMeta, List<String> imageUrlList, String username) {
-        return PostDetailResponse.from(post, postMeta, imageUrlList, username);
+        return PostDetailResponse.from(post, postMeta, imageUrlList, username, List.of());
     }
 
     public PostPersistResponse fromPostToPostPersistResponse(Post post) {

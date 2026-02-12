@@ -5,6 +5,7 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,8 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
+import until.the.eternity.dcs.domain.post.exception.PostDraftRequiredException;
+import until.the.eternity.dcs.domain.post.exception.PostImageCountExceededException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -70,19 +73,23 @@ public class PostService {
     public PostPersistResponse createPost(PostCreateRequest request, List<MultipartFile> files) {
 
         List<String> uploadedFileNames = new ArrayList<>();
+        if (request.isDraft() == null) {
+            throw new PostDraftRequiredException();
+        }
 
         Long userId = getCurrentUserId();
         Post post = postConverter.fromCreateRequestToPost(request, userId);
         Post savedPost = postRepository.save(post);
 
         List<PostTag> postTags =
-                request.tags().stream()
+                Optional.ofNullable(request.tags()).orElseGet(List::of).stream()
                         .map(tagService::findOrCreateTag)
                         .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
                         .collect(Collectors.toList());
         if (files != null && !files.isEmpty()) {
             if (files.size() > 5) {
-                throw new IllegalArgumentException("이미지는 최대 5개까지 업로드 가능합니다.");
+                log.error("게시글 생성 실패: 이미지 개수 초과 (userId={}, count={})", userId, files.size());
+                throw new PostImageCountExceededException();
             }
             try {
                 for (MultipartFile file : files) {
@@ -99,6 +106,7 @@ public class PostService {
                         log.error("롤백 중 파일 삭제 실패: {}", fileName);
                     }
                 }
+                log.error("게시글 생성 실패: 이미지 업로드 중 예외 발생 (userId={})", userId, e);
                 throw e;
             }
         }
@@ -119,6 +127,10 @@ public class PostService {
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
+        List<String> tags =
+                Optional.ofNullable(post.getPostTags()).orElseGet(List::of).stream()
+                        .map(postTag -> postTag.getTag().getName())
+                        .toList();
 
         String nickname = "알수없음";
         UserSummaryDetailResponse userSummary;
@@ -130,7 +142,8 @@ public class PostService {
 
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(post, postMeta, imageUrls, nickname);
+        return postConverter.fromPostToPostDetailResponse(
+                post, postMeta, imageUrls, nickname, tags);
     }
 
     public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
@@ -152,25 +165,27 @@ public class PostService {
 
         List<String> newTags = postUpdateRequest.tags();
 
-        List<PostTag> toDeleteTags =
-                currentList.stream()
-                        .filter(name -> !newTags.contains(name))
-                        .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
-                        .toList();
+        if (newTags != null) {
+            List<PostTag> toDeleteTags =
+                    currentList.stream()
+                            .filter(name -> !newTags.contains(name))
+                            .map(tagService::findOrCreateTag)
+                            .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                            .toList();
 
-        postTagService.deletePostTags(toDeleteTags);
+            postTagService.deletePostTags(toDeleteTags);
 
-        List<PostTag> toAddTags =
-                newTags.stream()
-                        .filter(name -> !currentList.contains(name))
-                        .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().post(post).tag(tag).build())
-                        .toList();
+            List<PostTag> toAddTags =
+                    newTags.stream()
+                            .filter(name -> !currentList.contains(name))
+                            .map(tagService::findOrCreateTag)
+                            .map(tag -> PostTag.builder().post(post).tag(tag).build())
+                            .toList();
 
-        postTagService.savePostTags(toAddTags);
+            postTagService.savePostTags(toAddTags);
 
-        post.getPostTags().clear();
+            post.getPostTags().clear();
+        }
 
         post.update(
                 postUpdateRequest.title(),

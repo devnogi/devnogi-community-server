@@ -25,9 +25,14 @@ public record PostDetailResponse(
                 LocalDateTime createdAt,
         @Schema(description = "수정일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime updatedAt,
+        @Schema(description = "태그 목록", example = "[\"java\", \"spring\"]") List<String> tags,
         @Schema(description = "이미지 URL 리스트", example = "") List<String> imageUrlList) {
     public static PostDetailResponse from(
-            Post post, PostMetaResponse postMeta, List<String> imageUrlList, String username) {
+            Post post,
+            PostMetaResponse postMeta,
+            List<String> imageUrlList,
+            String username,
+            List<String> tags) {
         return PostDetailResponse.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
@@ -42,6 +47,7 @@ public record PostDetailResponse(
                 .isBlocked(post.getIsBlocked())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
+                .tags(tags)
                 .imageUrlList(imageUrlList)
                 .build();
     }
