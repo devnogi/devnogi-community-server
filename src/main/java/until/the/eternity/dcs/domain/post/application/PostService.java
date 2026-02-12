@@ -38,6 +38,7 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.exception.PostDraftRequiredException;
+import until.the.eternity.dcs.domain.post.exception.PostImageCountExceededException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
@@ -87,7 +88,8 @@ public class PostService {
                         .collect(Collectors.toList());
         if (files != null && !files.isEmpty()) {
             if (files.size() > 5) {
-                throw new IllegalArgumentException("이미지는 최대 5개까지 업로드 가능합니다.");
+                log.error("게시글 생성 실패: 이미지 개수 초과 (userId={}, count={})", userId, files.size());
+                throw new PostImageCountExceededException();
             }
             try {
                 for (MultipartFile file : files) {
@@ -104,6 +106,7 @@ public class PostService {
                         log.error("롤백 중 파일 삭제 실패: {}", fileName);
                     }
                 }
+                log.error("게시글 생성 실패: 이미지 업로드 중 예외 발생 (userId={})", userId, e);
                 throw e;
             }
         }
