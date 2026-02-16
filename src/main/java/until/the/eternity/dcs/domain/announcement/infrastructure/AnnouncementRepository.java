@@ -12,5 +12,10 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
 
     Boolean existsByPostId(Long postId);
 
-    List<Announcement> findByIsDraftFalseAndBoardIdOrIsDraftFalseAndIsGlobalTrue(Long boardId);
+    List<Announcement> findByIsDraftFalseAndIsGlobalTrue();
+
+    @Query(
+            "SELECT a FROM Announcement a "
+                    + "WHERE a.isDraft = false AND (a.isGlobal = true OR a.board.id = :boardId)")
+    List<Announcement> findActiveByBoardIdOrGlobal(@Param("boardId") Long boardId);
 }

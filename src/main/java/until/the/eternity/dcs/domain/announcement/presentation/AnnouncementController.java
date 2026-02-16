@@ -35,10 +35,11 @@ public class AnnouncementController {
 
     @PostMapping("/{postId}")
     @Operation(
-            summary = "怨듭?湲 ?깅줉 API",
-            description = """
-			- Description : ??API??寃뚯떆湲??怨듭?湲濡??깅줉?⑸땲??
-			- Assignee : ?댁떊??		""")
+            summary = "공지글 등록 API",
+            description =
+                    """
+			- Description : 이 API를 통해 게시글을 공지글로 등록합니다.
+			- Assignee : 담당자 미정""")
     @ApiResponse(
             responseCode = "201",
             content =
@@ -50,10 +51,11 @@ public class AnnouncementController {
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "怨듭?湲 ??젣 API",
-            description = """
-			- Description : ??API??怨듭?湲?먯꽌 ??젣?⑸땲??
-			- Assignee : ?댁떊??		""")
+            summary = "공지글 삭제 API",
+            description =
+                    """
+			- Description : 이 API를 통해 공지글을 삭제합니다.
+			- Assignee : 담당자 미정""")
     @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         announcementService.delete(id);
@@ -62,11 +64,11 @@ public class AnnouncementController {
 
     @PatchMapping("/toggle-global/{id}")
     @Operation(
-            summary = "怨듭?湲 ?꾩껜 怨듦컻 ?щ? ?좉? API",
+            summary = "공지글 전체 공지 토글 API",
             description =
                     """
-			- Description : ??API??怨듭?湲???꾩껜 怨듦컻 ?щ?瑜??좉??⑸땲??
-			- Assignee : ?댁떊??		""")
+			- Description : 공지글의 전체 공지 여부를 토글합니다.
+			- Assignee : 담당자 미정""")
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = AnnouncementToggleResponse.class)))
@@ -76,10 +78,11 @@ public class AnnouncementController {
 
     @GetMapping
     @Operation(
-            summary = "寃뚯떆??蹂?怨듭?湲 ?꾩껜 議고쉶 API",
-            description = """
-	- Description : boardId媛 null ?쇰븣 ?곗튂怨듦컻 怨듭?湲留??곌껐?쒕떎. boardId媛 ?놁쓣 寃쎌슦 해당 board怨듭?湲??곹깭?먮? ?꾩튂怨듦컻 怨듭?湲源뚯? 議고쉶?쒕떎.
-	- Assignee : ?댁떊??""")
+            summary = "게시판별 공지글 조회 API",
+            description =
+                    """
+		- Description : boardId가 없으면 전체 공지(isGlobal=true, isDraft=false)만 조회하고, boardId가 있으면 해당 게시판 공지(isDraft=false, isGlobal=true 또는 boardId 일치)와 전체 공지를 함께 조회합니다.
+		- Assignee : 담당자 미정""")
     @ApiResponse(
             responseCode = "200",
             content =
