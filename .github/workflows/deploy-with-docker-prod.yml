@@ -76,6 +76,7 @@ jobs:
             echo "MINIO_ENDPOINT=${{ secrets.PROD_MINIO_ENDPOINT }}" >> .env.prod
             echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env.prod
             echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env.prod
+            echo "MINIO_BUCKET=${{ secrets.PROD_MINIO_BUCKET}}" >> .env.prod
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
