@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import until.the.eternity.dcs.domain.announcement.application.AnnouncementService;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
@@ -82,13 +81,6 @@ public class AnnouncementController {
                     @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
     public List<AnnouncementPageResponseItem> getAnnouncements(
             @RequestParam(value = "boardId", required = false) Long boardId) {
-        return announcementService.getAnnouncements(parseBoardId(boardId));
-    }
-
-    private Long parseBoardId(String boardId) {
-        if (!StringUtils.hasText(boardId)) {
-            return null;
-        }
-        return Long.valueOf(boardId);
+        return announcementService.getAnnouncements(boardId);
     }
 }
