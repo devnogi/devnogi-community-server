@@ -81,7 +81,7 @@ public class AnnouncementController {
             content =
                     @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
     public List<AnnouncementPageResponseItem> getAnnouncements(
-            @RequestParam(value = "boardId", required = false) String boardId) {
+            @RequestParam(value = "boardId", required = false) Long boardId) {
         return announcementService.getAnnouncements(parseBoardId(boardId));
     }
 
