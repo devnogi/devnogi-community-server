@@ -14,12 +14,12 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.notification.RedisSender;
-import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.application.BoardService;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
@@ -279,7 +279,7 @@ class PostServiceTest {
             // Given
             postIdList.add(1L);
             postIdList.add(2L);
-            CustomPageRequest pageRequest = mock(CustomPageRequest.class);
+            PostPageRequest pageRequest = mock(PostPageRequest.class);
 
             dbMetaMap.put(postIdList.get(0), postMetaResponse);
             dbMetaMap.put(postIdList.get(1), postMetaResponse2);
@@ -307,7 +307,7 @@ class PostServiceTest {
         void findPostsByBoardId_Success() {
             // Given
             Long boardId = mockBoard.getId();
-            CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "id", "desc");
+            PostPageRequest pageRequest = new PostPageRequest(1, 10, "id", "desc");
             Pageable pageable = pageRequest.toPageable();
 
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
@@ -340,7 +340,7 @@ class PostServiceTest {
         void findPostsByBoardIdWithNewPageable_Success() {
             // Given
             Long boardId = mockBoard.getId();
-            CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "likeCount", "desc");
+            PostPageRequest pageRequest = new PostPageRequest(1, 10, "likeCount", "desc");
             Pageable pageable = pageRequest.toPageable();
 
             List<Post> posts = Arrays.asList(mockPost, mockPost2);
@@ -507,7 +507,7 @@ class PostServiceTest {
     @DisplayName("")
     void searchPosts_Success() {
         // given
-        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        PostPageRequest pageRequest = new PostPageRequest(1, 10, "createdAt", "desc");
         String keyword = "keyword";
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2);
@@ -537,7 +537,7 @@ class PostServiceTest {
     @DisplayName("키워드를 이용한 검색")
     public void searchPostsByBoardId_Success() {
         // given
-        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        PostPageRequest pageRequest = new PostPageRequest(1, 10, "createdAt", "desc");
         Long boardId = 1L;
         String keyword = "keyword";
         Pageable pageable = pageRequest.toPageable();
@@ -571,7 +571,7 @@ class PostServiceTest {
     @DisplayName("사용자별 게시글 검색")
     public void searchPostsByUserId_Success() {
         // given
-        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        PostPageRequest pageRequest = new PostPageRequest(1, 10, "createdAt", "desc");
         Long userId = 1L;
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2);
@@ -601,7 +601,7 @@ class PostServiceTest {
     @DisplayName("게시판 별 인기글 조회")
     public void getPopularPostByBoardId() {
         // given
-        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        PostPageRequest pageRequest = new PostPageRequest(1, 10, "createdAt", "desc");
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost, mockPost2, mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
@@ -633,7 +633,7 @@ class PostServiceTest {
     @DisplayName("게시판별 좋아요 30개 이상 게시글 조회")
     public void getMostLikedPostsByBoardId() {
         // given
-        CustomPageRequest pageRequest = new CustomPageRequest(1, 10, "createdAt", "desc");
+        PostPageRequest pageRequest = new PostPageRequest(1, 10, "createdAt", "desc");
         Pageable pageable = pageRequest.toPageable();
         List<Post> posts = Arrays.asList(mockPost3);
         Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
