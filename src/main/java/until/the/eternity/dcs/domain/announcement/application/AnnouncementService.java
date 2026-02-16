@@ -73,7 +73,8 @@ public class AnnouncementService {
 
     @Transactional(readOnly = true)
     public List<AnnouncementPageResponseItem> getAnnouncementByBoardId(Long boardId) {
-        List<Announcement> announcements = repository.findByBoardIdOrIsGlobalTrue(boardId);
+        List<Announcement> announcements =
+                repository.findByIsDraftFalseAndBoardIdOrIsDraftFalseAndIsGlobalTrue(boardId);
 
         return announcements.stream().map(converter::fromEntityToPageResponse).toList();
     }

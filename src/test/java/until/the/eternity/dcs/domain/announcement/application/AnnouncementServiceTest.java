@@ -130,7 +130,7 @@ class AnnouncementServiceTest {
     @DisplayName("getAnnouncementByBoardId는 BoardId로 해당 게시판과 전체 공지글을 조회한다.")
     void getAnnouncementByBoardId_Success() {
         // given
-        when(announcementRepository.findByBoardIdOrIsGlobalTrue(id))
+        when(announcementRepository.findByIsDraftFalseAndBoardIdOrIsDraftFalseAndIsGlobalTrue(id))
                 .thenReturn(List.of(announcement));
 
         // when
