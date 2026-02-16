@@ -159,6 +159,7 @@ class AnnouncementServiceTest {
         assertThat(response).isNotNull();
         assertThat(response).hasSize(1);
         assertThat(response.get(0).isGlobal()).isTrue();
-        assertThat(response.get(0).isDraft()).isEqualTo(announcement.getIsDraft());
+        assertThat(response.get(0).postId()).isEqualTo(announcement.getPostId());
+        assertThat(response.get(0).title()).isEqualTo(announcement.getTitle());
     }
 }
