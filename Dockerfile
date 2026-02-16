@@ -14,7 +14,7 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
-COPY --from=builder /workspace/build/libs/dcs-0.0.1-SNAPSHOT.jar dcs.jar
+COPY --from=builder /workspace/build/libs/*.jar dcs.jar
 
 EXPOSE 8093
 
