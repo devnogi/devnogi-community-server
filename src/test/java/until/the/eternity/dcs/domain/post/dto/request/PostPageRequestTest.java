@@ -81,4 +81,30 @@ class PostPageRequestTest {
         // then
         assertThat(pageable.getSort().getOrderFor("createdAt")).isNotNull();
     }
+
+    @Test
+    @DisplayName("허용된 정렬 필드(likeCount, viewCount, id 등)는 그대로 적용된다.")
+    void toPageable_AllowedSortBy() {
+        // given
+        PostPageRequest likeCountRequest = new PostPageRequest(1, 20, "likeCount", "desc");
+        PostPageRequest viewCountRequest = new PostPageRequest(1, 20, "viewCount", "asc");
+        PostPageRequest idRequest = new PostPageRequest(1, 20, "id", "desc");
+
+        // when & then
+        assertThat(likeCountRequest.toPageable().getSort().getOrderFor("likeCount")).isNotNull();
+        assertThat(viewCountRequest.toPageable().getSort().getOrderFor("viewCount"))
+                .isNotNull()
+                .satisfies(order -> assertThat(order.isAscending()).isTrue());
+        assertThat(idRequest.toPageable().getSort().getOrderFor("id")).isNotNull();
+    }
+
+    @Test
+    @DisplayName("허용되지 않은 정렬 필드는 InvalidPageRequestException을 발생시킨다.")
+    void toPageable_InvalidSortBy() {
+        // given
+        PostPageRequest request = new PostPageRequest(1, 20, "title", "desc");
+
+        // when & then
+        assertThatThrownBy(request::toPageable).isInstanceOf(InvalidPageRequestException.class);
+    }
 }

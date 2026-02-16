@@ -4,6 +4,8 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Set;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,14 +20,15 @@ public record PostPageRequest(
     private static final int DEFAULT_PAGE = 1;
     private static final int DEFAULT_SIZE = 20;
     private static final String DEFAULT_SORT_BY = "createdAt";
+    private static final Set<String> ALLOWED_SORT_FIELDS =
+            Set.of("createdAt", "id", "likeCount", "viewCount");
     private static final int MIN_SIZE = 10;
     private static final int MAX_SIZE = 50;
 
     public Pageable toPageable() {
         int resolvedPage = this.page != null ? this.page : DEFAULT_PAGE;
         int resolvedSize = this.size != null ? this.size : DEFAULT_SIZE;
-        String resolvedSortBy =
-                this.sortBy != null && !this.sortBy.isBlank() ? this.sortBy : DEFAULT_SORT_BY;
+        String resolvedSortBy = resolveSortBy(this.sortBy);
         Direction resolvedDirection = parseDirection(this.direction);
         validateRange(resolvedPage, resolvedSize);
 
@@ -44,5 +47,15 @@ public record PostPageRequest(
             return ASC;
         }
         return DESC;
+    }
+
+    private String resolveSortBy(String value) {
+        if (value == null || value.isBlank()) {
+            return DEFAULT_SORT_BY;
+        }
+        if (!ALLOWED_SORT_FIELDS.contains(value)) {
+            throw new InvalidPageRequestException();
+        }
+        return value;
     }
 }
