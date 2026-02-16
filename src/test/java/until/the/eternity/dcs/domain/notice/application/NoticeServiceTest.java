@@ -1,16 +1,5 @@
 package until.the.eternity.dcs.domain.notice.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.EVENT;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
-import static until.the.eternity.dcs.domain.user.enums.UserGrade.USER;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +18,18 @@ import until.the.eternity.dcs.domain.notice.infrastructure.NoticeRepository;
 import until.the.eternity.dcs.domain.notice.infrastructure.NoticeUserRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.EVENT;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.USER;
 
 class NoticeServiceTest {
     NoticeRepository noticeRepository = mock(NoticeRepository.class);

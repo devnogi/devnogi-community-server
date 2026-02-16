@@ -1,11 +1,5 @@
 package until.the.eternity.dcs.domain.report.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +15,13 @@ import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReportConverter 테스트")

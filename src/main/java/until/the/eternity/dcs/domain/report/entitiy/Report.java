@@ -1,15 +1,16 @@
 package until.the.eternity.dcs.domain.report.entitiy;
 
-import static until.the.eternity.dcs.domain.report.enums.ReportStatus.REPORTED;
-
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import until.the.eternity.dcs.domain.report.enums.ReportCategory;
 import until.the.eternity.dcs.domain.report.enums.ReportStatus;
 import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
+
+import java.time.LocalDateTime;
+
+import static until.the.eternity.dcs.domain.report.enums.ReportStatus.REPORTED;
 
 @Entity
 @Table(name = "report")

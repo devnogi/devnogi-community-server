@@ -1,13 +1,5 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_LIKE;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_REPLY;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_COMMENT;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,6 +33,13 @@ import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.*;
 
 @Slf4j
 @Service

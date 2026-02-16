@@ -1,8 +1,8 @@
 package until.the.eternity.dcs.domain.announcement.exception;
 
-import static until.the.eternity.dcs.domain.announcement.exception.AnnouncementExceptionCode.ANNOUNCEMENT_NOT_FOUND_EXCEPTION;
-
 import until.the.eternity.dcs.common.exception.CustomException;
+
+import static until.the.eternity.dcs.domain.announcement.exception.AnnouncementExceptionCode.ANNOUNCEMENT_NOT_FOUND_EXCEPTION;
 
 public class AnnouncementNotFoundException extends CustomException {
     public AnnouncementNotFoundException(Long id) {

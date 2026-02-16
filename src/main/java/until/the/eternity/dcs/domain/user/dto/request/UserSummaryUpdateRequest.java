@@ -1,10 +1,10 @@
 package until.the.eternity.dcs.domain.user.dto.request;
 
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 public record UserSummaryUpdateRequest(
         @Schema(description = "사용자 ID", example = "1L", requiredMode = REQUIRED)

@@ -1,29 +1,24 @@
 package until.the.eternity.dcs.domain.announcement.presentation;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 import until.the.eternity.dcs.domain.announcement.application.AnnouncementService;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
+
+import java.util.List;
+
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,10 +29,10 @@ public class AnnouncementController {
     @PostMapping("/{postId}")
     @Operation(
             summary = "공지글 등록 API",
-            description = """
-			- Description : 이 API는 게시글을 공지글로 등록합니다.
-			- Assignee : 이신행
-		""")
+            description =
+                    """
+			- Description : 이 API를 통해 게시글을 공지글로 등록합니다.
+			- Assignee : 담당자 미정""")
     @ApiResponse(
             responseCode = "201",
             content =
@@ -50,10 +45,10 @@ public class AnnouncementController {
     @DeleteMapping("/{id}")
     @Operation(
             summary = "공지글 삭제 API",
-            description = """
-			- Description : 이 API는 공지글에서 삭제합니다.
-			- Assignee : 이신행
-		""")
+            description =
+                    """
+			- Description : 이 API를 통해 공지글을 삭제합니다.
+			- Assignee : 담당자 미정""")
     @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         announcementService.delete(id);
@@ -62,12 +57,11 @@ public class AnnouncementController {
 
     @PatchMapping("/toggle-global/{id}")
     @Operation(
-            summary = "공지글 전체 공개 여부 토글 API",
+            summary = "공지글 전체 공지 토글 API",
             description =
                     """
-			- Description : 이 API는 공지글의 전체 공개 여부를 토글합니다.
-			- Assignee : 이신행
-		""")
+			- Description : 공지글의 전체 공지 여부를 토글합니다.
+			- Assignee : 담당자 미정""")
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = AnnouncementToggleResponse.class)))
@@ -75,18 +69,26 @@ public class AnnouncementController {
         return announcementService.toggleGlobal(id);
     }
 
-    @GetMapping("/{boardId}")
+    @GetMapping
     @Operation(
-            summary = "게시판 별 공지글 전체 조회 API",
-            description = """
-	- Description : 이 API는 해당 게시판의 공지글을 전체 조회합니다.
-	- Assignee : 이신행
-""")
+            summary = "게시판별 공지글 조회 API",
+            description =
+                    """
+		- Description : boardId가 없으면 전체 공지(isGlobal=true, isDraft=false)만 조회하고, boardId가 있으면 해당 게시판 공지(isDraft=false, isGlobal=true 또는 boardId 일치)와 전체 공지를 함께 조회합니다.
+		- Assignee : 담당자 미정""")
     @ApiResponse(
             responseCode = "200",
             content =
                     @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
-    public List<AnnouncementPageResponseItem> getAnnouncements(@PathVariable Long boardId) {
-        return announcementService.getAnnouncementByBoardId(boardId);
+    public List<AnnouncementPageResponseItem> getAnnouncements(
+            @RequestParam(value = "boardId", required = false) Long boardId) {
+        return announcementService.getAnnouncements(parseBoardId(boardId));
+    }
+
+    private Long parseBoardId(String boardId) {
+        if (!StringUtils.hasText(boardId)) {
+            return null;
+        }
+        return Long.valueOf(boardId);
     }
 }

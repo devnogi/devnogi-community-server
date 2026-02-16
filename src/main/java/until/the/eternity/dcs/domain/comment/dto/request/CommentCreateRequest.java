@@ -1,11 +1,11 @@
 package until.the.eternity.dcs.domain.comment.dto.request;
 
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 public record CommentCreateRequest(
         @Schema(description = "대댓글일 경우 상위 댓글의 아이디", example = "1", requiredMode = NOT_REQUIRED)

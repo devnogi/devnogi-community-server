@@ -1,7 +1,5 @@
 package until.the.eternity.dcs.domain.notice.application;
 
-import java.time.Duration;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +8,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
+
+import java.time.Duration;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
