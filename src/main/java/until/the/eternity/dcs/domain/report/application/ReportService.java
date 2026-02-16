@@ -5,6 +5,9 @@ import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_BLOCKED
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.REPORT_RESULT;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,7 @@ import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
+import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @Service
 @RequiredArgsConstructor
@@ -85,7 +89,21 @@ public class ReportService {
         Page<Report> revivedReports =
                 reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable);
 
-        return revivedReports.map(reportConverter::fromReportToReportRevivedSummaryResponse);
+        System.out.println("revivedReports" + revivedReports.stream().toList().size());
+
+        List<Long> userIdList =
+                revivedReports.stream().map(Report::getTargetUserId).distinct().toList();
+        Map<Long, UserSummary> userSummaryMap =
+                userSummaryService.findByIdIn(userIdList).stream()
+                        .collect(Collectors.toMap(UserSummary::getId, u -> u));
+
+        return revivedReports.map(
+                report -> {
+                    UserSummary userSummary = userSummaryMap.get(report.getTargetUserId());
+                    String nickname = (userSummary != null) ? userSummary.getNickname() : "알수없음";
+                    return reportConverter.fromReportToReportRevivedSummaryResponse(
+                            report, nickname);
+                });
     }
 
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")

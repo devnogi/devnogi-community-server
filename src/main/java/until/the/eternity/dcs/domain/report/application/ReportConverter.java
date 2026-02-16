@@ -57,14 +57,13 @@ public class ReportConverter {
                 .build();
     }
 
-    public ReportRevivedSummaryResponse fromReportToReportRevivedSummaryResponse(Report report) {
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+    public ReportRevivedSummaryResponse fromReportToReportRevivedSummaryResponse(
+            Report report, String targetUserName) {
         return ReportRevivedSummaryResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .targetUsername(userSummary.nickname())
+                .targetUsername(targetUserName)
                 .categoryCd(report.getCategoryCd().getCode())
                 .revivedAt(report.getRevivedAt())
                 .revivedBy(report.getRevivedBy())

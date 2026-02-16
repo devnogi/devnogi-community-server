@@ -58,7 +58,7 @@ class ReportServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockReport = Report.builder().id(1L).build();
+        mockReport = Report.builder().id(1L).targetUserId(userId).build();
         mockUser =
                 UserSummary.builder().id(userId).nickname(username).grade(UserGrade.USER).build();
         mockAdmin = UserSummary.builder().id(adminId).grade(UserGrade.ADMIN).build();
@@ -217,7 +217,7 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportRevivedSummaryResponse(mockReport))
+            given(reportConverter.fromReportToReportRevivedSummaryResponse(mockReport, "알수없음"))
                     .willReturn(summaryResponse);
 
             // when

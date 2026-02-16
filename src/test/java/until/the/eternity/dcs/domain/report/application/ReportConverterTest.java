@@ -124,12 +124,10 @@ class ReportConverterTest {
     @Test
     @DisplayName("Report를 ReportRevivedSummaryResponse로 변환 - 정상 케이스")
     void fromReportToReportRevivedSummaryResponse_Success() {
-        // given
-        when(userSummaryService.findUserSummary(anyLong())).thenReturn(userSummaryDetailResponse);
 
         // when
         ReportRevivedSummaryResponse result =
-                reportConverter.fromReportToReportRevivedSummaryResponse(report);
+                reportConverter.fromReportToReportRevivedSummaryResponse(report, username);
 
         // then
         assertThat(result).isNotNull();
@@ -145,7 +143,10 @@ class ReportConverterTest {
     @DisplayName("Report를 ReportRevivedSummaryResponse로 변환 - null 입력값")
     void fromReportToReportRevivedSummaryResponse_WithNullInput() {
         // when & then
-        assertThatThrownBy(() -> reportConverter.fromReportToReportRevivedSummaryResponse(null))
+        assertThatThrownBy(
+                        () ->
+                                reportConverter.fromReportToReportRevivedSummaryResponse(
+                                        null, username))
                 .isInstanceOf(NullPointerException.class);
     }
 
