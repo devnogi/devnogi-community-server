@@ -1,20 +1,20 @@
 package until.the.eternity.dcs.domain.announcement.exception;
 
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import until.the.eternity.dcs.common.exception.ExceptionCode;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 @Getter
 @RequiredArgsConstructor
 public enum AnnouncementExceptionCode implements ExceptionCode {
-    ANNOUNCEMENT_DUPLICATE_EXCEPTION(CONFLICT, "?대떦 寃뚯떆湲? ?대? 怨듭?濡??깅줉?섏뿀?듬땲??"),
-    ANNOUNCEMENT_NOT_FOUND_EXCEPTION(NOT_FOUND, "?대떦 ?꾩씠?붿쓽 怨듭?湲? 議댁옱?섏? ?딆뒿?덈떎."),
+    ANNOUNCEMENT_DUPLICATE_EXCEPTION(CONFLICT, "해당 게시물이 이미 공지로 등록되어 있습니다."),
+    ANNOUNCEMENT_NOT_FOUND_EXCEPTION(NOT_FOUND, "해당 ID의 공지글이 존재하지 않습니다."),
     ANNOUNCEMENT_BOARD_NOT_FOUND_EXCEPTION(
-            NOT_FOUND, "?대떦 寃뚯떆?먯씠 議댁옱?섏? ?딆뒿?덈떎."),
+            NOT_FOUND, "해당 게시판이 존재하지 않습니다."),
     ;
 
     private final HttpStatus status;
