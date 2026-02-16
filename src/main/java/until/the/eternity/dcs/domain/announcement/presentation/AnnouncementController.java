@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import until.the.eternity.dcs.domain.announcement.application.AnnouncementService;
 import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreateRequest;
@@ -33,11 +35,10 @@ public class AnnouncementController {
 
     @PostMapping("/{postId}")
     @Operation(
-            summary = "공지글 등록 API",
+            summary = "怨듭?湲 ?깅줉 API",
             description = """
-			- Description : 이 API는 게시글을 공지글로 등록합니다.
-			- Assignee : 이신행
-		""")
+			- Description : ??API??寃뚯떆湲??怨듭?湲濡??깅줉?⑸땲??
+			- Assignee : ?댁떊??		""")
     @ApiResponse(
             responseCode = "201",
             content =
@@ -49,11 +50,10 @@ public class AnnouncementController {
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "공지글 삭제 API",
+            summary = "怨듭?湲 ??젣 API",
             description = """
-			- Description : 이 API는 공지글에서 삭제합니다.
-			- Assignee : 이신행
-		""")
+			- Description : ??API??怨듭?湲?먯꽌 ??젣?⑸땲??
+			- Assignee : ?댁떊??		""")
     @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         announcementService.delete(id);
@@ -62,12 +62,11 @@ public class AnnouncementController {
 
     @PatchMapping("/toggle-global/{id}")
     @Operation(
-            summary = "공지글 전체 공개 여부 토글 API",
+            summary = "怨듭?湲 ?꾩껜 怨듦컻 ?щ? ?좉? API",
             description =
                     """
-			- Description : 이 API는 공지글의 전체 공개 여부를 토글합니다.
-			- Assignee : 이신행
-		""")
+			- Description : ??API??怨듭?湲???꾩껜 怨듦컻 ?щ?瑜??좉??⑸땲??
+			- Assignee : ?댁떊??		""")
     @ApiResponse(
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = AnnouncementToggleResponse.class)))
@@ -75,33 +74,25 @@ public class AnnouncementController {
         return announcementService.toggleGlobal(id);
     }
 
-    @GetMapping("/{boardId}")
-    @Operation(
-            summary = "게시판 별 공지글 전체 조회 API",
-            description = """
-	- Description : 이 API는 해당 게시판의 공지글을 전체 조회합니다.
-	- Assignee : 이신행
-""")
-    @ApiResponse(
-            responseCode = "200",
-            content =
-                    @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
-    public List<AnnouncementPageResponseItem> getAnnouncements(@PathVariable Long boardId) {
-        return announcementService.getAnnouncementByBoardId(boardId);
-    }
-
     @GetMapping
     @Operation(
-            summary = "전역 공지글 전체 조회 API",
+            summary = "寃뚯떆??蹂?怨듭?湲 ?꾩껜 議고쉶 API",
             description = """
-	- Description : 이 API는 전체 공개 상태의 공지글만 조회합니다.
-	- Assignee : 이신행
-""")
+	- Description : boardId媛 null ?쇰븣 ?곗튂怨듦컻 怨듭?湲留??곌껐?쒕떎. boardId媛 ?놁쓣 寃쎌슦 해당 board怨듭?湲??곹깭?먮? ?꾩튂怨듦컻 怨듭?湲源뚯? 議고쉶?쒕떎.
+	- Assignee : ?댁떊??""")
     @ApiResponse(
             responseCode = "200",
             content =
                     @Content(schema = @Schema(implementation = AnnouncementPageResponseItem.class)))
-    public List<AnnouncementPageResponseItem> getGlobalAnnouncements() {
-        return announcementService.getGlobalAnnouncements();
+    public List<AnnouncementPageResponseItem> getAnnouncements(
+            @RequestParam(value = "boardId", required = false) String boardId) {
+        return announcementService.getAnnouncements(parseBoardId(boardId));
+    }
+
+    private Long parseBoardId(String boardId) {
+        if (!StringUtils.hasText(boardId)) {
+            return null;
+        }
+        return Long.valueOf(boardId);
     }
 }
