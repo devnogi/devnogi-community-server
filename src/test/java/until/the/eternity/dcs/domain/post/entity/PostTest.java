@@ -1,12 +1,13 @@
 package until.the.eternity.dcs.domain.post.entity;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.tag.entity.PostTag;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PostTest {
     Post post;

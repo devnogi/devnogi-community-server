@@ -1,13 +1,5 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +20,15 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AnnouncementServiceTest {
     AnnouncementService announcementService;
@@ -78,7 +79,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("create???덈줈??Announcement瑜??앹꽦, ??ν븳??")
+    @DisplayName("create는 Announcement를 생성하고 저장한다.")
     void create_Success() {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
@@ -97,7 +98,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("create???대? Announcement濡??깅줉?섏뼱 ?덈뒗 寃쎌슦 AnnouncementDuplicateException??由ы꽩?쒕떎.")
+    @DisplayName("create는 이미 Announcement로 등록된 경우 AnnouncementDuplicateException을 발생시킨다.")
     void create_DuplicateException() {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
@@ -113,7 +114,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("toggleGlobal? Announcement??isGlobal???좉??쒕떎.")
+    @DisplayName("toggleGlobal은 Announcement의 isGlobal 값을 토글한다.")
     void toggleGlobal_Success() {
         // given
         when(announcementRepository.findById(id)).thenReturn(Optional.of(announcement));
@@ -132,7 +133,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("getAnnouncements??boardId濡??대떦 寃뚯떆?먭낵 ?꾩껜 怨듭?湲??議고쉶?쒕떎.")
+    @DisplayName("getAnnouncements는 boardId로 해당 게시판 공지와 전체 공지를 함께 조회한다.")
     void getAnnouncements_WithBoardIdSuccess() {
         // given
         when(boardRepository.findByIdAndIsDeletedIsFalse(id))
@@ -151,7 +152,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("getAnnouncements??boardId媛 null??寃쎌슦 ?곗튂怨듦컻 怨듭?留?議고쉶?쒕떎.")
+    @DisplayName("getAnnouncements는 boardId가 null이면 전체 공지(isGlobal=true, isDraft=false)만 조회한다.")
     void getAnnouncements_WithoutBoardIdSuccess() {
         // given
         when(announcementRepository.findByIsDraftFalseAndIsGlobalTrue())
@@ -169,7 +170,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("boardId???놁뼱?? 寃쎌슦 AnnouncementBoardNotFoundException??諛쒖깮?쒕떎.")
+    @DisplayName("boardId가 존재하지 않으면 AnnouncementBoardNotFoundException을 던진다.")
     void getAnnouncements_BoardNotFound() {
         // given
         when(boardRepository.findByIdAndIsDeletedIsFalse(id)).thenReturn(Optional.empty());

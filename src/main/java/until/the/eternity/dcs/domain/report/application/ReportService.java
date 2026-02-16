@@ -1,10 +1,5 @@
 package until.the.eternity.dcs.domain.report.application;
 
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_BLOCKED;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_BLOCKED;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.REPORT_RESULT;
-
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +22,10 @@ import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
+
+import java.time.LocalDateTime;
+
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.*;
 
 @Service
 @RequiredArgsConstructor

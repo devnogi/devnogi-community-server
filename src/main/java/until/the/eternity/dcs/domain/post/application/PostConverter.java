@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.post.application;
 
-import java.util.List;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
@@ -10,6 +9,8 @@ import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+
+import java.util.List;
 
 @Component
 public class PostConverter {

@@ -2,10 +2,11 @@ package until.the.eternity.dcs.domain.post.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.time.LocalDateTime;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
+
+import java.time.LocalDateTime;
 
 @Builder
 public record PostSummaryResponse(
