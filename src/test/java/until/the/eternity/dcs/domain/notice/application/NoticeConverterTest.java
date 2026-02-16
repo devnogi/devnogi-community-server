@@ -1,9 +1,5 @@
 package until.the.eternity.dcs.domain.notice.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
-
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.notice.dto.request.NoticeSendRequest;
@@ -12,6 +8,11 @@ import until.the.eternity.dcs.domain.notice.dto.response.NoticePersistResponse;
 import until.the.eternity.dcs.domain.notice.entity.Notice;
 import until.the.eternity.dcs.domain.notice.entity.NoticeUser;
 import until.the.eternity.dcs.domain.notice.enums.NoticeType;
+
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 
 class NoticeConverterTest {
     NoticeConverter noticeConverter = new NoticeConverter();

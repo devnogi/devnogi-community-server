@@ -1,14 +1,7 @@
 package until.the.eternity.dcs.common.infrastructure;
 
-import static until.the.eternity.dcs.common.exception.PostImageExceptionCode.*;
-
 import io.minio.*;
 import io.minio.http.Method;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,6 +10,14 @@ import until.the.eternity.dcs.common.exception.FileStorageException;
 import until.the.eternity.dcs.common.exception.InvalidExtensionException;
 import until.the.eternity.dcs.common.exception.InvalidFileNameException;
 import until.the.eternity.dcs.common.exception.MissingFileUploadException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static until.the.eternity.dcs.common.exception.PostImageExceptionCode.*;
 
 @Service
 @RequiredArgsConstructor

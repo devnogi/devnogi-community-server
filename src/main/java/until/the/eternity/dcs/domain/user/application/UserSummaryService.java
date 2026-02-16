@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.user.application;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +13,8 @@ import until.the.eternity.dcs.domain.user.exception.UserAlreadyExistsException;
 import until.the.eternity.dcs.domain.user.exception.UserGradeNotFoundException;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

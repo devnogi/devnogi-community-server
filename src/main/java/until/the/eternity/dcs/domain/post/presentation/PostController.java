@@ -1,26 +1,27 @@
 package until.the.eternity.dcs.domain.post.presentation;
 
-import static org.springframework.http.HttpStatus.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.common.response.CustomPageResponse;
 import until.the.eternity.dcs.domain.post.application.PostService;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
+
+import java.util.List;
+
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,7 +70,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> getPosts(
-            @ModelAttribute CustomPageRequest request) {
+            @ModelAttribute PostPageRequest request) {
         return CustomPageResponse.from(postService.findPosts(request));
     }
 
@@ -126,7 +127,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> getPostsByBoardId(
-            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+            @ModelAttribute PostPageRequest request, @PathVariable Long boardId) {
         return CustomPageResponse.from(postService.findPostsByBoardId(request, boardId));
     }
 
@@ -143,7 +144,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> searchPosts(
-            @ModelAttribute CustomPageRequest request,
+            @ModelAttribute PostPageRequest request,
             @RequestParam(required = false) String keyword) {
         return CustomPageResponse.from(postService.searchPosts(request, keyword));
     }
@@ -161,7 +162,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> searchPostsByBoardId(
-            @ModelAttribute CustomPageRequest request,
+            @ModelAttribute PostPageRequest request,
             @PathVariable Long boardId,
             @RequestParam(required = false) String keyword) {
         return CustomPageResponse.from(postService.searchPostsByBoardId(request, boardId, keyword));
@@ -179,7 +180,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> searchPostsByUserId(
-            @ModelAttribute CustomPageRequest request, @PathVariable Long userId) {
+            @ModelAttribute PostPageRequest request, @PathVariable Long userId) {
         return CustomPageResponse.from(postService.searchPostsByUserId(request, userId));
     }
 
@@ -195,7 +196,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> getPopularPostsByBoardId(
-            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+            @ModelAttribute PostPageRequest request, @PathVariable Long boardId) {
         return CustomPageResponse.from(postService.getPopularPostsByBoardId(request, boardId));
     }
 
@@ -211,7 +212,7 @@ public class PostController {
             responseCode = "200",
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public CustomPageResponse<PostSummaryResponse> getMostLikedPostsByBoardId(
-            @ModelAttribute CustomPageRequest request, @PathVariable Long boardId) {
+            @ModelAttribute PostPageRequest request, @PathVariable Long boardId) {
         return CustomPageResponse.from((postService.getMostLikedPostsByBoardId(request, boardId)));
     }
 }

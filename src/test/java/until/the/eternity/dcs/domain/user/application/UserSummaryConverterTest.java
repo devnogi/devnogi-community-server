@@ -1,7 +1,5 @@
 package until.the.eternity.dcs.domain.user.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +10,8 @@ import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryPersistResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.enums.UserGrade;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserSummaryConverterTest 단위 테스트")

@@ -1,7 +1,5 @@
 package until.the.eternity.dcs.domain.report.persentation;
 
-import static org.springframework.http.HttpStatus.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +14,8 @@ import until.the.eternity.dcs.domain.report.application.ReportService;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportUpdateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
+
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor

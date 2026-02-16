@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.gradle
+build
+data
+local-minio-data
+node_modules
+*.iml
+*.log
+.env*
+.DS_Store
+tmp
