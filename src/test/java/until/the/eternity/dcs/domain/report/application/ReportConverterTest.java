@@ -15,7 +15,6 @@ import until.the.eternity.dcs.domain.report.dto.response.*;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportCategory;
 import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
-import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReportConverter 테스트")
@@ -54,8 +53,6 @@ class ReportConverterTest {
                         .repliedAt(testDateTime.plusDays(1))
                         .repliedBy(2L)
                         .build();
-
-        UserSummary userSummary = UserSummary.builder().id(userId).nickname("username").build();
     }
 
     @Test

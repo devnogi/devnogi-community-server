@@ -114,6 +114,7 @@ class ReportServiceTest {
             Long reportId = 1L;
             ReportRepliedDetailResponse expectedResponse = mock(ReportRepliedDetailResponse.class);
 
+            mockReport.update(ReportStatus.ACCEPT, null, null, null, null);
             given(userSummaryService.findUserSummary(anyLong()))
                     .willReturn(UserSummaryDetailResponse.from(mockUser));
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
@@ -148,6 +149,7 @@ class ReportServiceTest {
             Long reportId = 1L;
             ReportRevivedDetailResponse expectedResponse = mock(ReportRevivedDetailResponse.class);
 
+            mockReport.update(ReportStatus.REJECT, null, null, null, null);
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
             given(
                             reportConverter.fromReportToReportRevivedDetailResponse(

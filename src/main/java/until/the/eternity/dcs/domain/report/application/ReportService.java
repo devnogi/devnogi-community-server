@@ -26,6 +26,7 @@ import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportStatus;
 import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
 import until.the.eternity.dcs.domain.report.exception.ReportNotFoundException;
+import until.the.eternity.dcs.domain.report.exception.ReportStatusNotMatchException;
 import until.the.eternity.dcs.domain.report.exception.StatusNotFoundException;
 import until.the.eternity.dcs.domain.report.infrastructure.ReportRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
@@ -53,9 +54,9 @@ public class ReportService {
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportRepliedDetailResponse getRepliedReport(Long id) {
         Report report = findById(id);
-
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+        reportStatusValid(report, ReportStatus.ACCEPT);
+        UserSummaryDetailResponse userSummary =
+                userSummaryService.findUserSummary(report.getTargetUserId());
 
         return reportConverter.fromReportToReportRepliedDetailResponse(
                 report, userSummary.nickname());
@@ -64,6 +65,7 @@ public class ReportService {
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportRevivedDetailResponse getRevivedReport(Long id) {
         Report report = findById(id);
+        reportStatusValid(report, ReportStatus.REJECT);
         UserSummaryDetailResponse userSummary =
                 userSummaryService.findUserSummary(report.getTargetUserId());
 
@@ -74,6 +76,7 @@ public class ReportService {
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportReportedDetailResponse getReportedReport(Long id) {
         Report report = findById(id);
+        reportStatusValid(report, ReportStatus.REPORTED);
         UserSummaryDetailResponse userSummary =
                 userSummaryService.findUserSummary(report.getTargetUserId());
 
@@ -197,5 +200,11 @@ public class ReportService {
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return reportPermissionEvaluator.getCurrentUserId(auth);
+    }
+
+    private void reportStatusValid(Report report, ReportStatus status) {
+        if (!report.getStatusCd().equals(status)) {
+            throw new ReportStatusNotMatchException(report.getStatusCd());
+        }
     }
 }
