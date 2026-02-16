@@ -55,6 +55,7 @@ class ReportServiceTest {
     Long userId = 1L;
     Long adminId = 2L;
     String username = "username";
+    String unknownUsername = "알수없음";
 
     @BeforeEach
     void setUp() {
@@ -113,8 +114,10 @@ class ReportServiceTest {
             Long reportId = 1L;
             ReportRepliedDetailResponse expectedResponse = mock(ReportRepliedDetailResponse.class);
 
+            given(userSummaryService.findUserSummary(anyLong()))
+                    .willReturn(UserSummaryDetailResponse.from(mockUser));
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
-            given(reportConverter.fromReportToReportRepliedDetailResponse(mockReport))
+            given(reportConverter.fromReportToReportRepliedDetailResponse(mockReport, username))
                     .willReturn(expectedResponse);
 
             // when
@@ -123,7 +126,7 @@ class ReportServiceTest {
             // then
             assertThat(result).isEqualTo(expectedResponse);
             verify(reportRepository).findById(reportId);
-            verify(reportConverter).fromReportToReportRepliedDetailResponse(mockReport);
+            verify(reportConverter).fromReportToReportRepliedDetailResponse(mockReport, username);
         }
 
         @Test
@@ -168,8 +171,10 @@ class ReportServiceTest {
             ReportReportedDetailResponse expectedResponse =
                     mock(ReportReportedDetailResponse.class);
 
+            given(userSummaryService.findUserSummary(anyLong()))
+                    .willReturn(UserSummaryDetailResponse.from(mockUser));
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
-            given(reportConverter.fromReportToReportReportedDetailResponse(mockReport))
+            given(reportConverter.fromReportToReportReportedDetailResponse(mockReport, username))
                     .willReturn(expectedResponse);
 
             // when
@@ -195,7 +200,9 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.ACCEPT, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportRepliedSummaryResponse(mockReport))
+            given(
+                            reportConverter.fromReportToReportRepliedSummaryResponse(
+                                    mockReport, unknownUsername))
                     .willReturn(summaryResponse);
 
             // when
@@ -217,7 +224,9 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportRevivedSummaryResponse(mockReport, "알수없음"))
+            given(
+                            reportConverter.fromReportToReportRevivedSummaryResponse(
+                                    mockReport, unknownUsername))
                     .willReturn(summaryResponse);
 
             // when
@@ -240,7 +249,9 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.REPORTED, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportReportedSummaryResponse(mockReport))
+            given(
+                            reportConverter.fromReportToReportReportedSummaryResponse(
+                                    mockReport, unknownUsername))
                     .willReturn(summaryResponse);
 
             // when

@@ -53,7 +53,12 @@ public class ReportService {
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportRepliedDetailResponse getRepliedReport(Long id) {
         Report report = findById(id);
-        return reportConverter.fromReportToReportRepliedDetailResponse(report);
+
+        Long targetUserId = report.getTargetUserId();
+        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+
+        return reportConverter.fromReportToReportRepliedDetailResponse(
+                report, userSummary.nickname());
     }
 
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
@@ -69,7 +74,11 @@ public class ReportService {
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
     public ReportReportedDetailResponse getReportedReport(Long id) {
         Report report = findById(id);
-        return reportConverter.fromReportToReportReportedDetailResponse(report);
+        UserSummaryDetailResponse userSummary =
+                userSummaryService.findUserSummary(report.getTargetUserId());
+
+        return reportConverter.fromReportToReportReportedDetailResponse(
+                report, userSummary.nickname());
     }
 
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
@@ -79,7 +88,19 @@ public class ReportService {
         Page<Report> repliedReports =
                 reportRepository.findAllByStatusCd(ReportStatus.ACCEPT, pageable);
 
-        return repliedReports.map(reportConverter::fromReportToReportRepliedSummaryResponse);
+        List<Long> userIdList =
+                repliedReports.stream().map(Report::getTargetUserId).distinct().toList();
+        Map<Long, UserSummary> userSummaryMap =
+                userSummaryService.findByIdIn(userIdList).stream()
+                        .collect(Collectors.toMap(UserSummary::getId, u -> u));
+
+        return repliedReports.map(
+                report -> {
+                    UserSummary userSummary = userSummaryMap.get(report.getTargetUserId());
+                    String nickname = (userSummary != null) ? userSummary.getNickname() : "알수없음";
+                    return reportConverter.fromReportToReportRepliedSummaryResponse(
+                            report, nickname);
+                });
     }
 
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")
@@ -88,8 +109,6 @@ public class ReportService {
 
         Page<Report> revivedReports =
                 reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable);
-
-        System.out.println("revivedReports" + revivedReports.stream().toList().size());
 
         List<Long> userIdList =
                 revivedReports.stream().map(Report::getTargetUserId).distinct().toList();
@@ -113,7 +132,19 @@ public class ReportService {
         Page<Report> reportedReports =
                 reportRepository.findAllByStatusCd(ReportStatus.REPORTED, pageable);
 
-        return reportedReports.map(reportConverter::fromReportToReportReportedSummaryResponse);
+        List<Long> userIdList =
+                reportedReports.stream().map(Report::getTargetUserId).distinct().toList();
+        Map<Long, UserSummary> userSummaryMap =
+                userSummaryService.findByIdIn(userIdList).stream()
+                        .collect(Collectors.toMap(UserSummary::getId, u -> u));
+
+        return reportedReports.map(
+                report -> {
+                    UserSummary userSummary = userSummaryMap.get(report.getTargetUserId());
+                    String nickname = (userSummary != null) ? userSummary.getNickname() : "알수없음";
+                    return reportConverter.fromReportToReportReportedSummaryResponse(
+                            report, nickname);
+                });
     }
 
     @Transactional
