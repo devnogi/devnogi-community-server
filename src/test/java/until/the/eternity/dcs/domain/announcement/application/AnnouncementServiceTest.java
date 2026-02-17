@@ -17,9 +17,11 @@ import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreate
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.entity.Announcement;
+import until.the.eternity.dcs.domain.announcement.exception.AnnouncementBoardNotFoundException;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementDuplicateException;
 import until.the.eternity.dcs.domain.announcement.infrastructure.AnnouncementRepository;
 import until.the.eternity.dcs.domain.board.entity.Board;
+import until.the.eternity.dcs.domain.board.infrastructure.BoardRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -33,6 +35,7 @@ class AnnouncementServiceTest {
     PostRepository postRepository;
     PostMetaRepository postMetaRepository;
     PostMetaService postMetaService;
+    BoardRepository boardRepository;
     Long id = 1L;
     Post post;
     Announcement announcement;
@@ -46,6 +49,7 @@ class AnnouncementServiceTest {
         announcementRepository = mock(AnnouncementRepository.class);
         postRepository = mock(PostRepository.class);
         postMetaRepository = mock(PostMetaRepository.class);
+        boardRepository = mock(BoardRepository.class);
         RedisSender redisSender = mock(RedisSender.class);
         AnnouncementPermissionEvaluator announcementPermissionEvaluator =
                 mock(AnnouncementPermissionEvaluator.class);
@@ -60,7 +64,8 @@ class AnnouncementServiceTest {
                         postMetaRepository,
                         postMetaService,
                         redisSender,
-                        announcementPermissionEvaluator);
+                        announcementPermissionEvaluator,
+                        boardRepository);
 
         announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();
         post =
@@ -73,7 +78,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("create는 새로운 Announcement를 생성, 저장한다.")
+    @DisplayName("create는 Announcement를 생성하고 저장한다.")
     void create_Success() {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
@@ -92,7 +97,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("create는 이미 Announcement로 등록되어 있는 경우 AnnouncementDuplicateException을 리턴한다.")
+    @DisplayName("create는 이미 Announcement로 등록된 경우 AnnouncementDuplicateException을 발생시킨다.")
     void create_DuplicateException() {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
@@ -108,7 +113,7 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("toggleGlobal은 Announcement의 isGlobal을 토글한다.")
+    @DisplayName("toggleGlobal은 Announcement의 isGlobal 값을 토글한다.")
     void toggleGlobal_Success() {
         // given
         when(announcementRepository.findById(id)).thenReturn(Optional.of(announcement));
@@ -127,15 +132,16 @@ class AnnouncementServiceTest {
     }
 
     @Test
-    @DisplayName("getAnnouncementByBoardId는 BoardId로 해당 게시판과 전체 공지글을 조회한다.")
-    void getAnnouncementByBoardId_Success() {
+    @DisplayName("getAnnouncements는 boardId로 해당 게시판 공지와 전체 공지를 함께 조회한다.")
+    void getAnnouncements_WithBoardIdSuccess() {
         // given
-        when(announcementRepository.findByBoardIdOrIsGlobalTrue(id))
+        when(boardRepository.findByIdAndIsDeletedIsFalse(id))
+                .thenReturn(Optional.of(Board.builder().id(id).build()));
+        when(announcementRepository.findActiveByBoardIdOrGlobal(id))
                 .thenReturn(List.of(announcement));
 
         // when
-        List<AnnouncementPageResponseItem> response =
-                announcementService.getAnnouncementByBoardId(id);
+        List<AnnouncementPageResponseItem> response = announcementService.getAnnouncements(id);
 
         // then
         assertThat(response).isNotNull();
@@ -143,5 +149,35 @@ class AnnouncementServiceTest {
         assertThat(response.get(0).postId()).isEqualTo(announcement.getPostId());
         assertThat(response.get(0).title()).isEqualTo(announcement.getTitle());
         assertThat(response.get(0).isGlobal()).isEqualTo(announcement.getIsGlobal());
+    }
+
+    @Test
+    @DisplayName("getAnnouncements는 boardId가 null이면 전체 공지(isGlobal=true, isDraft=false)만 조회한다.")
+    void getAnnouncements_WithoutBoardIdSuccess() {
+        // given
+        when(announcementRepository.findByIsDraftFalseAndIsGlobalTrue())
+                .thenReturn(List.of(announcement));
+
+        // when
+        List<AnnouncementPageResponseItem> response = announcementService.getAnnouncements(null);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).isGlobal()).isTrue();
+        assertThat(response.get(0).postId()).isEqualTo(announcement.getPostId());
+        assertThat(response.get(0).title()).isEqualTo(announcement.getTitle());
+    }
+
+    @Test
+    @DisplayName("boardId가 존재하지 않으면 AnnouncementBoardNotFoundException을 던진다.")
+    void getAnnouncements_BoardNotFound() {
+        // given
+        when(boardRepository.findByIdAndIsDeletedIsFalse(id)).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> announcementService.getAnnouncements(id))
+                .isInstanceOf(AnnouncementBoardNotFoundException.class);
     }
 }

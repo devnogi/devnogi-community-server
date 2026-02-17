@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.report.application;
 
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.*;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_BLOCKED;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_BLOCKED;
 import static until.the.eternity.dcs.domain.notice.enums.NoticeType.REPORT_RESULT;

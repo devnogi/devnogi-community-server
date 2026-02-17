@@ -23,12 +23,12 @@ import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
 import until.the.eternity.dcs.common.infrastructure.MinioService;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
-import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.board.application.BoardService;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
@@ -146,7 +146,7 @@ public class PostService {
                 post, postMeta, imageUrls, nickname, tags);
     }
 
-    public Page<PostSummaryResponse> findPosts(CustomPageRequest request) {
+    public Page<PostSummaryResponse> findPosts(PostPageRequest request) {
         Pageable pageable = request.toPageable();
 
         Page<Post> posts = postRepository.findAllByIsDeletedFalseAndIsBlockedFalse(pageable);
@@ -236,7 +236,7 @@ public class PostService {
         postMetaService.unlikePost(postId, userIp);
     }
 
-    public Page<PostSummaryResponse> findPostsByBoardId(CustomPageRequest request, Long boardId) {
+    public Page<PostSummaryResponse> findPostsByBoardId(PostPageRequest request, Long boardId) {
         Pageable pageable = request.toPageable();
         String[] sortArr = pageable.getSort().toString().split(":");
         Page<Post> posts;
@@ -255,14 +255,14 @@ public class PostService {
         return getPostSummaryResponses(posts);
     }
 
-    public Page<PostSummaryResponse> searchPosts(CustomPageRequest request, String keyword) {
+    public Page<PostSummaryResponse> searchPosts(PostPageRequest request, String keyword) {
         Page<Post> posts = postRepository.findWithPostMetaByKeyword(request.toPageable(), keyword);
 
         return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> searchPostsByBoardId(
-            CustomPageRequest request, Long boardId, String keyword) {
+            PostPageRequest request, Long boardId, String keyword) {
         Board board = boardService.findBoardById(boardId);
         Page<Post> posts =
                 postRepository.findWithPostMetaByBoardIdAndKeyword(
@@ -287,21 +287,21 @@ public class PostService {
                                 userSummaryMap.get(post.getUserId())));
     }
 
-    public Page<PostSummaryResponse> searchPostsByUserId(CustomPageRequest request, Long userId) {
+    public Page<PostSummaryResponse> searchPostsByUserId(PostPageRequest request, Long userId) {
         Page<Post> posts = postRepository.findWithPostMetaByUserId(request.toPageable(), userId);
 
         return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> getPopularPostsByBoardId(
-            CustomPageRequest request, Long boardId) {
+            PostPageRequest request, Long boardId) {
         Board board = boardService.findBoardById(boardId);
         Page<Post> posts = postRepository.findPopularPostsByBoardId(request.toPageable(), board);
         return getPostSummaryResponses(posts);
     }
 
     public Page<PostSummaryResponse> getMostLikedPostsByBoardId(
-            CustomPageRequest request, Long boardId) {
+            PostPageRequest request, Long boardId) {
         Board board = boardService.findBoardById(boardId);
         Page<Post> posts = postRepository.findMostLikedPostsByBoardId(request.toPageable(), board);
         return getPostSummaryResponses(posts);

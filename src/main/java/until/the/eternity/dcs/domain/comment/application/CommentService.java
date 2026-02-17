@@ -1,8 +1,6 @@
 package until.the.eternity.dcs.domain.comment.application;
 
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_LIKE;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.COMMENT_REPLY;
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_COMMENT;
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.*;
 
 import java.util.List;
 import java.util.Map;
