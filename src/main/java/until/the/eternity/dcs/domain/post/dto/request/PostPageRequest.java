@@ -1,16 +1,16 @@
 package until.the.eternity.dcs.domain.post.dto.request;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Set;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import until.the.eternity.dcs.common.exception.InvalidPageRequestException;
+
+import java.util.Set;
+
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 public record PostPageRequest(
         @Schema(description = "요청할 페이지 번호", example = "1") Integer page,
