@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.common.infrastructure;
 
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import until.the.eternity.dcs.domain.board.application.BoardArchiveService;
 import until.the.eternity.dcs.domain.comment.application.CommentArchiveService;
 import until.the.eternity.dcs.domain.post.application.PostArchiveService;
-
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor

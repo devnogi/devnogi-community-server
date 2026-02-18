@@ -1,6 +1,9 @@
 package until.the.eternity.dcs.domain.comment.application;
 
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
@@ -9,10 +12,6 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentArchiveReposi
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

@@ -1,5 +1,12 @@
 package until.the.eternity.dcs.domain.post.application;
 
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -42,14 +49,6 @@ import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.POST_LIKE;
 
 @Slf4j
 @Service

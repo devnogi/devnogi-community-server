@@ -3,10 +3,9 @@ package until.the.eternity.dcs.common.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PreRemove;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @MappedSuperclass
 @Getter

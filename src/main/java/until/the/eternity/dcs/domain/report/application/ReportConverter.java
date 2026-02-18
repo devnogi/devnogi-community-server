@@ -9,14 +9,10 @@ import until.the.eternity.dcs.domain.report.enums.ReportCategory;
 import until.the.eternity.dcs.domain.report.enums.ReportTargetType;
 import until.the.eternity.dcs.domain.report.exception.CategoryNotFoundException;
 import until.the.eternity.dcs.domain.report.exception.TargetNotFoundException;
-import until.the.eternity.dcs.domain.user.application.UserSummaryService;
-import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse;
 
 @Component
 @RequiredArgsConstructor
 public class ReportConverter {
-    private final UserSummaryService userSummaryService;
-
     public Report fromReportCreateRequestToReport(
             ReportCreateRequest reportCreateRequest, Long userId) {
         ReportTargetType targetType =
@@ -57,29 +53,27 @@ public class ReportConverter {
                 .build();
     }
 
-    public ReportRevivedSummaryResponse fromReportToReportRevivedSummaryResponse(Report report) {
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+    public ReportRevivedSummaryResponse fromReportToReportRevivedSummaryResponse(
+            Report report, String targetUserName) {
         return ReportRevivedSummaryResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .targetUsername(userSummary.nickname())
+                .targetUsername(targetUserName)
                 .categoryCd(report.getCategoryCd().getCode())
                 .revivedAt(report.getRevivedAt())
                 .revivedBy(report.getRevivedBy())
                 .build();
     }
 
-    public ReportRepliedDetailResponse fromReportToReportRepliedDetailResponse(Report report) {
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+    public ReportRepliedDetailResponse fromReportToReportRepliedDetailResponse(
+            Report report, String targetUserName) {
         return ReportRepliedDetailResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
                 .targetUserId(report.getTargetUserId())
-                .targetUsername(userSummary.nickname())
+                .targetUsername(targetUserName)
                 .userId(report.getUserId())
                 .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
@@ -88,46 +82,41 @@ public class ReportConverter {
                 .build();
     }
 
-    public ReportRepliedSummaryResponse fromReportToReportRepliedSummaryResponse(Report report) {
-        // todo usersummaryservice 사용 부분 N+1 문제 발생 가능 -> 해결 예정
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+    public ReportRepliedSummaryResponse fromReportToReportRepliedSummaryResponse(
+            Report report, String targetUserName) {
         return ReportRepliedSummaryResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .targetUsername(userSummary.nickname())
+                .targetUsername(targetUserName)
                 .categoryCd(report.getCategoryCd().getCode())
                 .repliedAt(report.getRepliedAt())
                 .repliedBy(report.getRepliedBy())
                 .build();
     }
 
-    public ReportReportedDetailResponse fromReportToReportReportedDetailResponse(Report report) {
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
-
+    public ReportReportedDetailResponse fromReportToReportReportedDetailResponse(
+            Report report, String targetUserName) {
         return ReportReportedDetailResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetId(report.getTargetId())
-                .targetUserId(targetUserId)
-                .targetUsername(userSummary.nickname())
+                .targetUserId(report.getTargetUserId())
+                .targetUsername(targetUserName)
                 .userId(report.getUserId())
                 .categoryCd(report.getCategoryCd().getCode())
                 .reason(report.getReason())
                 .build();
     }
 
-    public ReportReportedSummaryResponse fromReportToReportReportedSummaryResponse(Report report) {
-        Long targetUserId = report.getTargetUserId();
-        UserSummaryDetailResponse userSummary = userSummaryService.findUserSummary(targetUserId);
+    public ReportReportedSummaryResponse fromReportToReportReportedSummaryResponse(
+            Report report, String targetUserName) {
 
         return ReportReportedSummaryResponse.builder()
                 .Id(report.getId())
                 .targetType(report.getTargetType().getCode())
                 .targetUserId(report.getTargetUserId())
-                .targetUsername(userSummary.nickname())
+                .targetUsername(targetUserName)
                 .categoryCd(report.getCategoryCd().getCode())
                 .build();
     }

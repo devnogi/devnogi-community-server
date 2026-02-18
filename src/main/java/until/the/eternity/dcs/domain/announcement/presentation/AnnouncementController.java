@@ -1,10 +1,14 @@
 package until.the.eternity.dcs.domain.announcement.presentation;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,11 +17,6 @@ import until.the.eternity.dcs.domain.announcement.dto.request.AnnouncementCreate
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPageResponseItem;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementPersistResponse;
 import until.the.eternity.dcs.domain.announcement.dto.response.AnnouncementToggleResponse;
-
-import java.util.List;
-
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,8 +43,7 @@ public class AnnouncementController {
     @DeleteMapping("/{id}")
     @Operation(
             summary = "공지글 삭제 API",
-            description =
-                    """
+            description = """
 			- Description : 이 API를 통해 공지글을 삭제합니다.
 			- Assignee : 담당자 미정""")
     @ApiResponse(responseCode = "204")
@@ -57,8 +55,7 @@ public class AnnouncementController {
     @PatchMapping("/toggle-global/{id}")
     @Operation(
             summary = "공지글 전체 공지 토글 API",
-            description =
-                    """
+            description = """
 			- Description : 공지글의 전체 공지 여부를 토글합니다.
 			- Assignee : 담당자 미정""")
     @ApiResponse(

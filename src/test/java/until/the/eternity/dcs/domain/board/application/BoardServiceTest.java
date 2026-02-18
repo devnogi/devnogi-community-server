@@ -1,5 +1,12 @@
 package until.the.eternity.dcs.domain.board.application;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,14 +17,6 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.infrastructure.BoardRepository;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 
 class BoardServiceTest {
     BoardRepository boardRepository = mock(BoardRepository.class);

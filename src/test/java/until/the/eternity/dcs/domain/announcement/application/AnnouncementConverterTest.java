@@ -1,5 +1,7 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,8 +13,6 @@ import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AnnouncementConverterTest {
     AnnouncementConverter announcementConverter;

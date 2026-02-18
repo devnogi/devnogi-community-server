@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.domain.report.entity;
 
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import until.the.eternity.dcs.domain.report.entitiy.Report;
 import until.the.eternity.dcs.domain.report.enums.ReportStatus;
-
-import java.time.LocalDateTime;
 
 public class ReportTest {
     Report report;

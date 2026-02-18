@@ -3,7 +3,6 @@ package until.the.eternity.dcs.domain.post.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
 
 public record PostUpdateRequest(

@@ -1,11 +1,10 @@
 package until.the.eternity.dcs.common.notification.dto;
 
-import lombok.Builder;
-import until.the.eternity.dcs.domain.notice.enums.NoticeType;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import lombok.Builder;
+import until.the.eternity.dcs.domain.notice.enums.NoticeType;
 
 @Builder
 public record NotificationJob(

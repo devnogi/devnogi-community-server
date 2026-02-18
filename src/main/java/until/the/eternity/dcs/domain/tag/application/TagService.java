@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.domain.tag.application;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.tag.dto.response.TagResponse;
 import until.the.eternity.dcs.domain.tag.entity.Tag;
 import until.the.eternity.dcs.domain.tag.infrastructure.TagRepository;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

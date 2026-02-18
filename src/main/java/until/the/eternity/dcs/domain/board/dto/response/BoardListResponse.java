@@ -1,12 +1,11 @@
 package until.the.eternity.dcs.domain.board.dto.response;
 
+import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import lombok.Builder;
 import until.the.eternity.dcs.domain.board.entity.Board;
-
-import java.util.List;
-
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 
 @Builder
 public record BoardListResponse(

@@ -1,5 +1,7 @@
 package until.the.eternity.dcs.common.exception;
 
+import static until.the.eternity.dcs.common.exception.GlobalExceptionCode.SERVER_ERROR;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,8 +10,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import until.the.eternity.dcs.common.response.ApiResponse;
 import until.the.eternity.dcs.domain.announcement.exception.AnnouncementInvalidBoardIdParameterException;
-
-import static until.the.eternity.dcs.common.exception.GlobalExceptionCode.SERVER_ERROR;
 
 @Slf4j
 @RestControllerAdvice

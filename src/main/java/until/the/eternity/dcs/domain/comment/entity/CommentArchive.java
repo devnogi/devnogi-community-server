@@ -1,14 +1,13 @@
 package until.the.eternity.dcs.domain.comment.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import until.the.eternity.dcs.common.entity.AuditableEntity;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comment_archive")

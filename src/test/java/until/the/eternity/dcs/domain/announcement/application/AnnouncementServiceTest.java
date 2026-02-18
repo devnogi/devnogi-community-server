@@ -1,5 +1,13 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,15 +28,6 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AnnouncementServiceTest {
     AnnouncementService announcementService;
@@ -138,7 +137,8 @@ class AnnouncementServiceTest {
         // given
         when(boardRepository.findByIdAndIsDeletedIsFalse(id))
                 .thenReturn(Optional.of(Board.builder().id(id).build()));
-        when(announcementRepository.findActiveByBoardIdOrGlobal(id)).thenReturn(List.of(announcement));
+        when(announcementRepository.findActiveByBoardIdOrGlobal(id))
+                .thenReturn(List.of(announcement));
 
         // when
         List<AnnouncementPageResponseItem> response = announcementService.getAnnouncements(id);

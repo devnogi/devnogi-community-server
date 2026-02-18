@@ -1,13 +1,12 @@
 package until.the.eternity.dcs.domain.comment.entity;
 
+import static jakarta.persistence.GenerationType.IDENTITY;
+
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
-
-import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "comment_like")

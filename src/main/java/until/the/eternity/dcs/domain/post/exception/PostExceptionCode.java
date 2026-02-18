@@ -1,11 +1,11 @@
 package until.the.eternity.dcs.domain.post.exception;
 
+import static org.springframework.http.HttpStatus.*;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import until.the.eternity.dcs.common.exception.ExceptionCode;
-
-import static org.springframework.http.HttpStatus.*;
 
 @Getter
 @RequiredArgsConstructor

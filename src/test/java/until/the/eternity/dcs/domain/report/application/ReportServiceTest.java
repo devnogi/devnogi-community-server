@@ -1,5 +1,11 @@
 package until.the.eternity.dcs.domain.report.application;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,13 +32,6 @@ import until.the.eternity.dcs.domain.user.dto.response.UserSummaryDetailResponse
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 import until.the.eternity.dcs.domain.user.enums.UserGrade;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ReportService 단위 테스트")
 class ReportServiceTest {
@@ -56,10 +55,11 @@ class ReportServiceTest {
     Long userId = 1L;
     Long adminId = 2L;
     String username = "username";
+    String unknownUsername = "알수없음";
 
     @BeforeEach
     void setUp() {
-        mockReport = Report.builder().id(1L).build();
+        mockReport = Report.builder().id(1L).targetUserId(userId).build();
         mockUser =
                 UserSummary.builder().id(userId).nickname(username).grade(UserGrade.USER).build();
         mockAdmin = UserSummary.builder().id(adminId).grade(UserGrade.ADMIN).build();
@@ -114,8 +114,11 @@ class ReportServiceTest {
             Long reportId = 1L;
             ReportRepliedDetailResponse expectedResponse = mock(ReportRepliedDetailResponse.class);
 
+            mockReport.update(ReportStatus.ACCEPT, null, null, null, null);
+            given(userSummaryService.findUserSummary(anyLong()))
+                    .willReturn(UserSummaryDetailResponse.from(mockUser));
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
-            given(reportConverter.fromReportToReportRepliedDetailResponse(mockReport))
+            given(reportConverter.fromReportToReportRepliedDetailResponse(mockReport, username))
                     .willReturn(expectedResponse);
 
             // when
@@ -124,7 +127,7 @@ class ReportServiceTest {
             // then
             assertThat(result).isEqualTo(expectedResponse);
             verify(reportRepository).findById(reportId);
-            verify(reportConverter).fromReportToReportRepliedDetailResponse(mockReport);
+            verify(reportConverter).fromReportToReportRepliedDetailResponse(mockReport, username);
         }
 
         @Test
@@ -146,6 +149,7 @@ class ReportServiceTest {
             Long reportId = 1L;
             ReportRevivedDetailResponse expectedResponse = mock(ReportRevivedDetailResponse.class);
 
+            mockReport.update(ReportStatus.REJECT, null, null, null, null);
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
             given(
                             reportConverter.fromReportToReportRevivedDetailResponse(
@@ -169,8 +173,10 @@ class ReportServiceTest {
             ReportReportedDetailResponse expectedResponse =
                     mock(ReportReportedDetailResponse.class);
 
+            given(userSummaryService.findUserSummary(anyLong()))
+                    .willReturn(UserSummaryDetailResponse.from(mockUser));
             given(reportRepository.findById(reportId)).willReturn(Optional.of(mockReport));
-            given(reportConverter.fromReportToReportReportedDetailResponse(mockReport))
+            given(reportConverter.fromReportToReportReportedDetailResponse(mockReport, username))
                     .willReturn(expectedResponse);
 
             // when
@@ -196,7 +202,9 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.ACCEPT, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportRepliedSummaryResponse(mockReport))
+            given(
+                            reportConverter.fromReportToReportRepliedSummaryResponse(
+                                    mockReport, unknownUsername))
                     .willReturn(summaryResponse);
 
             // when
@@ -218,7 +226,9 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.REJECT, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportRevivedSummaryResponse(mockReport))
+            given(
+                            reportConverter.fromReportToReportRevivedSummaryResponse(
+                                    mockReport, unknownUsername))
                     .willReturn(summaryResponse);
 
             // when
@@ -241,7 +251,9 @@ class ReportServiceTest {
 
             given(reportRepository.findAllByStatusCd(ReportStatus.REPORTED, pageable))
                     .willReturn(reportPage);
-            given(reportConverter.fromReportToReportReportedSummaryResponse(mockReport))
+            given(
+                            reportConverter.fromReportToReportReportedSummaryResponse(
+                                    mockReport, unknownUsername))
                     .willReturn(summaryResponse);
 
             // when

@@ -1,5 +1,10 @@
 package until.the.eternity.dcs.domain.post.infrastructure;
 
+import static until.the.eternity.dcs.domain.post.entity.QPost.post;
+import static until.the.eternity.dcs.domain.post.entity.QPostMeta.postMeta;
+import static until.the.eternity.dcs.domain.tag.entity.QPostTag.postTag;
+import static until.the.eternity.dcs.domain.tag.entity.QTag.tag;
+
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.Expressions;
@@ -8,6 +13,9 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,15 +25,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static until.the.eternity.dcs.domain.post.entity.QPost.post;
-import static until.the.eternity.dcs.domain.post.entity.QPostMeta.postMeta;
-import static until.the.eternity.dcs.domain.tag.entity.QPostTag.postTag;
-import static until.the.eternity.dcs.domain.tag.entity.QTag.tag;
 
 @Repository
 @RequiredArgsConstructor

@@ -1,14 +1,13 @@
 package until.the.eternity.dcs.domain.comment.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import until.the.eternity.dcs.common.entity.SoftDeleteEntity;
 import until.the.eternity.dcs.domain.post.entity.Post;
-
-import java.util.List;
 
 @Entity
 @Table(name = "comment")

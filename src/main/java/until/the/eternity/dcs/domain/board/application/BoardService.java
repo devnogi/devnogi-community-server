@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.board.application;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -13,8 +14,6 @@ import until.the.eternity.dcs.domain.board.dto.response.BoardPersistResponse;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.board.exception.BoardNotFoundException;
 import until.the.eternity.dcs.domain.board.infrastructure.BoardRepository;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

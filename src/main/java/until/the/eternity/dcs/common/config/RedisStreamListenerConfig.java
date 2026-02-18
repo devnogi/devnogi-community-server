@@ -1,5 +1,10 @@
 package until.the.eternity.dcs.common.config;
 
+import static org.springframework.data.redis.connection.stream.Consumer.from;
+
+import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,12 +18,6 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import until.the.eternity.dcs.domain.notice.application.NoticeListener;
-
-import java.time.Duration;
-import java.util.UUID;
-import java.util.concurrent.Executor;
-
-import static org.springframework.data.redis.connection.stream.Consumer.from;
 
 @Configuration
 @RequiredArgsConstructor

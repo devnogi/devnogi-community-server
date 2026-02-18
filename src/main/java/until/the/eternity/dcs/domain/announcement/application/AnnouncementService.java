@@ -1,5 +1,8 @@
 package until.the.eternity.dcs.domain.announcement.application;
 
+import static until.the.eternity.dcs.domain.notice.enums.NoticeType.ANNOUNCEMENT;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -23,10 +26,6 @@ import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
-
-import java.util.List;
-
-import static until.the.eternity.dcs.domain.notice.enums.NoticeType.ANNOUNCEMENT;
 
 @Service
 @RequiredArgsConstructor
