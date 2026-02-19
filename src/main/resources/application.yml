@@ -124,6 +124,19 @@ logging:
     until.the.eternity: DEBUG
     until.the.eternity.dcs.common.filter: DEBUG
 
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: devnogi-community-group
+      auto-offset-reset: latest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
 ---
 # 운영 환경
 spring:
@@ -137,6 +150,17 @@ spring:
       password: ${REDIS_PASSWORD:}
       ssl:
         enabled: false
+  kafka:
+    bootstrap-servers: ${PROD_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${PROD_KAFKA_CONSUMER_GROUP_ID:devnogi-community-group}
+      auto-offset-reset: latest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
 
 springdoc:
   swagger-ui:
@@ -147,6 +171,8 @@ minio:
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:dcs-local-bucket}
+
+
 
 decorator:
   datasource:

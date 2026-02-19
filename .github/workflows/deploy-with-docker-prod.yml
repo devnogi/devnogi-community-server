@@ -77,6 +77,8 @@ jobs:
             echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env.prod
             echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env.prod
             echo "MINIO_BUCKET=${{ secrets.PROD_MINIO_BUCKET}}" >> .env.prod
+            echo "KAFKA_BOOTSTRAP_SERVERS=${{secrets.PROD_KAFKA_BOOTSTRAP_SERVERS}}" >>.env.prod
+            echo "KAFKA_CONSUMER_GROUP_ID=${{secrets.PROD_KAFKA_CONSUMER_GROUP_ID}}" >>.env.prod
             
             echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
