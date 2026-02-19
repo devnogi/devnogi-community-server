@@ -26,7 +26,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_PORT=6379
       - REDIS_HOST=redis
-      - KAFKA_BOOTSTRAP_SERVERS=kafka
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - KAFKA_CONSUMER_GROUP_ID=devnogi-community-group
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
@@ -113,6 +113,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_BROKER: kafka:29092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
