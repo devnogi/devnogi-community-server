@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class KafkaConsumerService {
-    @KafkaListener(topics = "test-topic", groupId = "devnogi-community-group")
+    @KafkaListener(topics = "test2", groupId = "devnogi-community-group")
     public void consume(TestDTO message) {
         log.info("컨수머 테스트 시작");
         log.info("🎉 Kafka로부터 받은 메시지: {}", message);
