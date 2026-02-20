@@ -186,7 +186,7 @@ decorator:
 logging:
   level:
     until.the.eternity: INFO
-    org.springframework.kafka: DEBUG
+    org.springframework.kafka: INFO
 
 ---
 # Docker 환경
@@ -216,5 +216,5 @@ spring:
 logging:
   level:
     root: INFO
-    until.the.eternity: DEBUG
-    org.springframework.kafka: DEBUG
+    until.the.eternity: INFO
+    org.springframework.kafka: INFO
