@@ -113,6 +113,20 @@ spring:
   config:
     activate:
       on-profile: local
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: devnogi-community-group
+      auto-offset-reset: latest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
 
 decorator:
   datasource:
@@ -123,6 +137,7 @@ logging:
   level:
     until.the.eternity: DEBUG
     until.the.eternity.dcs.common.filter: DEBUG
+
 
 ---
 # 운영 환경
@@ -137,6 +152,17 @@ spring:
       password: ${REDIS_PASSWORD:}
       ssl:
         enabled: false
+  kafka:
+    bootstrap-servers: ${PROD_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${PROD_KAFKA_CONSUMER_GROUP_ID:devnogi-community-group}
+      auto-offset-reset: latest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
 
 springdoc:
   swagger-ui:
@@ -148,6 +174,8 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:dcs-local-bucket}
 
+
+
 decorator:
   datasource:
     p6spy:
@@ -156,6 +184,7 @@ decorator:
 logging:
   level:
     until.the.eternity: INFO
+    org.springframework.kafka: DEBUG
 
 ---
 # Docker 환경
@@ -168,8 +197,20 @@ spring:
       host: ${REDIS_HOST:devnogi-community-redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-
+  kafka:
+    bootstrap-servers: kafka:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: devnogi-community-group
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
 logging:
   level:
     root: INFO
     until.the.eternity: DEBUG
+    org.springframework.kafka: DEBUG
