@@ -163,8 +163,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: "false"
-        spring.json.value.default.type: until.the.eternity.dcs.common.kafka.TestDTO
+        spring.json.use.type.headers: "false" #헤더 필수 무시 => 차후 해당 설정 삭제 예정
+        spring.json.value.default.type: until.the.eternity.dcs.domain.user.dto.response.UserSummaryConsumerDTO
 
 springdoc:
   swagger-ui:
@@ -211,8 +211,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: "false"
-        spring.json.value.default.type: until.the.eternity.dcs.common.kafka.TestDTO
+        spring.json.use.type.headers: "false" #헤더 필수 무시 => 차후 해당 설정 삭제 예정
+        spring.json.value.default.type: until.the.eternity.dcs.domain.user.dto.response.UserSummaryConsumerDTO
 logging:
   level:
     root: INFO
