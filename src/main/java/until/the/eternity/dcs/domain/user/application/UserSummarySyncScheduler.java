@@ -28,7 +28,7 @@ public class UserSummarySyncScheduler {
             return;
         }
 
-        List<UserSummaryConsumerDTO> batchData = new ArrayList<>();
+        List<UserSummary> batchData = new ArrayList<>();
         List<String> poppedUserSummary = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
@@ -39,8 +39,7 @@ public class UserSummarySyncScheduler {
             }
             poppedUserSummary.add(id);
             String dataKey = "temp:user:data" + id;
-            UserSummaryConsumerDTO data =
-                    (UserSummaryConsumerDTO) redisTemplate.opsForValue().get(dataKey);
+            UserSummary data = (UserSummary) redisTemplate.opsForValue().get(dataKey);
 
             if (data != null) {
                 batchData.add(data);
@@ -49,9 +48,11 @@ public class UserSummarySyncScheduler {
 
         if (!batchData.isEmpty()) {
             try {
-                List<UserSummary> entities = convertToEntities(batchData);
-                userSummaryRepository.saveAll(entities);
-                log.info("{}건의 데이터를 DB에 일괄 저장했습니다.", entities.size());
+                userSummaryRepository.saveAll(batchData);
+                log.info("{}건의 데이터를 DB에 일괄 저장했습니다.", batchData.size());
+                List<String> keysToDelete =
+                        poppedUserSummary.stream().map(id -> "temp:user:data" + id).toList();
+                redisTemplate.delete(keysToDelete);
 
             } catch (Exception e) {
                 log.error("DB 저장 실패! 큐에 다시 복구합니다.", e);
