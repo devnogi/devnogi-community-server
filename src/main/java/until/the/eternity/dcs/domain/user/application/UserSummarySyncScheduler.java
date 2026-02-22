@@ -29,7 +29,7 @@ public class UserSummarySyncScheduler {
         }
 
         List<UserSummaryConsumerDTO> batchData = new ArrayList<>();
-        List<UserSummaryConsumerDTO> poppedUserSummary = new ArrayList<>();
+        List<String> poppedUserSummary = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
             // leftPop을 쓰면 꺼냄과 동시에 큐에서 ID가 지워지므로 동시성 문제에서 비교적 안전합니다.
@@ -37,14 +37,13 @@ public class UserSummarySyncScheduler {
             if (id == null) {
                 continue;
             }
-
+            poppedUserSummary.add(id);
             String dataKey = "temp:user:data" + id;
             UserSummaryConsumerDTO data =
                     (UserSummaryConsumerDTO) redisTemplate.opsForValue().get(dataKey);
 
             if (data != null) {
                 batchData.add(data);
-                poppedUserSummary.add(data);
             }
         }
 
@@ -56,8 +55,7 @@ public class UserSummarySyncScheduler {
 
             } catch (Exception e) {
                 log.error("DB 저장 실패! 큐에 다시 복구합니다.", e);
-                List<UserSummary> entities = convertToEntities(poppedUserSummary);
-                redisTemplate.opsForList().rightPushAll(UNPROCESSED_QUEUE_KEY, entities);
+                redisTemplate.opsForList().rightPushAll(UNPROCESSED_QUEUE_KEY, poppedUserSummary);
             }
         }
     }
