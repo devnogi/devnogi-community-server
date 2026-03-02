@@ -117,12 +117,9 @@ public class PostService {
     }
 
     public PostDetailResponse findPost(Long id) {
-        log.info("게시글 단건조회 테스트");
         Post post = findById(id);
-        log.info("게시글 단건조회: {}", post.toString());
         String userIp =
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
-        log.info("userIp 값 테스트: {}", userIp);
         List<String> imageUrls =
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
@@ -308,7 +305,6 @@ public class PostService {
     }
 
     public Page<PostSummaryResponse> getPopularPosts(PostPageRequest request) {
-        log.debug("Request to get popular posts : {}", request.toPageable());
         Page<Post> posts = postRepository.findPopularPosts(request.toPageable());
         return getPostSummaryResponses(posts);
     }
