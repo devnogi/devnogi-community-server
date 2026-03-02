@@ -345,6 +345,63 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
+    @Override
+    public Page<Post> findPopularPosts(Pageable pageable) {
+        NumberExpression<Double> rankScore =
+                Expressions.numberTemplate(
+                        Double.class,
+                        "( ({0} + ({1} * 3)) - (TIMESTAMPDIFF(HOUR, {2}, NOW()) * 2) )",
+                        postMeta.viewCount.coalesce(0),
+                        postMeta.commentCount.coalesce(0),
+                        post.createdAt);
+
+        JPAQuery<Post> query =
+                queryFactory
+                        .selectFrom(post)
+                        .leftJoin(postMeta)
+                        .on(post.id.eq(postMeta.postId))
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false))
+                        .orderBy(rankScore.desc())
+                        .offset(pageable.getOffset())
+                        .limit(5);
+
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty();
+            Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+
+            switch (property) {
+                case "likeCount":
+                    query.orderBy(new OrderSpecifier<>(direction, postMeta.likeCount));
+                    break;
+                case "viewCount":
+                    query.orderBy(new OrderSpecifier<>(direction, postMeta.viewCount));
+                    break;
+                default:
+                    PathBuilder<Post> pathBuilder =
+                            new PathBuilder<>(post.getType(), post.getMetadata());
+                    query.orderBy(
+                            new OrderSpecifier<>(
+                                    direction, pathBuilder.get(property, Comparable.class)));
+                    break;
+            }
+        }
+        List<Post> content = query.fetch();
+
+        JPAQuery<Long> countQuery =
+                queryFactory
+                        .select(post.count())
+                        .from(post)
+                        .where(
+                                post.isBlocked.eq(false),
+                                post.isDraft.eq(false),
+                                post.isDeleted.eq(false));
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
     private String toBooleanQuery(String keyword) {
         if (keyword == null) return "";
         String[] tokens = keyword.trim().split("\\s+");

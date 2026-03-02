@@ -214,4 +214,20 @@ public class PostController {
             @ModelAttribute PostPageRequest request, @PathVariable Long boardId) {
         return CustomPageResponse.from((postService.getMostLikedPostsByBoardId(request, boardId)));
     }
+
+    @GetMapping("/popular")
+    @Operation(
+            summary = "전체 인기 게시글 조회 API",
+            description =
+                    """
+				- Description : 이 API는 전체 인기 게시글 리스트를 조회합니다.
+				- Assignee : 고범수
+			""")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
+    public CustomPageResponse<PostSummaryResponse> getPopularPosts(
+            @ModelAttribute PostPageRequest request) {
+        return CustomPageResponse.from(postService.getPopularPosts(request));
+    }
 }
