@@ -657,4 +657,34 @@ class PostServiceTest {
         assertThat(list.getFirst().commentCount()).isEqualTo(postMeta3.getCommentCount());
         assertThat(list.getFirst().likeCount()).isGreaterThanOrEqualTo(30);
     }
+
+    @Test
+    @DisplayName("전체 인기글 조회")
+    public void getPopularPosts() {
+        // given
+        PostPageRequest pageRequest = new PostPageRequest(1, 10, "createdAt", "desc");
+        Pageable pageable = pageRequest.toPageable();
+        List<Post> posts = Arrays.asList(mockPost, mockPost2, mockPost3);
+        Page<Post> postPage = new PageImpl<>(posts, pageable, 1);
+        postIdList.add(1L);
+        postIdList.add(2L);
+        postIdList.add(3L);
+        dbMetaMap.put(postIdList.get(0), postMetaResponse);
+        dbMetaMap.put(postIdList.get(1), postMetaResponse2);
+        dbMetaMap.put(postIdList.get(2), postMetaResponse3);
+        mockPost.setCreatedAt(LocalDateTime.now().withNano(0));
+        mockPost2.setCreatedAt(LocalDateTime.now().withNano(0));
+        mockPost3.setCreatedAt(LocalDateTime.now().withNano(0));
+        userSummaryList.add(mockUser);
+        given(postRepository.findPopularPosts(pageable)).willReturn(postPage);
+        given(postMetaService.getPostMetaInfos(anyList())).willReturn(dbMetaMap);
+        given(userSummaryService.findByIdIn(anyList())).willReturn(userSummaryList);
+
+        // when
+        Page<PostSummaryResponse> result = postService.getPopularPosts(pageRequest);
+
+        // then
+        List<PostSummaryResponse> list = result.stream().toList();
+        assertThat(list.size()).isEqualTo(3);
+    }
 }
