@@ -20,4 +20,6 @@ public interface PostRepositoryCustom {
     Page<Post> findPopularPostsByBoardId(Pageable pageable, Board board);
 
     Page<Post> findMostLikedPostsByBoardId(Pageable pageable, Board board);
+
+    Page<Post> findPopularPosts(Pageable pageable);
 }

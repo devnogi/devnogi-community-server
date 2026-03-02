@@ -307,6 +307,12 @@ public class PostService {
         return getPostSummaryResponses(posts);
     }
 
+    public Page<PostSummaryResponse> getPopularPosts(PostPageRequest request) {
+        log.debug("Request to get popular posts : {}", request.toPageable());
+        Page<Post> posts = postRepository.findPopularPosts(request.toPageable());
+        return getPostSummaryResponses(posts);
+    }
+
     private Post findById(Long id) {
         return postRepository.findWithTagsById(id).orElseThrow(() -> new PostNotFoundException(id));
     }
