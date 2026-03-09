@@ -1,27 +1,18 @@
 name: deploy-with-docker.yml
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
+    types:
+      - completed
     branches:
       - dev
   workflow_dispatch:
 
-
-#on:
-#  workflow_run:
-#    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
-#    types:
-#      - completed
-#    branches:
-#      - dev
-#
-#  workflow_dispatch:
-
 jobs:
   deploy-to-dev:
-    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    #environment: prod
 
     steps:
       - name: SSH connect to server and Deploy
