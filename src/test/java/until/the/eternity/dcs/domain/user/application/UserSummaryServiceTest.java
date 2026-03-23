@@ -55,7 +55,7 @@ class UserSummaryServiceTest {
         createRequest = new UserSummaryCreateRequest(1L, "testUser", 10, "servername", "user");
         updateRequest = new UserSummaryUpdateRequest(1L, "updatedUser", 20, "servername", "admin");
         persistResponse = new UserSummaryPersistResponse(1L);
-        detailResponse = new UserSummaryDetailResponse(1L, "testUser", "user");
+        detailResponse = new UserSummaryDetailResponse(1L, "testUser", "servername", "user");
     }
 
     @Nested
