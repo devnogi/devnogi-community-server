@@ -55,7 +55,10 @@ public class UserSummaryService {
                                         new UserGradeNotFoundException(
                                                 userSummaryUpdateRequest.grade()));
         user.update(
-                userSummaryUpdateRequest.nickname(), userSummaryUpdateRequest.level(), userGrade);
+                userSummaryUpdateRequest.nickname(),
+                userSummaryUpdateRequest.level(),
+                userSummaryUpdateRequest.serverName(),
+                userGrade);
         userSummaryRepository.save(user);
         return userSummaryConverter.userSummaryToUserSummaryPersistResponse(user);
     }

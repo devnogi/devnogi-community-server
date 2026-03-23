@@ -25,7 +25,7 @@ public class UserSummaryTest {
                         .build();
 
         // when
-        userSummary.update("newNickname", 20, UserGrade.ADMIN);
+        userSummary.update("newNickname", 20, "newServerName", UserGrade.ADMIN);
 
         // then
         assertThat(userSummary.getNickname()).isEqualTo("newNickname");

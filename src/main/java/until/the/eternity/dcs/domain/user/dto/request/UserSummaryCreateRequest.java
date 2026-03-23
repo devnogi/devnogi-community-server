@@ -15,4 +15,8 @@ public record UserSummaryCreateRequest(
                 @Size(max = 50, message = "닉네임은 50자를 초과할 수 없습니다.")
                 String nickname,
         @Schema(description = "레벨", example = "1") Integer level,
+        @Schema(description = "서버명", example = "류트")
+                @NotBlank(message = "서버명은 필수 입니다.")
+                @Size(max = 50, message = "서버명은 50자를 초과할 수 없습니다.")
+                String serverName,
         @Schema(description = "사용자 등급", example = "USER") String grade) {}

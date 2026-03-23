@@ -22,6 +22,7 @@ public class UserSummaryConverter {
                 .id(userSummaryCreateRequest.userId())
                 .nickname(userSummaryCreateRequest.nickname())
                 .level(userSummaryCreateRequest.level())
+                .serverName(userSummaryCreateRequest.serverName())
                 .grade(userGrade)
                 .build();
     }

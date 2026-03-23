@@ -52,8 +52,8 @@ class UserSummaryServiceTest {
                         .grade(UserGrade.USER)
                         .build();
 
-        createRequest = new UserSummaryCreateRequest(1L, "testUser", 10, "user");
-        updateRequest = new UserSummaryUpdateRequest(1L, "updatedUser", 20, "admin");
+        createRequest = new UserSummaryCreateRequest(1L, "testUser", 10, "servername", "user");
+        updateRequest = new UserSummaryUpdateRequest(1L, "updatedUser", 20, "servername", "admin");
         persistResponse = new UserSummaryPersistResponse(1L);
         detailResponse = new UserSummaryDetailResponse(1L, "testUser", "user");
     }
@@ -191,7 +191,8 @@ class UserSummaryServiceTest {
         void updateUserSummary_ThrowsUserGradeNotFoundException_WhenInvalidGradeCode() {
             // given
             UserSummaryUpdateRequest invalidGradeRequest =
-                    new UserSummaryUpdateRequest(1L, "updatedUser", 20, "INVALID_GRADE");
+                    new UserSummaryUpdateRequest(
+                            1L, "updatedUser", 20, "servername", "INVALID_GRADE");
             given(userSummaryRepository.findById(1L)).willReturn(Optional.of(userSummary));
 
             // when & then
