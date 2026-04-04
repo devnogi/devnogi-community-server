@@ -18,7 +18,7 @@ public class UserSummary {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "nickname", nullable = false, length = 50, unique = true)
+    @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
     @Column(name = "profile_image_url", length = 255)
@@ -28,16 +28,22 @@ public class UserSummary {
     @Builder.Default
     private Integer level = 1;
 
+    @Column(name = "server_name", nullable = false, length = 50)
+    private String serverName;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserGrade grade = USER;
 
-    public void update(String nickname, Integer level, UserGrade grade) {
+    public void update(String nickname, Integer level, String serverName, UserGrade grade) {
         if (nickname != null && !nickname.isEmpty()) {
             this.nickname = nickname;
         }
         if (grade != null) {
             this.grade = grade;
+        }
+        if (serverName != null && !serverName.isEmpty()) {
+            this.serverName = serverName;
         }
         if (level != null) {
             this.level = level;

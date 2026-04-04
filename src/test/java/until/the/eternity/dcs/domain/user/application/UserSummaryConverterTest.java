@@ -30,7 +30,7 @@ public class UserSummaryConverterTest {
     void createUserSummaryToUserSummary_Success() {
         // given
         UserSummaryCreateRequest createRequest =
-                new UserSummaryCreateRequest(1L, "test", 1, "user");
+                new UserSummaryCreateRequest(1L, "test", 1, "servername", "user");
         // when
         UserSummary result = converter.createUserSummaryToUserSummary(createRequest);
         // then

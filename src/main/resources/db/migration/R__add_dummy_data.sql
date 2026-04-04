@@ -17,10 +17,10 @@ VALUES (1, '류트', '에린의 중심, 류트 서버 게시판입니다.', '서
        (4, '울프', '용맹한 전사들의 울프 서버입니다.', '서버', '울프');
 
 -- user_summary 더미 데이터
-INSERT INTO user_summary (id, nickname, profile_image_url, level, grade)
-VALUES (1, '나오', 'https://example.com/profiles/nao.jpg', 500, 'ADMIN'),
-       (2, '퍼거스', 'https://example.com/profiles/fergus.jpg', 20000, 'USER'),
-       (3, '던컨', 'https://example.com/profiles/duncan.jpg', 45000, 'USER');
+INSERT INTO user_summary (id, nickname, profile_image_url, level, grade, server_name)
+VALUES (1, '나오', 'https://example.com/profiles/nao.jpg', 500, 'ADMIN', '류트'),
+       (2, '퍼거스', 'https://example.com/profiles/fergus.jpg', 20000, 'USER', '만돌린'),
+       (3, '던컨', 'https://example.com/profiles/duncan.jpg', 45000, 'USER', '울프');
 
 -- tag 더미 데이터
 INSERT INTO tag (id, name)
