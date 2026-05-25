@@ -124,6 +124,7 @@ public class PostService {
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
+        log.info("sdfsdf: {}", imageUrls.toString());
         List<String> tags =
                 Optional.ofNullable(post.getPostTags()).orElseGet(List::of).stream()
                         .map(postTag -> postTag.getTag().getName())
@@ -136,6 +137,8 @@ public class PostService {
             nickname = userSummary.nickname();
         } catch (UserNotFoundException ignore) {
         }
+
+        log.info("findPost에 나올 값:{}", post.toString());
 
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);

@@ -15,6 +15,7 @@ import until.the.eternity.dcs.domain.tag.entity.PostTag;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class Post extends SoftDeleteEntity {
 
     @Id
