@@ -10,7 +10,6 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
 public class PostImage {
 
     @Id
