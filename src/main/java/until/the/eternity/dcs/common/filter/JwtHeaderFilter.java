@@ -49,7 +49,7 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             userGradeCode = userGradeCode.toLowerCase();
         }
 
-        log.debug(
+        log.info(
                 "JWT Header Parsing - X-Auth-User-Id: {}, X-Auth-Roles: {}",
                 userIdCode,
                 userGradeCode);
@@ -59,7 +59,7 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
 
         String clientIp = ipAddressUtil.getClientIp(request);
 
-        log.debug("Client IP: {}", clientIp);
+        log.info("Client IP: {}", clientIp);
 
         CustomWebAuthenticationDetails webAuthenticationDetails =
                 new CustomWebAuthenticationDetails(request, clientIp);
@@ -68,7 +68,7 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        log.debug(
+        log.info(
                 "Authentication set - Principal: {}, Authorities: {}",
                 authentication.getPrincipal(),
                 authentication.getAuthorities());
@@ -81,17 +81,17 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
         Long userId;
         try {
             userId = Long.parseLong(userIdCode);
-            log.debug("Parsed userId: {}", userId);
+            log.info("Parsed userId: {}", userId);
         } catch (NumberFormatException e) {
-            log.debug("Failed to parse userIdCode: '{}', setting userId to null", userIdCode);
+            log.info("Failed to parse userIdCode: '{}', setting userId to null", userIdCode);
             userId = null;
         }
         if (userGradeCode == null) {
-            log.debug("userGradeCode is null, returning authentication without authorities");
+            log.info("userGradeCode is null, returning authentication without authorities");
             return new UsernamePasswordAuthenticationToken(userId, null);
         }
         UserGrade userGrade = UserGrade.fromCode(userGradeCode).orElse(null);
-        log.debug("Parsed userGrade: {} from code: {}", userGrade, userGradeCode);
+        log.info("Parsed userGrade: {} from code: {}", userGrade, userGradeCode);
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + userGrade.toString()));
         return new UsernamePasswordAuthenticationToken(userId, null, authorities);
