@@ -125,12 +125,20 @@ public class PostService {
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
-        log.info("sdfsdf: {}", imageUrls.get(0));
+        if (!imageUrls.isEmpty()) {
+            for (String str : imageUrls) {
+                log.info("image: {}", str);
+            }
+        }
         List<String> tags =
                 Optional.ofNullable(post.getPostTags()).orElseGet(List::of).stream()
                         .map(postTag -> postTag.getTag().getName())
                         .toList();
-        log.info("태그까지 왔어.");
+        if (!tags.isEmpty()) {
+            for (String str : tags) {
+                log.info("태그 {}", str);
+            }
+        }
         String nickname = "알수없음";
         UserSummaryDetailResponse userSummary;
         try {
@@ -139,7 +147,7 @@ public class PostService {
             nickname = userSummary.nickname();
             log.info("닉네임: {}", nickname);
         } catch (UserNotFoundException ignore) {
-            log.info("에러터짐 ㅅㄱ");
+            log.info("에러");
         }
 
         log.info("findPost에 나올 값:{}", post.toString());
