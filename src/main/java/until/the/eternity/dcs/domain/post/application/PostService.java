@@ -118,24 +118,36 @@ public class PostService {
 
     public PostDetailResponse findPost(Long id) {
         Post post = findById(id);
+
         String userIp =
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
         List<String> imageUrls =
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
-        log.info("sdfsdf: {}", imageUrls.toString());
+        if (!imageUrls.isEmpty()) {
+            for (String str : imageUrls) {
+                log.info("image: {}", str);
+            }
+        }
         List<String> tags =
                 Optional.ofNullable(post.getPostTags()).orElseGet(List::of).stream()
                         .map(postTag -> postTag.getTag().getName())
                         .toList();
-
+        if (!tags.isEmpty()) {
+            for (String str : tags) {
+                log.info("태그 {}", str);
+            }
+        }
         String nickname = "알수없음";
         UserSummaryDetailResponse userSummary;
         try {
             userSummary = userSummaryService.findUserSummary(post.getUserId());
+            log.info("userSummary 값: {}", userSummary.userId());
             nickname = userSummary.nickname();
+            log.info("닉네임: {}", nickname);
         } catch (UserNotFoundException ignore) {
+            log.info("에러");
         }
 
         log.info("findPost에 나올 값:{}", post.toString());
