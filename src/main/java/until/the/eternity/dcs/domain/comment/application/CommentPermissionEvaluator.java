@@ -19,7 +19,6 @@ public class CommentPermissionEvaluator {
     private final CommentRepository commentRepository;
 
     public boolean canCreate(Authentication auth) {
-        log.info("comment creat시 auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -30,7 +29,6 @@ public class CommentPermissionEvaluator {
     }
 
     public boolean canUpdate(Authentication auth, Long id) {
-        log.info("comment update시 auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -46,7 +44,6 @@ public class CommentPermissionEvaluator {
     }
 
     public boolean canDelete(Authentication auth, Long id) {
-        log.info("comment delete시 auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -86,9 +83,7 @@ public class CommentPermissionEvaluator {
     }
 
     public void validateUserExists(Long currentUserId) {
-        log.info("validateUserExists currentUserId 값: {}", currentUserId);
         if (!userSummaryRepository.existsById(currentUserId)) {
-            log.info("comment 요청시 존재하지 않는 유저");
             throw new UserNotFoundException(currentUserId);
         }
     }
