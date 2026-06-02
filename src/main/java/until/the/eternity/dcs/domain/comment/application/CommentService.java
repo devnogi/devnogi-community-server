@@ -59,12 +59,9 @@ public class CommentService {
     @Transactional
     @PreAuthorize("@commentPermissionEvaluator.canCreate(authentication)")
     public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
-        log.info("파라미터: {}", request.toString());
         Long userId = getCurrentUserId();
-        log.info("userId: {}", userId);
         Comment comment = commentConverter.fromCreateRequestToComment(request, userId, postId);
         Comment save = commentRepository.save(comment);
-        log.info("comment created: {}", comment);
         connectCommentWithPost(postId, save);
 
         sendCommentCreatedNotice(postId, request.parentComment());
@@ -75,11 +72,8 @@ public class CommentService {
     @Transactional
     @PreAuthorize("@commentPermissionEvaluator.canUpdate(authentication,#id)")
     public CommentPersistResponse update(Long id, CommentUpdateRequest request) {
-        log.info("파라미터: {}", request);
         Long userId = getCurrentUserId();
-        log.info("userId: {}", userId);
         Comment comment = findById(id);
-        log.info("comment updated: {}", request);
         comment.update(request.content(), userId);
         return commentConverter.fromCommentToPersistResponse(comment);
     }
@@ -97,11 +91,9 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Page<CommentPageResponseItem> findByPostId(Long postId, CustomPageRequest request) {
         Pageable pageable = request.toPageable();
-        log.info("댓글 조회시 파라미터: {}", request.toPageable());
         Page<Comment> comments = commentRepository.findAllByPostId(postId, pageable);
 
         List<Long> commentIds = comments.stream().map(Comment::getId).toList();
-        log.info("댓글 조회 테스트");
         Map<Long, Integer> commentMetaMap =
                 commentMetaRepository.findByCommentIdIn(commentIds).stream()
                         .collect(

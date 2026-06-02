@@ -21,7 +21,6 @@ public class PostPermissionEvaluator {
     private static final String ROLE_PREFIX = RoleConstants.ROLE_PREFIX.getValue();
 
     public boolean canCreate(Authentication auth) {
-        log.info("auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -31,7 +30,6 @@ public class PostPermissionEvaluator {
     }
 
     private boolean canModify(Authentication auth, Long postId) {
-        log.info("auth 값: {}", auth.toString());
         if (!isAuthenticated(auth)) {
             return false;
         }
@@ -80,9 +78,7 @@ public class PostPermissionEvaluator {
     }
 
     public void validateUserExists(Long currentUserId) {
-        log.info("auth 값: {}", currentUserId);
         if (!userSummaryRepository.existsById(currentUserId)) {
-            log.info("post 요청시 존재하지 않는 유저");
             throw new UserNotFoundException(currentUserId);
         }
     }

@@ -125,32 +125,17 @@ public class PostService {
                 post.getImages().stream()
                         .map(image -> minioService.getFileUrl(image.getStoredFileName()))
                         .collect(Collectors.toList());
-        if (!imageUrls.isEmpty()) {
-            for (String str : imageUrls) {
-                log.info("image: {}", str);
-            }
-        }
         List<String> tags =
                 Optional.ofNullable(post.getPostTags()).orElseGet(List::of).stream()
                         .map(postTag -> postTag.getTag().getName())
                         .toList();
-        if (!tags.isEmpty()) {
-            for (String str : tags) {
-                log.info("태그 {}", str);
-            }
-        }
         String nickname = "알수없음";
         UserSummaryDetailResponse userSummary;
         try {
             userSummary = userSummaryService.findUserSummary(post.getUserId());
-            log.info("userSummary 값: {}", userSummary.userId());
             nickname = userSummary.nickname();
-            log.info("닉네임: {}", nickname);
         } catch (UserNotFoundException ignore) {
-            log.info("에러");
         }
-
-        log.info("findPost에 나올 값:{}", post.toString());
 
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);

@@ -33,33 +33,17 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        log.info("request: {}", request);
-        log.info("response: {}", response);
-        log.info("header: {}", request.getHeader("Authorization"));
-        log.info("=== Header Inspection Start ===");
         java.util.Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            log.info("Header: {} = {}", headerName, request.getHeader(headerName));
-        }
-        log.info("=== Header Inspection End ===");
         String userIdCode = request.getHeader("X-Auth-User-Id");
         String userGradeCode = request.getHeader("X-Auth-Roles");
         if (userGradeCode != null) {
             userGradeCode = userGradeCode.toLowerCase();
         }
 
-        log.info(
-                "JWT Header Parsing - X-Auth-User-Id: {}, X-Auth-Roles: {}",
-                userIdCode,
-                userGradeCode);
-
         UsernamePasswordAuthenticationToken authentication =
                 getAuthentication(userIdCode, userGradeCode);
 
         String clientIp = ipAddressUtil.getClientIp(request);
-
-        log.info("Client IP: {}", clientIp);
 
         CustomWebAuthenticationDetails webAuthenticationDetails =
                 new CustomWebAuthenticationDetails(request, clientIp);
@@ -67,11 +51,6 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
         authentication.setDetails(webAuthenticationDetails);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        log.info(
-                "Authentication set - Principal: {}, Authorities: {}",
-                authentication.getPrincipal(),
-                authentication.getAuthorities());
 
         filterChain.doFilter(request, response);
     }
@@ -81,17 +60,14 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
         Long userId;
         try {
             userId = Long.parseLong(userIdCode);
-            log.info("Parsed userId: {}", userId);
         } catch (NumberFormatException e) {
-            log.info("Failed to parse userIdCode: '{}', setting userId to null", userIdCode);
             userId = null;
         }
         if (userGradeCode == null) {
-            log.info("userGradeCode is null, returning authentication without authorities");
             return new UsernamePasswordAuthenticationToken(userId, null);
         }
         UserGrade userGrade = UserGrade.fromCode(userGradeCode).orElse(null);
-        log.info("Parsed userGrade: {} from code: {}", userGrade, userGradeCode);
+
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + userGrade.toString()));
         return new UsernamePasswordAuthenticationToken(userId, null, authorities);
