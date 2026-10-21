@@ -67,7 +67,32 @@ tasks.withType<Test> {
 }
 
 tasks.test {
+	useJUnitPlatform {
+		excludeTags("redis-integration")
+	}
 	outputs.dir(project.extra["snippetsDir"]!!)
+}
+
+tasks.register<Test>("redisIntegrationTest") {
+	group = "verification"
+	description = "Run notification integration tests against an explicitly configured Redis 7."
+	testClassesDirs = sourceSets["test"].output.classesDirs
+	classpath = sourceSets["test"].runtimeClasspath
+	useJUnitPlatform {
+		includeTags("redis-integration")
+	}
+	mustRunAfter(tasks.test)
+	// External Redis state must be exercised on every requested run.
+	outputs.upToDateWhen { false }
+	doFirst {
+		check(!System.getenv("TEST_REDIS_HOST").isNullOrBlank()) {
+			"TEST_REDIS_HOST must identify an isolated test Redis; no default or skipped run is allowed."
+		}
+		val port = System.getenv("TEST_REDIS_PORT")?.toIntOrNull()
+		check(port != null && port in 1..65535) {
+			"TEST_REDIS_PORT must be an explicit TCP port in 1..65535."
+		}
+	}
 }
 
 tasks.asciidoctor {

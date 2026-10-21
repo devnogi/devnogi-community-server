@@ -13,6 +13,16 @@ jobs:
     name: verify
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      redis:
+        image: redis:7.4.9
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -22,12 +32,19 @@ jobs:
           cache: gradle
       - run: chmod +x gradlew
       - run: ./gradlew verify --no-daemon
+      - name: Redis notification integration
+        run: ./gradlew redisIntegrationTest --no-daemon
+        env:
+          TEST_REDIS_HOST: 127.0.0.1
+          TEST_REDIS_PORT: '6379'
       - name: Test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
-          path: build/reports/tests/
+          path: |
+            build/reports/tests/
+            build/test-results/
           if-no-files-found: ignore
   secret-scan:
     name: secret-scan

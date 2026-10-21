@@ -10,6 +10,24 @@ Java 21을 설치하고 JAVA_HOME을 지정한다. Gradle은 저장소 wrapper�
 
 Linux/macOS/CI: `./gradlew verify --no-daemon`. check(테스트와 설정된 정적 검사) 및 bootJar를 실행한다. community/batch에는 spotlessCheck가 포함된다. 자동 포맷과 src 하위 REST Docs 재생성은 실행하지 않는다. 테스트 보고서는 build/reports/tests/test/index.html에 있다. 테스트 실패와 Java/의존성 다운로드 환경 오류를 구분해 기록한다.
 
+### Redis 알림 실검증
+
+일반 `verify`는 외부 Redis 없이 실행한다. 실제 stream/group·pending·ACK와 알림 DB 트랜잭션은 별도 `redisIntegrationTest`로 확인한다. 기존 JUnit/H2와 실제 Redis를 사용하며, PR의 필수 `verify` job이 표준 검증 후 Redis 7.4.9에서 이 task를 실행한다. 어느 단계든 실패하면 필수 검사가 실패한다.
+
+로컬에서는 운영 데이터가 없는 별도 Redis 7을 준비하고 접속 위치를 명시한다. 예를 들어 테스트 Redis를 loopback 포트 16389에 띄웠다면 다음과 같다.
+
+```powershell
+$env:TEST_REDIS_HOST = '127.0.0.1'
+$env:TEST_REDIS_PORT = '16389'
+.\gradlew.bat redisIntegrationTest --no-daemon
+```
+
+Linux/macOS: `TEST_REDIS_HOST=127.0.0.1 TEST_REDIS_PORT=16389 ./gradlew redisIntegrationTest --no-daemon`. 변수가 없거나 Redis에 연결할 수 없으면 task가 실패한다. skip으로 통과시키지 않으며 요청할 때마다 다시 실행한다. 보고서는 `build/reports/tests/redisIntegrationTest/index.html`, Redis 버전과 record ID·pending 관찰은 `build/test-results/redisIntegrationTest/`에 남는다.
+
+각 테스트는 고유 stream/group과 notification ID를 생성하고 자신이 만든 정확한 Redis 키만 정리한다. `FLUSHALL`이나 실제 `notif-stream` 정리는 하지 않는다. H2의 독립 테스트 DB에서 실제 `NoticeService` 트랜잭션을 실행하며, 수신자 저장 제약을 시험 중에만 추가해 부분 저장 롤백·자기 claim 해제·pending 보존·명시적 같은 레코드 재전달을 확인한다. MySQL/Flyway와 auth→Kafka→community 전체 경로는 별도 격리 Docker 통합으로 확인해야 한다.
+
+알림 소비는 정확한 과거 `{mk: '1'}` 잔재만 ACK한다. 그 외 malformed 레코드와 확인된 DB 실패는 ACK하지 않아 pending에 남긴다. 이는 자동 재시도가 아니며 자동 reclaim/replay·DLQ·exactly-once 보장을 포함하지 않는다. 기존 중복 키만 보고 과거 알림 저장 성공을 단정하거나 운영 키를 일괄 삭제하지 않는다.
+
 ## 로컬 Docker
 
 Compose에 MySQL(호스트 3319), Redis(6379), MinIO(9000/9001), Kafka(9092)가 있다. 다른 로컬 컨테이너와 포트 충돌을 확인한다. MinIO bucket은 개발용으로 별도 생성한다.
@@ -26,7 +44,7 @@ docker compose --env-file .env.local -f docker-compose-local.yaml up --build bac
 
 ## CI와 배포
 
-PR 필수 검사 이름은 verify와 secret-scan이다. 원격 브랜치 보호에서 두 검사와 사람 리뷰를 필수로 지정해야 강제된다. yaml 파일만 추가해도 보호가 활성화되는 것은 아니다. 이미지 게시/운영 배포는 workflow_dispatch로 분리했고 운영은 main/production, 개발은 dev/development로 제한한다. GitHub Environment에 승인자를 별도로 설정해야 실제 사람 승인 게이트가 생긴다. push/PR 생성만으로 배포하지 않는다.
+PR 필수 검사 이름은 verify와 secret-scan이다. 현재 dev 보호 정책은 PR과 두 검사의 성공을 요구하며 필수 승인 수는 0명이므로 작성자도 CI 통과 후 직접 병합할 수 있다. 기획 revision에 대한 사람 승인과 Codex 독립 리뷰는 별도 개발 절차로 유지한다. yaml 파일만 추가해도 원격 브랜치 보호가 활성화되는 것은 아니다. 이미지 게시/운영 배포는 workflow_dispatch로 분리했고 운영은 main/production, 개발은 dev/development로 제한한다. GitHub Environment에 승인자를 별도로 설정해야 실제 사람 승인 게이트가 생긴다. push/PR 생성만으로 배포하지 않는다.
 
 각 서비스의 Compose는 개별 개발 환경이다. 전체 MSA가 자동 연결된다는 뜻은 아니다. Kafka는 bootstrap 주소뿐 아니라 브로커 advertised.listeners가 각 애플리케이션 컨테이너에서 접근 가능한 주소여야 한다. 호스트용 localhost 광고 주소를 컨테이너에 그대로 사용하지 않는다. 통합 환경에서는 공통 네트워크의 내부 리스너를 사용하거나 개발 호스트 주소로 광고하도록 별도 구성한다.
 

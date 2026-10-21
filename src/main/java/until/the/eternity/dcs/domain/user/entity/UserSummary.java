@@ -28,12 +28,19 @@ public class UserSummary {
     @Builder.Default
     private Integer level = 1;
 
-    @Column(name = "server_name", nullable = false, length = 50)
+    @Column(name = "server_name", length = 50)
     private String serverName;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserGrade grade = USER;
+
+    /** Auth events carry a snapshot; null explicitly clears optional auth-owned values. */
+    public void updateFromAuth(String nickname, String profileImageUrl, String serverName) {
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+        this.serverName = serverName;
+    }
 
     public void update(String nickname, Integer level, String serverName, UserGrade grade) {
         if (nickname != null && !nickname.isEmpty()) {

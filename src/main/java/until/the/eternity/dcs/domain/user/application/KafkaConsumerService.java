@@ -1,22 +1,32 @@
 package until.the.eternity.dcs.domain.user.application;
 
-import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryConsumerDTO;
 import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class KafkaConsumerService {
     private final UserSummaryRepository userSummaryRepository;
+    private final Validator validator;
 
+    @Transactional
     @KafkaListener(topics = "USER_INFO_UPDATE_EVENT", groupId = "devnogi-community-group")
-    public void consume(@Valid UserSummaryConsumerDTO userInfo) {
-        log.info("Kafka로부터 받은 user 데이터: {}", userInfo);
-        userSummaryRepository.save(userInfo.toEntity());
+    public void consume(UserSummaryConsumerDTO userInfo) {
+        var violations = validator.validate(userInfo);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+
+        var userSummary =
+                userSummaryRepository.findById(userInfo.id()).orElseGet(userInfo::toEntity);
+        userSummary.updateFromAuth(
+                userInfo.nickname(), userInfo.profileImageUrl(), userInfo.serverName());
+        userSummaryRepository.save(userSummary);
     }
 }
