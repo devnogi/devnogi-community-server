@@ -11,3 +11,13 @@ node_modules
 .env*
 .DS_Store
 tmp
+# Keep host-only state and credential files out of every build context.
+**/.git
+**/.env
+**/.env.*
+**/.local
+**/*.pem
+**/*.key
+**/*.p12
+**/*.jks
+**/node_modules
