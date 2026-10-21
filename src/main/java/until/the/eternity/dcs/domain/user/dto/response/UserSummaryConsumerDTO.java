@@ -2,13 +2,15 @@ package until.the.eternity.dcs.domain.user.dto.response;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 public record UserSummaryConsumerDTO(
         @NotNull(message = "사용자 ID는 필수입니다.") Long id,
         @NotBlank(message = "닉네임은 비어있을 수 없습니다.") String nickname,
         String profileImageUrl,
-        @NotBlank(message = "서버명은 비어있을 수 없습니다.") String serverName) {
+        @Pattern(regexp = "(?s).*\\P{javaWhitespace}.*", message = "서버명은 비어있을 수 없습니다.")
+                String serverName) {
     public UserSummary toEntity() {
         return UserSummary.builder()
                 .id(this.id())

@@ -32,4 +32,26 @@ public class UserSummaryTest {
         assertThat(userSummary.getLevel()).isEqualTo(20);
         assertThat(userSummary.getGrade()).isEqualTo(UserGrade.ADMIN);
     }
+
+    @Test
+    void apiPartialUpdateStillPreservesAbsentValues() {
+        UserSummary userSummary =
+                UserSummary.builder()
+                        .id(1L)
+                        .nickname("original")
+                        .profileImageUrl("https://example.test/profile.png")
+                        .serverName("server")
+                        .level(20)
+                        .grade(UserGrade.ADMIN)
+                        .build();
+
+        userSummary.update(null, null, null, null);
+        userSummary.update("", null, "", null);
+
+        assertThat(userSummary.getNickname()).isEqualTo("original");
+        assertThat(userSummary.getProfileImageUrl()).isEqualTo("https://example.test/profile.png");
+        assertThat(userSummary.getServerName()).isEqualTo("server");
+        assertThat(userSummary.getLevel()).isEqualTo(20);
+        assertThat(userSummary.getGrade()).isEqualTo(UserGrade.ADMIN);
+    }
 }

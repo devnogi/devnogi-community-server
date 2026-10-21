@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -47,6 +48,7 @@ public class RedisStreamListenerConfig {
     }
 
     @Bean
+    @DependsOn("redisStreamConfig")
     public StreamMessageListenerContainer<String, MapRecord<String, String, String>>
             streamContainer(Executor notifConsumerExecutor) {
 

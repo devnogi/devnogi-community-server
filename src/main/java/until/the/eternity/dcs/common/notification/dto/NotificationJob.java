@@ -23,13 +23,40 @@ public record NotificationJob(
     }
 
     public static NotificationJob fromMap(Map<String, String> map) {
+        if (map == null) {
+            throw new IllegalArgumentException("notification fields are required");
+        }
+        String notificationId = required(map, "notificationId");
+        String userIdValue = required(map, "userId");
+        Long userId;
+        try {
+            userId = Long.valueOf(userIdValue);
+        } catch (NumberFormatException e) {
+            // Never include the received value in a listener diagnostic.
+            throw new IllegalArgumentException("userId must be a valid integer");
+        }
+        String channel = map.get("channel");
+        if (channel == null) {
+            throw new IllegalArgumentException("channel is required");
+        }
+        NoticeType noticeType =
+                NoticeType.fromCode(required(map, "noticeType"))
+                        .orElseThrow(() -> new IllegalArgumentException("noticeType is unknown"));
         return NotificationJob.builder()
-                .notificationId(map.get("notificationId"))
-                .userId(Long.valueOf(map.get("userId")))
-                .channel(map.get("channel"))
-                .noticeType(NoticeType.fromCode(map.get("noticeType")).orElseThrow())
-                .url(map.get("url"))
+                .notificationId(notificationId)
+                .userId(userId)
+                .channel(channel)
+                .noticeType(noticeType)
+                .url(required(map, "url"))
                 .build();
+    }
+
+    private static String required(Map<String, String> map, String field) {
+        String value = map.get(field);
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(field + " is required");
+        }
+        return value;
     }
 
     public static NotificationJob of(Long userId, NoticeType noticeType, Long id) {
