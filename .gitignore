@@ -47,3 +47,8 @@ out/
 
 ### MinIO ###
 local-minio-data/
+# Local credentials; share only synthetic examples
+.env*
+!.env.example
+!.env.sample
+!.env.local.sample

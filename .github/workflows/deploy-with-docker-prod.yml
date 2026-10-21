@@ -1,17 +1,15 @@
 name: deploy-with-docker-prod.yml
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline (pull-request-test, Build & Push on Merge).yml"]
-    types:
-      - completed
-    branches:
-      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   deploy-main:
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

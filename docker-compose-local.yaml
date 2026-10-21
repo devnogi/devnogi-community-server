@@ -3,6 +3,8 @@ version: '3.8'
 services:
   # 1. Spring Boot 애플리케이션 (추가된 부분)
   backend:
+    env_file:
+      - .env.local
     container_name: devnogi-community-server
     build:
       context: .
