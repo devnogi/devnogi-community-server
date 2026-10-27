@@ -3,7 +3,7 @@ version: "3.8"
 services:
   backend:
     container_name: devnogi-community-server
-    image: ${DOCKERHUB_USERNAME}/devnogi-community-server:latest # 배포 서버 이미지 (devnogi-community-server)
+    image: ${DOCKERHUB_USERNAME}/devnogi-community-server:${DOCKER_IMAGE_TAG:-latest} # main 기본값 latest, dev는 동일 SHA 태그
     ports:
       - "${SERVICE_PORT:-8093}:8093"
     environment:
