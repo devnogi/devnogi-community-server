@@ -1,5 +1,5 @@
 server:
-  port: 7778
+  port: ${SERVER_PORT}
   address: 0.0.0.0
   shutdown: graceful
   error:
@@ -17,15 +17,15 @@ management:
 
 spring:
   application:
-    name: devnogi-server
+    name: devnogi-community-server
   web:
     resources:
       static-locations: classpath:/static/
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:${DB_PORT:3366}/${DB_SCHEMA}
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:devnogi}
+    url: jdbc:mysql://localhost:${DB_PORT}/${DB_SCHEMA}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -70,9 +70,6 @@ decorator:
     p6spy:
       enable-logging: false
 
-logging:
-  config: classpath:logback/logback-display.xml
-
 ---
 spring:
   config:
@@ -87,12 +84,6 @@ decorator:
 logging:
   level:
     until.the.eternity: DEBUG
-
-openapi:
-  nexon:
-    api-key: ${NEXON_API_KEY}
-  auction-history:
-    delay-ms: 1000
 
 ---
 spring:

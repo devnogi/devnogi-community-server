@@ -1,0 +1,128 @@
+name: deploy-with-docker-prod.yml
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployment-window:
+    # 빠른 개선을 위한 dev 브랜치 운영 배포 허용: 2026-12-31까지
+    if: github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check temporary dev production window
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          cutoff=$(date -u -d '2026-12-31 15:00:00 UTC' +%s)
+          if [ "$(date -u +%s)" -ge "$cutoff" ]; then
+            echo 'dev production deployment expired at 2027-01-01 00:00 KST' >&2
+            exit 1
+          fi
+  deploy-main:
+    needs: deployment-window
+    if: github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recheck temporary dev production window after approval
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          cutoff=$(date -u -d '2026-12-31 15:00:00 UTC' +%s)
+          if [ "$(date -u +%s)" -ge "$cutoff" ]; then
+            echo 'dev production deployment expired at 2027-01-01 00:00 KST' >&2
+            exit 1
+          fi
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Recheck dev window before contacting production server
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          cutoff=$(date -u -d '2026-12-31 15:00:00 UTC' +%s)
+          if [ "$(date -u +%s)" -ge "$cutoff" ]; then
+            echo 'dev production deployment expired before SSH' >&2
+            exit 1
+          fi
+
+      - name: Copy Docker Compose file to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USERNAME }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT }}
+          source: "docker-compose-prod.yml"
+          target: "/opt/community"
+
+      - name: Deploy on prod server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USERNAME }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_PORT }}
+          script: |
+            set -e
+            mkdir -p /opt/community
+            cd /opt/community
+            
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.prod
+            IMAGE_TAG=latest
+            if [ "${{ github.ref_name }}" = "dev" ]; then
+              IMAGE_TAG="dev-${{ github.sha }}"
+            fi
+            echo "DOCKER_IMAGE_TAG=$IMAGE_TAG" >> .env.prod
+            export DOCKER_IMAGE_TAG="$IMAGE_TAG"
+            export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            
+            echo "SERVICE_PORT=${{ secrets.PROD_SERVICE_PORT }}" >> .env.prod
+            echo "DB_HOST=${{ secrets.PROD_DB_HOST }}" >> .env.prod
+            echo "DB_PORT=${{ secrets.PROD_DB_PORT }}" >> .env.prod
+            echo "DB_SCHEMA=${{ secrets.PROD_DB_SCHEMA }}" >> .env.prod
+            echo "DB_USER=${{ secrets.PROD_DB_USER }}" >> .env.prod
+            echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env.prod
+            
+            echo "REDIS_HOST=${{ secrets.PROD_REDIS_HOST }}" >> .env.prod
+            echo "REDIS_PORT=${{ secrets.PROD_REDIS_PORT }}" >> .env.prod
+            echo "REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}" >> .env.prod
+            echo "JWT_SECRET_KEY='${{ secrets.PROD_JWT_SECRET_KEY }}'" >> .env.prod
+            echo "MINIO_ENDPOINT=${{ secrets.PROD_MINIO_ENDPOINT }}" >> .env.prod
+            echo "MINIO_ACCESS_KEY=${{ secrets.PROD_MINIO_ACCESS_KEY }}" >> .env.prod
+            echo "MINIO_SECRET_KEY=${{ secrets.PROD_MINIO_SECRET_KEY }}" >> .env.prod
+            echo "MINIO_BUCKET=${{ secrets.PROD_MINIO_BUCKET}}" >> .env.prod
+            echo "KAFKA_BOOTSTRAP_SERVERS=${{secrets.PROD_KAFKA_BOOTSTRAP_SERVERS}}" >>.env.prod
+            echo "KAFKA_CONSUMER_GROUP_ID=${{secrets.PROD_KAFKA_CONSUMER_GROUP_ID}}" >>.env.prod
+            
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            echo "=== Deploying community image tag: $IMAGE_TAG ==="
+
+            # Confirm the exact image exists before stopping the current container.
+            EXPECTED_IMAGE="$DOCKERHUB_USERNAME/devnogi-community-server:$IMAGE_TAG"
+            RESOLVED_IMAGE=$(docker compose -f docker-compose-prod.yml --env-file .env.prod config --images)
+            if [ "$RESOLVED_IMAGE" != "$EXPECTED_IMAGE" ]; then
+              echo 'Compose resolved a different community image' >&2
+              exit 1
+            fi
+            docker compose -f docker-compose-prod.yml --env-file .env.prod pull backend
+            if [ "${{ github.ref_name }}" = "dev" ]; then
+              IMAGE_REVISION=$(docker image inspect \
+                --format='{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+                "$EXPECTED_IMAGE")
+              if [ "$IMAGE_REVISION" != "${{ github.sha }}" ]; then
+                echo 'dev image revision does not match workflow head' >&2
+                exit 1
+              fi
+              cutoff=$(date -u -d '2026-12-31 15:00:00 UTC' +%s)
+              if [ "$(date -u +%s)" -ge "$cutoff" ]; then
+                echo 'dev production deployment expired before container stop' >&2
+                exit 1
+              fi
+            fi
+            docker compose -f docker-compose-prod.yml --env-file .env.prod down
+            docker compose -f docker-compose-prod.yml --env-file .env.prod up -d --remove-orphans
+            
+            docker image prune -f
+            docker compose -f docker-compose-prod.yml ps

@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: devnogi-community-server
+    image: ${DOCKERHUB_USERNAME}/devnogi-community-server:${DOCKER_IMAGE_TAG:-latest} # main 기본값 latest, dev는 동일 SHA 태그
+    ports:
+      - "${SERVICE_PORT:-8093}:8093"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -Dspring.profiles.active=prod
+      - SPRING_PROFILES_ACTIVE=prod
+
+      - DB_HOST=devnogi-mysql
+      - DB_PORT=${DB_PORT}
+      - DB_SCHEMA=${DB_SCHEMA}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY} #ID
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY} #PASSWORD
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_CONSUMER_GROUP_ID=${KAFKA_CONSUMER_GROUP_ID}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - TZ=Asia/Seoul
+
+    restart: always
+
+
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+    name: infra_devnogi-network
+    external: true

@@ -1,0 +1,28 @@
+name: deploy-with-docker.yml
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-to-dev:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev'
+    environment: development
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH connect to server and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            docker stop dcs-server || true
+            docker rm dcs-server || true
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dcs-server:latest
+            docker compose up -d
