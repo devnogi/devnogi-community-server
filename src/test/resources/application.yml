@@ -1,0 +1,20 @@
+spring:
+  # [추가] 테스트할 때는 Flyway 동작 안 하게 설정
+  flyway:
+    enabled: false
+
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    # [중요] Flyway를 껐으니, 대신 Hibernate가 엔티티를 보고 테이블을 만들게 함
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+    database-platform: org.hibernate.dialect.H2Dialect

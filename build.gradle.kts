@@ -3,6 +3,7 @@ plugins {
 	id("org.springframework.boot") version "3.5.0"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.asciidoctor.jvm.convert") version "3.3.2"
+	id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "until.the.eternity"
@@ -22,18 +23,29 @@ configurations {
 
 repositories {
 	mavenCentral()
+	gradlePluginPortal()
 }
 
 extra["snippetsDir"] = file("build/generated-snippets")
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    testRuntimeOnly("com.h2database:h2")
+	implementation("org.springframework.boot:spring-boot-starter-cache")
+	implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("io.minio:minio:8.5.7")
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.flywaydb:flyway-mysql")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("mysql:mysql-connector-java")
 	implementation("org.springframework.kafka:spring-kafka")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -45,6 +57,9 @@ dependencies {
 	testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 }
 
 tasks.withType<Test> {
@@ -58,4 +73,41 @@ tasks.test {
 tasks.asciidoctor {
 	inputs.dir(project.extra["snippetsDir"]!!)
 	dependsOn(tasks.test)
+}
+
+// Jacoco
+apply(from = "./gradle/jacoco.gradle.kts")
+
+tasks.named<JacocoReport>("jacocoTestReport") {
+	dependsOn(tasks.test)
+
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+	}
+}
+
+// Spotless
+spotless {
+	java {
+		googleJavaFormat().aosp()
+		removeUnusedImports()
+		importOrder()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+
+	format("misc") {
+		target("*.gradle.kts", ".gitignore")
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+}
+
+
+// Verification must not format sources or regenerate checked-in documentation.
+tasks.register("verify") {
+    group = "verification"
+    description = "Run tests, configured static checks, and build the application JAR."
+    dependsOn("check", "bootJar")
 }
