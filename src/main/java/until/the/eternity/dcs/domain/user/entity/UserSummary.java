@@ -28,7 +28,7 @@ public class UserSummary {
     @Builder.Default
     private Integer level = 1;
 
-    @Column(name = "server_name", nullable = false, length = 50)
+    @Column(name = "server_name", length = 50)
     private String serverName;
 
     @Enumerated(EnumType.STRING)

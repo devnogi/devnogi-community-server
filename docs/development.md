@@ -26,7 +26,7 @@ docker compose --env-file .env.local -f docker-compose-local.yaml up --build bac
 
 ## CI와 배포
 
-`main` 대상 PR에서 `verify`, `secret-scan`과 배포 workflow 테스트를 실행한다. `main`에 merge되면 같은 커밋으로 이미지를 빌드하고 digest로 운영 배포한다. 배포는 직렬화하며 health 실패 시 이전 digest와 Compose를 복구한다. 이전 digest나 Compose가 없으면 자동 복구 불가를 보고하고 실패한다. 수동 재배포는 `main`에서만 허용한다. 운영 Environment와 Ruleset은 GitHub에서 별도로 설정하고 검증한다.
+`main` 대상 PR에서 `verify`, `secret-scan`과 배포 workflow 테스트를 실행한다. `main`에 merge되면 같은 커밋으로 이미지를 빌드하고 digest로 운영 배포한다. 배포는 직렬화하며 health 실패 시 이전 digest, Compose, 환경 파일을 복구하고 health를 다시 확인한다. 이전 digest나 Compose 또는 환경이 없으면 자동 복구 불가를 보고하고 실패한다. 운영 health는 DB와 Redis 확인을 포함한다. 수동 재배포는 `main`에서만 허용한다. `production` environment에는 별도의 신뢰 경로로 확인한 SSH 서버 SHA-256 fingerprint를 `PROD_SERVER_SSH_FINGERPRINT`로 설정해야 하며, 값이 없거나 맞지 않으면 배포가 실패한다. 운영 Environment와 Ruleset은 GitHub에서 별도로 설정하고 검증한다.
 
 각 서비스의 Compose는 개별 개발 환경이다. 전체 MSA가 자동 연결된다는 뜻은 아니다. Kafka는 bootstrap 주소뿐 아니라 브로커 advertised.listeners가 각 애플리케이션 컨테이너에서 접근 가능한 주소여야 한다. 호스트용 localhost 광고 주소를 컨테이너에 그대로 사용하지 않는다. 통합 환경에서는 공통 네트워크의 내부 리스너를 사용하거나 개발 호스트 주소로 광고하도록 별도 구성한다.
 
