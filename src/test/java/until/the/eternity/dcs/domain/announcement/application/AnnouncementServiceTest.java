@@ -26,14 +26,12 @@ import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 
 class AnnouncementServiceTest {
     AnnouncementService announcementService;
     AnnouncementRepository announcementRepository;
     PostRepository postRepository;
-    PostMetaRepository postMetaRepository;
     PostMetaService postMetaService;
     BoardRepository boardRepository;
     Long id = 1L;
@@ -48,11 +46,8 @@ class AnnouncementServiceTest {
     void init() {
         announcementRepository = mock(AnnouncementRepository.class);
         postRepository = mock(PostRepository.class);
-        postMetaRepository = mock(PostMetaRepository.class);
         boardRepository = mock(BoardRepository.class);
         RedisSender redisSender = mock(RedisSender.class);
-        AnnouncementPermissionEvaluator announcementPermissionEvaluator =
-                mock(AnnouncementPermissionEvaluator.class);
         postMetaService = mock(PostMetaService.class);
         AnnouncementConverter converter = new AnnouncementConverter();
 
@@ -61,10 +56,8 @@ class AnnouncementServiceTest {
                         announcementRepository,
                         converter,
                         postRepository,
-                        postMetaRepository,
                         postMetaService,
                         redisSender,
-                        announcementPermissionEvaluator,
                         boardRepository);
 
         announcement = Announcement.builder().id(id).userId(userId).isGlobal(true).build();

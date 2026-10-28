@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisSystemException;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -15,7 +14,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @Configuration
 @RequiredArgsConstructor
 public class RedisStreamConfig {
-    private final RedisConnectionFactory connectionFactory;
     private final StringRedisTemplate redisTemplate;
 
     @Value("${app.notification.stream}")

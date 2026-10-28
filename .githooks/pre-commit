@@ -1,11 +1,9 @@
-#!/bin/bash
-echo "▶ Running Spotless format…"
-if ! ./gradlew spotlessApply --quiet; then
-  echo >&2 "✗ Spotless formatting failed. Please fix formatting before committing."
-  exit 1
+#!/bin/sh
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+git diff --cached --check
+echo "Checking formatting and imports before commit..."
+if ! ./gradlew spotlessCheck; then
+    echo >&2 "Formatting check failed. Run ./gradlew spotlessApply, review, and stage the changes."
+    exit 1
 fi
-
-git add -u
-
-echo "▶ Spotless formatting applied successfully!"
-exit 0

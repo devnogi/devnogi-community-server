@@ -2,6 +2,10 @@
 
 ## 검증
 
+처음 clone한 뒤 `./gradlew installGitHooks` (Windows: `.\gradlew.bat installGitHooks`)를 실행하면 현재 worktree에 Git hook이 설치된다. 커밋 전에는 staged whitespace/conflict marker와 전체 소스의 Spotless 포맷 및 import를 검사한다. 실패하면 `./gradlew spotlessApply`를 직접 실행하고 변경을 검토해 다시 stage한다. hook은 자동 수정하거나 stage하지 않는다. push 전에는 PMD 미사용 코드 검사, 테스트 및 빌드를 포함하는 `./gradlew verify`를 실행한다.
+
+수동 정적 검사는 `./gradlew lint --no-daemon`, 전체 검증은 `./gradlew verify --no-daemon`으로 실행한다. `--no-verify`로 로컬 hook을 우회해도 PR CI의 동일한 검사는 실행된다.
+
 Java 21을 설치하고 JAVA_HOME을 지정한다. Gradle은 저장소 wrapper를 사용한다.
 
 ```powershell

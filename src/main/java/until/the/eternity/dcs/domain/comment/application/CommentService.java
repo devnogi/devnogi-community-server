@@ -15,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
@@ -35,7 +34,6 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
@@ -50,7 +48,6 @@ public class CommentService {
     private final CommentLikeConverter commentLikeConverter;
     private final CommentMetaRepository commentMetaRepository;
     private final PostRepository postRepository;
-    private final PostMetaRepository postMetaRepository;
     private final RedisSender redisSender;
     private final CommentPermissionEvaluator commentPermissionEvaluator;
     private final UserSummaryService userSummaryService;
@@ -216,16 +213,5 @@ public class CommentService {
     private boolean checkIsAnonymousUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return commentPermissionEvaluator.isAnonymousUser(auth);
-    }
-
-    private String getCurrentUserIp() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        Object details = auth.getDetails();
-        if (details instanceof CustomWebAuthenticationDetails webDetails) {
-            return webDetails.getRealRemoteAddress();
-        }
-
-        return "UNKNOWN_IP";
     }
 }

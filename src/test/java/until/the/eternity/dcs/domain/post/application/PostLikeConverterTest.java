@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
 
@@ -30,7 +29,6 @@ public class PostLikeConverterTest {
     @DisplayName("requestToPostLike 테스트")
     void toEntity_Success() {
         // given
-        PostLikeCreateRequest postLikeCreateRequest = new PostLikeCreateRequest(1L);
 
         // when
         PostLike result = postLikeConverter.toEntity(1L, mockPost);
