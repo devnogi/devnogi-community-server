@@ -28,8 +28,6 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepositor
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
-import until.the.eternity.dcs.domain.post.entity.PostMeta;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
@@ -42,12 +40,10 @@ class CommentServiceTest {
     UserSummaryService userService = mock(UserSummaryService.class);
     CommentLikeConverter commentLikeConverter = new CommentLikeConverter();
     CommentMetaRepository commentMetaRepository = mock(CommentMetaRepository.class);
-    PostMetaRepository postMetaRepository = mock(PostMetaRepository.class);
     Long userId = 1L;
     RedisSender redisSender = mock(RedisSender.class);
     CommentPermissionEvaluator commentPermissionEvaluator = mock(CommentPermissionEvaluator.class);
     PostMetaService postMetaService = mock(PostMetaService.class);
-    Integer commentCount = 1;
 
     CommentService commentService =
             new CommentService(
@@ -57,7 +53,6 @@ class CommentServiceTest {
                     commentLikeConverter,
                     commentMetaRepository,
                     postRepository,
-                    postMetaRepository,
                     redisSender,
                     commentPermissionEvaluator,
                     userService,
@@ -94,8 +89,6 @@ class CommentServiceTest {
         when(commentRepository.save(any(Comment.class))).thenReturn(comment);
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
-        when(postMetaRepository.findById(id))
-                .thenReturn(Optional.of(PostMeta.create(id, commentCount)));
         CommentCreateRequest request = new CommentCreateRequest(null, content);
 
         // when
@@ -129,8 +122,6 @@ class CommentServiceTest {
         // given
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
                 .thenReturn(Optional.of(Post.builder().id(id).comments(new ArrayList<>()).build()));
-        when(postMetaRepository.findById(id))
-                .thenReturn(Optional.of(PostMeta.create(id, commentCount)));
 
         // when
         when(commentRepository.findById(anyLong())).thenReturn(Optional.of(comment));

@@ -43,7 +43,7 @@ public class PostRepositoryTest {
         // Given: 데이터 준비 (저장 로직 포함)
 
         // 1위 후보 (130점): Post A (최신, 조회수100, 댓글10)
-        Post postA = createPost("Post A", 100, 10, 0);
+        createPost("Post A", 100, 10, 0);
 
         // 2위 후보 (100점): Post B (반응 좋지만 오래됨)
         Post postB = createPost("Post B", 200, 20, 0);
@@ -51,7 +51,7 @@ public class PostRepositoryTest {
         updateCreatedAt(postB.getId(), LocalDateTime.now().minusHours(80));
 
         // 3위 후보 (0점): Post C (최신, 반응 없음)
-        Post postC = createPost("Post C", 0, 0, 0);
+        createPost("Post C", 0, 0, 0);
 
         // [중요] 영속성 컨텍스트 초기화 (DB와 싱크 맞추기)
         em.flush();
@@ -82,10 +82,10 @@ public class PostRepositoryTest {
         // Given: 데이터 준비 (저장 로직 포함)
 
         // 좋아요 10개
-        Post postA = createPost("Post A", 100, 10, 10);
+        createPost("Post A", 100, 10, 10);
 
         // 좋아요 20개
-        Post postB = createPost("Post B", 200, 20, 20);
+        createPost("Post B", 200, 20, 20);
 
         // 좋아요 30개
         Post postC = createPost("Post C", 0, 0, 30);

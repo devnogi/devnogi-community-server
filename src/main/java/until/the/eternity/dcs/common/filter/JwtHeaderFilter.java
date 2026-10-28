@@ -33,7 +33,6 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        java.util.Enumeration<String> headerNames = request.getHeaderNames();
         String userIdCode = request.getHeader("X-Auth-User-Id");
         String userGradeCode = request.getHeader("X-Auth-Roles");
         if (userGradeCode != null) {

@@ -467,7 +467,6 @@ class PostServiceTest {
             //            given(postMetaService.getPostMeta(1L)).willReturn(postMeta);
             given(postMetaService.canDoMethod(1L, "like", "1")).willReturn(true);
 
-            int cnt = postMeta.getLikeCount();
             // when
             postService.togglePostLike(postLikeCreateRequest);
 
@@ -490,7 +489,6 @@ class PostServiceTest {
                     .willReturn(true);
             given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
             given(postMetaService.canDoMethod(1L, "unlike", "1")).willReturn(true);
-            int cnt = postMeta.getLikeCount();
             // when
             postService.togglePostLike(postLikeCreateRequest);
 

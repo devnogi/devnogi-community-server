@@ -24,7 +24,6 @@ import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
-import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 
 @Service
@@ -33,10 +32,8 @@ public class AnnouncementService {
     private final AnnouncementRepository repository;
     private final AnnouncementConverter converter;
     private final PostRepository postRepository;
-    private final PostMetaRepository postMetaRepository;
     private final PostMetaService postMetaService;
     private final RedisSender redisSender;
-    private final AnnouncementPermissionEvaluator announcementPermissionEvaluator;
     private final BoardRepository boardRepository;
 
     @Transactional
