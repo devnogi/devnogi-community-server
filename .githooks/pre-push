@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+echo "Running verification before push..."
+if ! ./gradlew verify; then
+    echo >&2 "Verification failed; fix the reported errors before pushing."
+    exit 1
+fi

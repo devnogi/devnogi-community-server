@@ -1,5 +1,6 @@
 plugins {
 	java
+	pmd
 	id("org.springframework.boot") version "3.5.0"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.asciidoctor.jvm.convert") version "3.3.2"
@@ -106,6 +107,29 @@ spotless {
 
 
 // Verification must not format sources or regenerate checked-in documentation.
+pmd {
+    toolVersion = "7.24.0"
+    ruleSets = emptyList()
+    ruleSetFiles = files("config/pmd/unused.xml")
+}
+
+tasks.register("lint") {
+    group = "verification"
+    description = "Check formatting, imports, and unused code."
+    dependsOn("spotlessCheck", "pmdMain", "pmdTest")
+}
+
+val enableWorktreeGitConfig = tasks.register<Exec>("enableWorktreeGitConfig") {
+    commandLine("git", "config", "--local", "extensions.worktreeConfig", "true")
+}
+
+tasks.register<Exec>("installGitHooks") {
+    group = "build setup"
+    description = "Install Git hooks for this worktree."
+    dependsOn(enableWorktreeGitConfig)
+    commandLine("git", "config", "--worktree", "core.hooksPath", ".githooks")
+}
+
 tasks.register("verify") {
     group = "verification"
     description = "Run tests, configured static checks, and build the application JAR."
