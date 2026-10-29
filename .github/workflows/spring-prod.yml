@@ -1,0 +1,19 @@
+name: Spring production
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  production:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    uses: devnogi/ci-workflows/.github/workflows/spring-prod.yml@9506ea4c4dd3147e3ab15a8b06e780ce416908a6
+    with:
+      service-profile: community-redis
+      image-name: devnogi-community-server
+      dockerfile: Dockerfile
+      compose-file: docker-compose-prod.yml
+      health-timeout: '300'
+      platform: linux/amd64
+    secrets: inherit

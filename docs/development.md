@@ -44,7 +44,11 @@ docker compose --env-file .env.local -f docker-compose-local.yaml up --build bac
 
 ## CI와 배포
 
-PR 필수 검사 이름은 verify와 secret-scan이다. 현재 dev 보호 정책은 PR과 두 검사의 성공을 요구하며 필수 승인 수는 0명이므로 작성자도 CI 통과 후 직접 병합할 수 있다. 기획 revision에 대한 사람 승인과 Codex 독립 리뷰는 별도 개발 절차로 유지한다. yaml 파일만 추가해도 원격 브랜치 보호가 활성화되는 것은 아니다. 이미지 게시/운영 배포는 workflow_dispatch로 분리했고 운영은 main/production, 개발은 dev/development로 제한한다. GitHub Environment에 승인자를 별도로 설정해야 실제 사람 승인 게이트가 생긴다. push/PR 생성만으로 배포하지 않는다.
+PR과 수동 진단은 공통 `spring-ci`의 `community-redis` 프로필을 사용한다. 이 프로필은 표준 verify, Redis 7.4.9 통합 테스트, secret scan, Docker 빌드와 운영 Compose 렌더링을 실행한다. 새 필수 검사 context는 실제 PR에서 확인하고 기존 브랜치 보호를 유지한 채 전환한다.
+
+`main` push는 같은 검증을 통과한 뒤 이미지를 게시하고 `production` 환경에 digest로 배포한다. 복구용 수동 실행도 `main`에서만 가능하다. PR 생성만으로는 배포하지 않으며, 배포 경로 활성화 후 승인된 PR의 main 병합이 운영 배포 승인이다. 수동 복구 실행은 별도 사람 승인이 필요하다. 개발 배포 workflow는 별도로 유지한다.
+
+운영 Compose의 `backend` 이미지는 필수 `IMAGE_REF`로 지정한다. 공통 배포는 컨테이너 실행 상태와 이미지 ID를 확인하고, Docker healthcheck가 설정된 경우 그 상태도 확인한다. 현재 운영 Compose에는 Docker healthcheck가 없으므로 HTTP 검사가 필수다. `PROD_HEALTH_URL`은 서버의 loopback에서 접근 가능한 이 서비스의 `/actuator/health`로 설정하고, 200 응답을 최대 300초 기다린다. 이 검사는 DB와 Redis 상태가 비활성화된 기존 actuator 설정을 따른다. 실패 시 같은 실행이 소유한 이전 구성과 이미지를 복원하고 상태를 다시 검사한다.
 
 각 서비스의 Compose는 개별 개발 환경이다. 전체 MSA가 자동 연결된다는 뜻은 아니다. Kafka는 bootstrap 주소뿐 아니라 브로커 advertised.listeners가 각 애플리케이션 컨테이너에서 접근 가능한 주소여야 한다. 호스트용 localhost 광고 주소를 컨테이너에 그대로 사용하지 않는다. 통합 환경에서는 공통 네트워크의 내부 리스너를 사용하거나 개발 호스트 주소로 광고하도록 별도 구성한다.
 
