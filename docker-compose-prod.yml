@@ -3,7 +3,7 @@ version: "3.8"
 services:
   backend:
     container_name: devnogi-community-server
-    image: ${IMAGE_REF:?Set an immutable image digest}
+    image: ${IMAGE_REF:?IMAGE_REF is required}
     ports:
       - "${SERVICE_PORT:-8093}:8093"
     environment:
