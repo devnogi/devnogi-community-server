@@ -33,6 +33,17 @@ services:
 
     restart: always
 
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "unixgram:///dev/log"
+        syslog-format: "rfc5424micro"
+        tag: "memonogi-community"
+        mode: "non-blocking"
+        max-buffer-size: "4m"
+        cache-disabled: "false"
+        cache-max-size: "20m"
+        cache-max-file: "5"
 
     networks:
       - app-network
