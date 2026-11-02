@@ -185,8 +185,12 @@ decorator:
 
 logging:
   level:
+    root: INFO
     until.the.eternity: INFO
-    org.springframework.kafka: INFO
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    org.springframework.data.redis: WARN
+    io.lettuce.core: WARN
 
 ---
 # Docker 환경
