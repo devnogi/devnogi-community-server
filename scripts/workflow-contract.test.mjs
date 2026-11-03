@@ -31,7 +31,7 @@ test('production caller only permits main push or manual dispatch', () => {
   assert.match(prod, /health-timeout: '300'/);
   assert.match(prod, /platform: linux\/amd64/);
   assert.match(prod, /secrets: inherit/);
-  assert.match(build, /^version = "1\.0\.2-SNAPSHOT"$/m);
+  assert.match(build, /^version = "1\.0\.3-SNAPSHOT"$/m);
   assert.match(build, /tasks\.register<Test>\("redisIntegrationTest"\)/);
   assert.match(build, /tasks\.test[\s\S]*excludeTags\("redis-integration"\)/);
   assert.match(build, /includeTags\("redis-integration"\)/);
@@ -46,4 +46,5 @@ test('callers agree on Community inputs and Compose requires the image', () => {
     }
   }
   assert.match(read('docker-compose-prod.yml'), /backend:\s*\n\s*container_name: devnogi-community-server\s*\n\s*image: \$\{IMAGE_REF:\?IMAGE_REF is required\}/);
+  assert.match(read('docker-compose-prod.yml'), /ports:\s*\n\s*- "127\.0\.0\.1:\$\{SERVICE_PORT:-8093\}:8093"/);
 });
