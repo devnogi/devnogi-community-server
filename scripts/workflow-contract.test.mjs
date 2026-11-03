@@ -46,4 +46,5 @@ test('callers agree on Community inputs and Compose requires the image', () => {
     }
   }
   assert.match(read('docker-compose-prod.yml'), /backend:\s*\n\s*container_name: devnogi-community-server\s*\n\s*image: \$\{IMAGE_REF:\?IMAGE_REF is required\}/);
+  assert.match(read('docker-compose-prod.yml'), /ports:\s*\n\s*- "127\.0\.0\.1:\$\{SERVICE_PORT:-8093\}:8093"/);
 });
