@@ -62,13 +62,17 @@ public class JwtHeaderFilter extends OncePerRequestFilter {
         } catch (NumberFormatException e) {
             userId = null;
         }
-        if (userGradeCode == null) {
-            return new UsernamePasswordAuthenticationToken(userId, null);
+        if (userId == null || userGradeCode == null) {
+            return new UsernamePasswordAuthenticationToken(null, null);
         }
-        UserGrade userGrade = UserGrade.fromCode(userGradeCode).orElse(null);
+        var userGrade = UserGrade.fromCode(userGradeCode);
+        if (userGrade.isEmpty()) {
+            log.warn("Rejected invalid internal authentication role");
+            return new UsernamePasswordAuthenticationToken(null, null);
+        }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + userGrade.toString()));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + userGrade.orElseThrow()));
         return new UsernamePasswordAuthenticationToken(userId, null, authorities);
     }
 }
