@@ -21,8 +21,10 @@ import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
+import until.the.eternity.dcs.domain.comment.dto.request.UserCommentPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
+import until.the.eternity.dcs.domain.comment.dto.response.UserCommentActivityResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
@@ -127,6 +129,24 @@ public class CommentService {
                     return commentConverter.fromCommentToPageResponseNonAuth(
                             c, commentMetaMap.getOrDefault(c.getId(), 0), username);
                 });
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserCommentActivityResponse> findByUserId(
+            Long userId, UserCommentPageRequest request) {
+        Page<Comment> comments =
+                commentRepository.findVisibleByUserId(userId, request.toPageable());
+        List<Long> commentIds = comments.stream().map(Comment::getId).toList();
+        Map<Long, Integer> likeCounts =
+                commentMetaRepository.findByCommentIdIn(commentIds).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        CommentMeta::getCommentId, CommentMeta::getLikeCount));
+
+        return comments.map(
+                comment ->
+                        UserCommentActivityResponse.of(
+                                comment, likeCounts.getOrDefault(comment.getId(), 0)));
     }
 
     @Transactional

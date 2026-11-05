@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,34 @@ import until.the.eternity.dcs.domain.comment.entity.Comment;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     Page<Comment> findAllByPostId(Long postId, Pageable pageable);
+
+    @EntityGraph(attributePaths = "post")
+    @Query(
+            value =
+                    """
+                    SELECT c
+                    FROM Comment c
+                    JOIN c.post p
+                    WHERE c.userId = :userId
+                      AND c.isDeleted = false
+                      AND c.isBlocked = false
+                      AND p.isDeleted = false
+                      AND p.isBlocked = false
+                      AND p.isDraft = false
+                    """,
+            countQuery =
+                    """
+                    SELECT COUNT(c)
+                    FROM Comment c
+                    JOIN c.post p
+                    WHERE c.userId = :userId
+                      AND c.isDeleted = false
+                      AND c.isBlocked = false
+                      AND p.isDeleted = false
+                      AND p.isBlocked = false
+                      AND p.isDraft = false
+                    """)
+    Page<Comment> findVisibleByUserId(@Param("userId") Long userId, Pageable pageable);
 
     List<Comment> findAllByIsDeletedTrueAndDeletedAtLessThanEqual(LocalDateTime date);
 

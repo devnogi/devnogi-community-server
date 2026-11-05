@@ -208,6 +208,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         .where(
                                 post.userId.eq(userId),
                                 post.isDeleted.isFalse(),
+                                post.isBlocked.isFalse(),
                                 post.isDraft.isFalse())
                         .offset(pageable.getOffset())
                         .limit(pageable.getPageSize());
@@ -230,7 +231,11 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 queryFactory
                         .select(post.count())
                         .from(post)
-                        .where(post.userId.eq((userId)))
+                        .where(
+                                post.userId.eq(userId),
+                                post.isDeleted.isFalse(),
+                                post.isBlocked.isFalse(),
+                                post.isDraft.isFalse())
                         .fetchOne();
 
         return new PageImpl<>(content, pageable, count != null ? count : 0);

@@ -18,8 +18,10 @@ import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
+import until.the.eternity.dcs.domain.comment.dto.request.UserCommentPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
+import until.the.eternity.dcs.domain.comment.dto.response.UserCommentActivityResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
@@ -66,7 +68,7 @@ class CommentServiceTest {
 
     @BeforeEach
     void init() {
-        Post post = Post.builder().id(id).build();
+        Post post = Post.builder().id(id).title("post title").build();
         comment =
                 Comment.builder()
                         .id(id)
@@ -173,6 +175,31 @@ class CommentServiceTest {
         assertEquals(1, response.getNumberOfElements());
         assertEquals(1, response.getContent().size());
         assertEquals(content, response.getContent().get(0).content());
+    }
+
+    @Test
+    @DisplayName("findByUserId 는 공개 댓글 활동과 게시글 이동 정보를 반환한다")
+    void findByUserIdReturnsPublicActivity() {
+        comment.setCreatedAt(java.time.LocalDateTime.of(2026, 11, 5, 12, 0));
+        Page<Comment> page = new PageImpl<>(List.of(comment));
+        when(commentRepository.findVisibleByUserId(eq(userId), any(Pageable.class)))
+                .thenReturn(page);
+        CommentMeta meta = CommentMeta.create(id);
+        meta.like();
+        meta.like();
+        when(commentMetaRepository.findByCommentIdIn(List.of(id))).thenReturn(List.of(meta));
+
+        Page<UserCommentActivityResponse> response =
+                commentService.findByUserId(userId, new UserCommentPageRequest(1, 20));
+
+        assertEquals(1, response.getTotalElements());
+        UserCommentActivityResponse item = response.getContent().getFirst();
+        assertEquals(id, item.id());
+        assertEquals(id, item.postId());
+        assertEquals("post title", item.postTitle());
+        assertEquals(content, item.content());
+        assertEquals(2, item.likeCount());
+        assertEquals(comment.getCreatedAt(), item.createdAt());
     }
 
     @Test
