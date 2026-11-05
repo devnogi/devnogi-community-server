@@ -10,6 +10,7 @@ export function secretKinds(text) {
     ['github-token', /\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b/],
     ['aws-access-key', /\bAKIA[0-9A-Z]{16}\b/],
     ['openai-key', /\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{40,}\b/],
+    ['jwt-default-secret', /\$\{JWT_SECRET_KEY:[0-9a-fA-F]{32,}\}/],
   ];
   return patterns.filter(([, regex]) => regex.test(text)).map(([kind]) => kind);
 }
