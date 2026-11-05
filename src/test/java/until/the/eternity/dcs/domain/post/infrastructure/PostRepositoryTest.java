@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import until.the.eternity.dcs.common.config.QueryDslConfig;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -112,6 +113,26 @@ public class PostRepositoryTest {
         content.forEach(p -> System.out.println("제목: " + p.getTitle()));
     }
 
+    @Test
+    @DisplayName("사용자 게시글 조회는 공개 게시글만 반환하고 total 에 같은 조건을 적용한다")
+    void findPostsByUserExcludesNonPublicPostsFromContentAndCount() {
+        long userId = 7L;
+        Post visible = createPostWithVisibility("visible", userId, false, false, false);
+        createPostWithVisibility("blocked", userId, false, true, false);
+        createPostWithVisibility("deleted", userId, false, false, true);
+        createPostWithVisibility("draft", userId, true, false, false);
+        createPostWithVisibility("other-user", 8L, false, false, false);
+        em.flush();
+        em.clear();
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Order.desc("createdAt")));
+
+        Page<Post> result = postRepository.findWithPostMetaByUserId(pageable, userId);
+
+        assertThat(result.getContent()).extracting(Post::getId).containsExactly(visible.getId());
+        assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
     // --- 데이터를 쉽게 만들기 위한 헬퍼 메서드 ---
     private Post createPost(String title, int viewCount, int commentCount, int likeCount) {
         // 1. Post 객체 생성
@@ -143,6 +164,25 @@ public class PostRepositoryTest {
         // 4. [필수] Meta DB 저장
         em.persist(meta);
 
+        return post;
+    }
+
+    private Post createPostWithVisibility(
+            String title, long userId, boolean draft, boolean blocked, boolean deleted) {
+        Post post =
+                Post.builder()
+                        .board(board)
+                        .title(title)
+                        .content("Content")
+                        .userId(userId)
+                        .isDraft(draft)
+                        .isBlocked(blocked)
+                        .comments(new ArrayList<>())
+                        .postTags(new ArrayList<>())
+                        .build();
+        post.setIsDeleted(deleted);
+        post.setCreatedAt(LocalDateTime.now());
+        em.persist(post);
         return post;
     }
 

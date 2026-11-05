@@ -16,8 +16,10 @@ import until.the.eternity.dcs.domain.comment.application.CommentService;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentLikeToggleRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
+import until.the.eternity.dcs.domain.comment.dto.request.UserCommentPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
+import until.the.eternity.dcs.domain.comment.dto.response.UserCommentActivityResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -81,6 +83,19 @@ public class CommentController {
     public CustomPageResponse<CommentPageResponseItem> findByPostId(
             @PathVariable("postId") Long postId, @ModelAttribute CustomPageRequest request) {
         return CustomPageResponse.from(commentService.findByPostId(postId, request));
+    }
+
+    @GetMapping("/user/{userId}")
+    @Operation(
+            summary = "사용자별 공개 댓글 활동 조회 API",
+            description = "삭제·차단되지 않은 공개 게시글에 작성한 사용자의 댓글을 조회합니다.")
+    @ApiResponse(
+            responseCode = "200",
+            content =
+                    @Content(schema = @Schema(implementation = UserCommentActivityResponse.class)))
+    public CustomPageResponse<UserCommentActivityResponse> findByUserId(
+            @PathVariable Long userId, @ModelAttribute UserCommentPageRequest request) {
+        return CustomPageResponse.from(commentService.findByUserId(userId, request));
     }
 
     @PostMapping("/like")
