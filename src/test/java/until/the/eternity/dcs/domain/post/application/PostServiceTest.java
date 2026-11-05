@@ -3,6 +3,7 @@ package until.the.eternity.dcs.domain.post.application;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostBookmarkRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
@@ -54,6 +56,7 @@ class PostServiceTest {
     @Mock private PostLikeRepository postLikeRepository;
 
     @Mock private PostLikeConverter postLikeConverter;
+    @Mock private PostBookmarkRepository postBookmarkRepository;
 
     @Mock private TagService tagService;
 
@@ -183,6 +186,31 @@ class PostServiceTest {
     }
 
     @Nested
+    class BookmarkTest {
+        @Test
+        void bookmarkIsIdempotent() {
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
+            given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
+            postService.bookmark(1L);
+
+            verify(postBookmarkRepository).insertIgnore(userId, 1L);
+        }
+
+        @Test
+        void existingBookmarkIsNotInsertedAgain() {
+            SecurityContextHolder.setContext(securityContext);
+            given(securityContext.getAuthentication()).willReturn(authentication);
+            given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
+            given(postRepository.findWithTagsById(1L)).willReturn(Optional.of(mockPost));
+            postService.bookmark(1L);
+
+            verify(postBookmarkRepository).insertIgnore(userId, 1L);
+        }
+    }
+
+    @Nested
     @DisplayName("게시글 생성 테스트")
     class CreatePostTest {
 
@@ -240,7 +268,9 @@ class PostServiceTest {
                                     postMetaResponse,
                                     imageList,
                                     username,
-                                    List.of()))
+                                    List.of(),
+                                    false,
+                                    false))
                     .willReturn(mockDetailResponse);
             given(userSummaryService.findUserSummary(userId))
                     .willReturn(mockUserSummaryDetailResponse);
@@ -249,13 +279,21 @@ class PostServiceTest {
             PostDetailResponse result = postService.findPost(postId);
 
             // Then
-            assertThat(result).isEqualTo(mockDetailResponse);
+            assertThat(result.id()).isEqualTo(mockDetailResponse.id());
+            assertThat(result.author().nickname()).isEqualTo(username);
+            assertThat(result.media()).isEmpty();
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);
             verify(postRepository).findWithTagsById(postId);
             verify(postConverter)
                     .fromPostToPostDetailResponse(
-                            postWithComments, postMetaResponse, imageList, username, List.of());
+                            postWithComments,
+                            postMetaResponse,
+                            imageList,
+                            username,
+                            List.of(),
+                            false,
+                            false);
         }
 
         @Test

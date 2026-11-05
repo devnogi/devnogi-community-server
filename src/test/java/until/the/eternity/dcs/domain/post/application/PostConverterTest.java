@@ -123,7 +123,7 @@ public class PostConverterTest {
         assertThat(result.boardId()).isEqualTo(post.getBoard().getId());
         assertThat(result.userId()).isEqualTo(post.getUserId());
         assertThat(result.title()).isEqualTo(post.getTitle());
-        assertThat(result.content()).isEqualTo(post.getContent());
+        assertThat(result.content()).isEqualTo(post.readableContent());
         assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
         assertThat(result.likeCount()).isEqualTo(postMeta.getLikeCount());
         assertThat(result.commentCount()).isEqualTo(postMeta.getCommentCount());

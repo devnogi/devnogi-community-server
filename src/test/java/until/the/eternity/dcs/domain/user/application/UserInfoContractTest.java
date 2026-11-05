@@ -22,6 +22,7 @@ class UserInfoContractTest {
             assertEquals("contract-user", user.nickname());
             assertNull(user.profileImageUrl());
             assertNull(user.serverName());
+            assertFalse(user.verified());
             assertEquals(user.id(), user.toEntity().getId());
         }
     }
@@ -43,8 +44,15 @@ class UserInfoContractTest {
                             .nullable());
             assertFalse(
                     factory.getValidator()
-                            .validate(new UserSummaryConsumerDTO(42L, "name", null, "  "))
+                            .validate(new UserSummaryConsumerDTO(42L, "name", null, "  ", false))
                             .isEmpty());
         }
+    }
+
+    @Test
+    void mapsVerifiedStateFromAuthEvent() {
+        UserSummary user = new UserSummaryConsumerDTO(42L, "name", null, "류트", true).toEntity();
+
+        assertTrue(user.isVerified());
     }
 }

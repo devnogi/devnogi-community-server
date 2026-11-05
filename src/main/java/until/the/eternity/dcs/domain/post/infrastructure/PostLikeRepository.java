@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.post.infrastructure;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,11 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     void deleteByUserIdAndPostId(Long userId, Long postId);
 
     boolean existsByUserIdAndPostId(Long userId, Long postId);
+
+    @Query(
+            "select pl.post.id from PostLike pl where pl.userId = :userId and pl.post.id in :postIds")
+    List<Long> findPostIdsByUserIdAndPostIdIn(
+            @Param("userId") Long userId, @Param("postIds") Collection<Long> postIds);
 
     @Modifying
     @Query("DELETE FROM PostLike pl WHERE pl.post.id IN :postIdList")

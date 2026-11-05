@@ -19,6 +19,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
+import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportUpdateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
@@ -45,6 +48,8 @@ class ReportServiceTest {
     @Mock private UserSummaryService userSummaryService;
 
     @Mock private ReportPermissionEvaluator reportPermissionEvaluator;
+    @Mock private PostRepository postRepository;
+    @Mock private CommentRepository commentRepository;
     @Mock private SecurityContext securityContext;
     @Mock private Authentication authentication;
     @InjectMocks private ReportService reportService;
@@ -83,7 +88,11 @@ class ReportServiceTest {
             Report savedReport = mock(Report.class);
             ReportPersistResponse expectedResponse = mock(ReportPersistResponse.class);
 
-            given(reportConverter.fromReportCreateRequestToReport(request, adminId))
+            given(request.targetType()).willReturn("POST");
+            given(request.targetId()).willReturn(10L);
+            given(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(10L))
+                    .willReturn(Optional.of(Post.builder().id(10L).userId(userId).build()));
+            given(reportConverter.fromReportCreateRequestToReport(request, adminId, userId))
                     .willReturn(newReport);
             SecurityContextHolder.setContext(securityContext);
             given(securityContext.getAuthentication()).willReturn(authentication);
@@ -97,7 +106,7 @@ class ReportServiceTest {
 
             // then
             assertThat(result).isEqualTo(expectedResponse);
-            verify(reportConverter).fromReportCreateRequestToReport(request, adminId);
+            verify(reportConverter).fromReportCreateRequestToReport(request, adminId, userId);
             verify(reportRepository).save(newReport);
             verify(reportConverter).fromReportToReportPersistResponse(savedReport);
         }

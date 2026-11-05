@@ -24,6 +24,7 @@ import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.UserCommentPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
+import until.the.eternity.dcs.domain.comment.dto.response.CommentThreadResponse;
 import until.the.eternity.dcs.domain.comment.dto.response.UserCommentActivityResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
@@ -32,6 +33,7 @@ import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
 import until.the.eternity.dcs.domain.comment.exception.CommentNotLikedYetException;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentReplyCount;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -129,6 +131,129 @@ public class CommentService {
                     return commentConverter.fromCommentToPageResponseNonAuth(
                             c, commentMetaMap.getOrDefault(c.getId(), 0), username);
                 });
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CommentThreadResponse> findThreads(Long postId, CustomPageRequest request) {
+        Pageable requested = request.toPageable();
+        Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(
+                        requested.getPageNumber(),
+                        Math.min(requested.getPageSize(), 20),
+                        org.springframework.data.domain.Sort.by("createdAt").descending());
+        Page<Comment> parents =
+                commentRepository.findAllByPostIdAndParentCommentIsNull(postId, pageable);
+        List<Long> parentIds = parents.stream().map(Comment::getId).toList();
+        List<Long> replyIds =
+                parentIds.isEmpty()
+                        ? List.of()
+                        : commentRepository.findFirst3ReplyIdsByPostIdAndParentIds(
+                                postId, parentIds);
+        List<Comment> allReplies =
+                replyIds.isEmpty() ? List.of() : commentRepository.findAllByIdIn(replyIds);
+        allReplies =
+                allReplies.stream()
+                        .sorted(
+                                java.util.Comparator.comparing(
+                                                (Comment reply) -> reply.getParentComment().getId())
+                                        .thenComparing(
+                                                Comment::getCreatedAt,
+                                                java.util.Comparator.nullsFirst(
+                                                        java.util.Comparator.naturalOrder()))
+                                        .thenComparing(Comment::getId))
+                        .toList();
+        Map<Long, Long> replyCounts =
+                parentIds.isEmpty()
+                        ? Map.of()
+                        : commentRepository
+                                .countRepliesByPostIdAndParentIds(postId, parentIds)
+                                .stream()
+                                .collect(
+                                        Collectors.toMap(
+                                                CommentReplyCount::getParentId,
+                                                CommentReplyCount::getReplyCount));
+        List<Comment> allComments =
+                java.util.stream.Stream.concat(parents.stream(), allReplies.stream()).toList();
+        Map<Long, CommentPageResponseItem> rendered = renderComments(allComments);
+        Map<Long, List<Comment>> repliesByParent =
+                allReplies.stream()
+                        .collect(Collectors.groupingBy(reply -> reply.getParentComment().getId()));
+        return parents.map(
+                parent -> {
+                    List<Comment> replies = repliesByParent.getOrDefault(parent.getId(), List.of());
+                    return new CommentThreadResponse(
+                            rendered.get(parent.getId()),
+                            replies.stream()
+                                    .limit(3)
+                                    .map(reply -> rendered.get(reply.getId()))
+                                    .toList(),
+                            replyCounts.getOrDefault(parent.getId(), 0L));
+                });
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CommentPageResponseItem> findReplies(
+            Long postId, Long parentId, CustomPageRequest request) {
+        Comment parent = findById(parentId);
+        if (parent.getParentComment() != null
+                || parent.getPost() == null
+                || !parent.getPost().getId().equals(postId)) {
+            throw new CommentNotFoundException(parentId);
+        }
+        Pageable requested = request.toPageable();
+        Pageable oldestFirst =
+                org.springframework.data.domain.PageRequest.of(
+                        requested.getPageNumber(),
+                        requested.getPageSize(),
+                        org.springframework.data.domain.Sort.by("createdAt").ascending());
+        Page<Comment> replies =
+                commentRepository.findAllByPostIdAndParentCommentId(postId, parentId, oldestFirst);
+        Map<Long, CommentPageResponseItem> rendered = renderComments(replies.getContent());
+        return replies.map(reply -> rendered.get(reply.getId()));
+    }
+
+    private Map<Long, CommentPageResponseItem> renderComments(List<Comment> comments) {
+        if (comments.isEmpty()) {
+            return Map.of();
+        }
+        List<Long> commentIds = comments.stream().map(Comment::getId).toList();
+        Map<Long, Integer> likeCounts =
+                commentMetaRepository.findByCommentIdIn(commentIds).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        CommentMeta::getCommentId, CommentMeta::getLikeCount));
+        Map<Long, String> usernames =
+                userSummaryService
+                        .findByIdIn(comments.stream().map(Comment::getUserId).distinct().toList())
+                        .stream()
+                        .collect(Collectors.toMap(UserSummary::getId, UserSummary::getNickname));
+        Long currentUserId = optionalCurrentUserId();
+        Set<Long> likedIds =
+                currentUserId == null
+                        ? Set.of()
+                        : commentLikeRepository.findIdsByUserIdAndCommentIdIn(
+                                currentUserId, commentIds);
+        return comments.stream()
+                .collect(
+                        Collectors.toMap(
+                                Comment::getId,
+                                comment ->
+                                        commentConverter.fromCommentToPageResponse(
+                                                comment,
+                                                likedIds.contains(comment.getId()),
+                                                likeCounts.getOrDefault(comment.getId(), 0),
+                                                usernames.getOrDefault(
+                                                        comment.getUserId(), "익명"))));
+    }
+
+    private Long optionalCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null
+                || !auth.isAuthenticated()
+                || !(auth.getPrincipal() instanceof Long userId)) {
+            return null;
+        }
+        return userId;
     }
 
     @Transactional(readOnly = true)

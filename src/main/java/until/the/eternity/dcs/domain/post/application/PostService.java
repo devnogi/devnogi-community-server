@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.entity.CustomWebAuthenticationDetails;
 import until.the.eternity.dcs.common.infrastructure.MinioService;
@@ -28,18 +31,23 @@ import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostMediaUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
+import until.the.eternity.dcs.domain.post.dto.response.PostFeedItem;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostPersistResponse;
 import until.the.eternity.dcs.domain.post.dto.response.PostSummaryResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
+import until.the.eternity.dcs.domain.post.entity.PostBookmark;
+import until.the.eternity.dcs.domain.post.entity.PostImage;
 import until.the.eternity.dcs.domain.post.entity.PostLike;
+import until.the.eternity.dcs.domain.post.enums.PostMediaType;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
 import until.the.eternity.dcs.domain.post.exception.PostDraftRequiredException;
-import until.the.eternity.dcs.domain.post.exception.PostImageCountExceededException;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostBookmarkRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostLikeRepository;
 import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.tag.application.PostTagService;
@@ -67,14 +75,19 @@ public class PostService {
     private final PostPermissionEvaluator postPermissionEvaluator;
     private final MinioService minioService;
     private final UserSummaryService userSummaryService;
+    private final PostBookmarkRepository postBookmarkRepository;
 
     @Transactional
     @PreAuthorize("@postPermissionEvaluator.canCreate(authentication)")
     public PostPersistResponse createPost(PostCreateRequest request, List<MultipartFile> files) {
 
         List<String> uploadedFileNames = new ArrayList<>();
-        if (request.isDraft() == null) {
+        boolean plainText = "PLAIN_TEXT_V1".equals(request.contentFormat());
+        if (!plainText && request.isDraft() == null) {
             throw new PostDraftRequiredException();
+        }
+        if (plainText) {
+            validatePlainContent(request.content());
         }
 
         Long userId = getCurrentUserId();
@@ -82,21 +95,28 @@ public class PostService {
         Post savedPost = postRepository.save(post);
 
         List<PostTag> postTags =
-                Optional.ofNullable(request.tags()).orElseGet(List::of).stream()
-                        .map(tagService::findOrCreateTag)
-                        .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
-                        .collect(Collectors.toList());
+                (plainText
+                                ? List.<String>of()
+                                : Optional.ofNullable(request.tags()).orElseGet(List::of))
+                        .stream()
+                                .map(tagService::findOrCreateTag)
+                                .map(tag -> PostTag.builder().post(savedPost).tag(tag).build())
+                                .collect(Collectors.toList());
         if (files != null && !files.isEmpty()) {
-            if (files.size() > 5) {
-                log.error("게시글 생성 실패: 이미지 개수 초과 (userId={}, count={})", userId, files.size());
-                throw new PostImageCountExceededException();
-            }
+            validateMediaSet(files);
             try {
-                for (MultipartFile file : files) {
+                for (int i = 0; i < files.size(); i++) {
+                    MultipartFile file = files.get(i);
+                    PostMediaValidator.ValidatedMedia media = PostMediaValidator.validate(file);
                     String storedFileName = minioService.uploadFile(file);
                     uploadedFileNames.add(storedFileName);
-
-                    savedPost.addImage(file.getOriginalFilename(), storedFileName);
+                    savedPost.addMedia(
+                            file.getOriginalFilename(),
+                            storedFileName,
+                            media.type(),
+                            media.mimeType(),
+                            file.getSize(),
+                            i);
                 }
             } catch (Exception e) {
                 for (String fileName : uploadedFileNames) {
@@ -109,6 +129,7 @@ public class PostService {
                 log.error("게시글 생성 실패: 이미지 업로드 중 예외 발생 (userId={})", userId, e);
                 throw e;
             }
+            registerUploadedMediaRollback(List.copyOf(uploadedFileNames));
         }
 
         postTagService.savePostTags(postTags);
@@ -139,8 +160,95 @@ public class PostService {
 
         postMetaService.viewPost(id, userIp);
         PostMetaResponse postMeta = postMetaService.getPostMetaInfo(id);
-        return postConverter.fromPostToPostDetailResponse(
-                post, postMeta, imageUrls, nickname, tags);
+        Long currentUserId = getOptionalCurrentUserId();
+        PostDetailResponse response =
+                postConverter.fromPostToPostDetailResponse(
+                        post,
+                        postMeta,
+                        imageUrls,
+                        nickname,
+                        tags,
+                        currentUserId != null
+                                && postLikeRepository.existsByUserIdAndPostId(currentUserId, id),
+                        currentUserId != null
+                                && postBookmarkRepository.existsByUserIdAndPostId(
+                                        currentUserId, id));
+        UserSummary socialUser =
+                userSummaryService.findByIdIn(List.of(post.getUserId())).stream()
+                        .findFirst()
+                        .orElse(null);
+        PostFeedItem.Author author =
+                new PostFeedItem.Author(
+                        socialUser == null ? nickname : socialUser.getNickname(),
+                        socialUser == null ? null : socialUser.getProfileImageUrl(),
+                        socialUser == null ? null : socialUser.getServerName(),
+                        socialUser != null && socialUser.isVerified());
+        List<PostFeedItem.Media> media =
+                post.getImages().stream()
+                        .sorted(java.util.Comparator.comparingInt(PostImage::getDisplayOrder))
+                        .map(
+                                item ->
+                                        new PostFeedItem.Media(
+                                                item.getId(),
+                                                item.getMediaType().name(),
+                                                minioService.getFileUrl(item.getStoredFileName()),
+                                                item.getMimeType(),
+                                                item.getDisplayOrder()))
+                        .toList();
+        return response.withSocial(author, media);
+    }
+
+    public Page<PostFeedItem> findFeed(
+            PostPageRequest request, String sort, String keyword, Long userId) {
+        Pageable pageable = request.toPageable();
+        Page<Post> posts;
+        if (userId != null) {
+            posts =
+                    postRepository.findAllByUserIdAndIsDeletedFalseAndIsBlockedFalseAndIsDraftFalse(
+                            userId, pageable);
+        } else if ("POPULAR".equalsIgnoreCase(sort)) {
+            posts = postRepository.findPopularPosts(pageable);
+        } else {
+            posts = postRepository.findFeed(keyword, pageable);
+        }
+        return toFeedItems(posts, getOptionalCurrentUserId());
+    }
+
+    @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
+    public Page<PostFeedItem> findMyFeed(PostPageRequest request) {
+        return findFeed(request, "LATEST", null, getCurrentUserId());
+    }
+
+    @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
+    public Page<PostFeedItem> findBookmarks(PostPageRequest request) {
+        Long userId = getCurrentUserId();
+        Page<PostBookmark> bookmarks =
+                postBookmarkRepository.findVisibleByUserId(
+                        userId,
+                        PageRequest.of(
+                                request.toPageable().getPageNumber(),
+                                request.toPageable().getPageSize(),
+                                Sort.by(Sort.Direction.DESC, "createdAt")
+                                        .and(Sort.by(Sort.Direction.DESC, "id"))));
+        List<Post> posts = bookmarks.map(PostBookmark::getPost).getContent();
+        Page<Post> postPage =
+                new org.springframework.data.domain.PageImpl<>(
+                        posts, bookmarks.getPageable(), bookmarks.getTotalElements());
+        return toFeedItems(postPage, userId);
+    }
+
+    @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
+    public void bookmark(Long postId) {
+        Long userId = getCurrentUserId();
+        findById(postId);
+        postBookmarkRepository.insertIgnore(userId, postId);
+    }
+
+    @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canTogglePostLike(authentication)")
+    public void removeBookmark(Long postId) {
+        postBookmarkRepository.deleteByUserIdAndPostId(getCurrentUserId(), postId);
     }
 
     public Page<PostSummaryResponse> findPosts(PostPageRequest request) {
@@ -184,16 +292,147 @@ public class PostService {
             post.getPostTags().clear();
         }
 
-        post.update(
-                postUpdateRequest.title(),
-                postUpdateRequest.content(),
-                postUpdateRequest.isDraft(),
-                null,
-                userId);
+        if ("PLAIN_TEXT_V1".equals(postUpdateRequest.contentFormat())) {
+            validatePlainContent(postUpdateRequest.content());
+            post.updatePlainContent(postUpdateRequest.content(), userId);
+        } else {
+            post.update(
+                    postUpdateRequest.title(),
+                    postUpdateRequest.content(),
+                    postUpdateRequest.isDraft(),
+                    null,
+                    userId);
+        }
 
         Post updatedPost = postRepository.save(post);
 
         return postConverter.fromPostToPostPersistResponse(updatedPost);
+    }
+
+    @Transactional
+    @PreAuthorize("@postPermissionEvaluator.canUpdate(authentication,#id)")
+    public PostPersistResponse updatePlainPost(
+            Long id, PostMediaUpdateRequest request, List<MultipartFile> newFiles) {
+        Long userId = getCurrentUserId();
+        validatePlainContent(request.content());
+        Post post = findById(id);
+        Set<Long> retainedIds =
+                request.retainedMediaIds() == null
+                        ? Set.of()
+                        : Set.copyOf(request.retainedMediaIds());
+        if (post.getImages().stream().filter(media -> retainedIds.contains(media.getId())).count()
+                != retainedIds.size()) {
+            throw new until.the.eternity.dcs.domain.post.exception.PostContractException(
+                    until.the.eternity.dcs.domain.post.exception.PostContractExceptionCode
+                            .INVALID_MEDIA);
+        }
+        List<MultipartFile> files = newFiles == null ? List.of() : newFiles;
+        List<PostImage> retained =
+                post.getImages().stream()
+                        .filter(media -> retainedIds.contains(media.getId()))
+                        .toList();
+        if (request.retainedMediaIds() != null) {
+            for (int i = 0; i < request.retainedMediaIds().size(); i++) {
+                Long mediaId = request.retainedMediaIds().get(i);
+                retained.stream()
+                        .filter(media -> media.getId().equals(mediaId))
+                        .findFirst()
+                        .orElseThrow()
+                        .changeDisplayOrder(i);
+            }
+        }
+        if (retained.size() + files.size() > 5) {
+            throw new until.the.eternity.dcs.domain.post.exception.PostContractException(
+                    until.the.eternity.dcs.domain.post.exception.PostContractExceptionCode
+                            .MEDIA_COUNT_EXCEEDED);
+        }
+        List<PostMediaValidator.ValidatedMedia> validated =
+                files.stream().map(PostMediaValidator::validate).toList();
+        long videoCount =
+                retained.stream()
+                                .filter(media -> media.getMediaType() == PostMediaType.VIDEO)
+                                .count()
+                        + validated.stream()
+                                .filter(media -> media.type() == PostMediaType.VIDEO)
+                                .count();
+        if (videoCount > 1) {
+            throw new until.the.eternity.dcs.domain.post.exception.PostContractException(
+                    until.the.eternity.dcs.domain.post.exception.PostContractExceptionCode
+                            .MEDIA_COUNT_EXCEEDED);
+        }
+
+        List<String> uploaded = new ArrayList<>();
+        try {
+            List<PostImage> removed =
+                    post.getImages().stream()
+                            .filter(media -> !retainedIds.contains(media.getId()))
+                            .toList();
+            removed.forEach(post::removeMedia);
+            for (int i = 0; i < files.size(); i++) {
+                MultipartFile file = files.get(i);
+                String stored = minioService.uploadFile(file);
+                uploaded.add(stored);
+                PostMediaValidator.ValidatedMedia media = validated.get(i);
+                post.addMedia(
+                        file.getOriginalFilename(),
+                        stored,
+                        media.type(),
+                        media.mimeType(),
+                        file.getSize(),
+                        retained.size() + i);
+            }
+            post.updatePlainContent(request.content(), userId);
+            Post saved = postRepository.save(post);
+            registerMediaCleanup(removed, List.copyOf(uploaded));
+            return postConverter.fromPostToPostPersistResponse(saved);
+        } catch (Exception e) {
+            uploaded.forEach(
+                    name -> {
+                        try {
+                            minioService.deleteFile(name);
+                        } catch (Exception cleanupFailure) {
+                            log.error("수정 롤백 중 미디어 삭제 실패: {}", name, cleanupFailure);
+                        }
+                    });
+            throw e;
+        }
+    }
+
+    private void registerMediaCleanup(List<PostImage> removed, List<String> uploaded) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        removed.forEach(media -> safeDelete(media.getStoredFileName()));
+                    }
+
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status != TransactionSynchronization.STATUS_COMMITTED) {
+                            uploaded.forEach(PostService.this::safeDelete);
+                        }
+                    }
+                });
+    }
+
+    private void registerUploadedMediaRollback(List<String> uploaded) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status != TransactionSynchronization.STATUS_COMMITTED) {
+                            uploaded.forEach(PostService.this::safeDelete);
+                        }
+                    }
+                });
+    }
+
+    private void safeDelete(String storedName) {
+        try {
+            minioService.deleteFile(storedName);
+        } catch (Exception e) {
+            log.error("미디어 정리 실패: {}", storedName, e);
+        }
     }
 
     @Transactional
@@ -332,6 +571,102 @@ public class PostService {
     private boolean checkIsAnonymousUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return postPermissionEvaluator.isAnonymousUser(auth);
+    }
+
+    private Long getOptionalCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof Long id)) {
+            return null;
+        }
+        return id;
+    }
+
+    private void validatePlainContent(String content) {
+        if (content == null
+                || content.isBlank()
+                || content.codePointCount(0, content.length()) > 1000) {
+            throw new until.the.eternity.dcs.domain.post.exception.PostContractException(
+                    until.the.eternity.dcs.domain.post.exception.PostContractExceptionCode
+                            .INVALID_PLAIN_CONTENT);
+        }
+    }
+
+    private void validateMediaSet(List<MultipartFile> files) {
+        if (files.size() > 5) {
+            throw new until.the.eternity.dcs.domain.post.exception.PostContractException(
+                    until.the.eternity.dcs.domain.post.exception.PostContractExceptionCode
+                            .MEDIA_COUNT_EXCEEDED);
+        }
+        long videos =
+                files.stream()
+                        .map(PostMediaValidator::validate)
+                        .filter(media -> media.type() == PostMediaType.VIDEO)
+                        .count();
+        if (videos > 1) {
+            throw new until.the.eternity.dcs.domain.post.exception.PostContractException(
+                    until.the.eternity.dcs.domain.post.exception.PostContractExceptionCode
+                            .MEDIA_COUNT_EXCEEDED);
+        }
+    }
+
+    private Page<PostFeedItem> toFeedItems(Page<Post> posts, Long currentUserId) {
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        List<Long> userIds = posts.stream().map(Post::getUserId).distinct().toList();
+        Map<Long, PostMetaResponse> meta = postMetaService.getPostMetaInfos(postIds);
+        Map<Long, UserSummary> users =
+                userSummaryService.findByIdIn(userIds).stream()
+                        .collect(Collectors.toMap(UserSummary::getId, user -> user));
+        Set<Long> liked =
+                currentUserId == null
+                        ? Set.of()
+                        : Set.copyOf(
+                                postLikeRepository.findPostIdsByUserIdAndPostIdIn(
+                                        currentUserId, postIds));
+        Set<Long> bookmarked =
+                currentUserId == null
+                        ? Set.of()
+                        : Set.copyOf(
+                                postBookmarkRepository.findPostIdsByUserIdAndPostIdIn(
+                                        currentUserId, postIds));
+        return posts.map(
+                post -> {
+                    UserSummary user = users.get(post.getUserId());
+                    PostMetaResponse counts = meta.get(post.getId());
+                    List<PostFeedItem.Media> media =
+                            post.getImages().stream()
+                                    .sorted(
+                                            java.util.Comparator.comparingInt(
+                                                    PostImage::getDisplayOrder))
+                                    .map(
+                                            item ->
+                                                    new PostFeedItem.Media(
+                                                            item.getId(),
+                                                            item.getMediaType().name(),
+                                                            minioService.getFileUrl(
+                                                                    item.getStoredFileName()),
+                                                            item.getMimeType(),
+                                                            item.getDisplayOrder()))
+                                    .toList();
+                    PostFeedItem.Author author =
+                            new PostFeedItem.Author(
+                                    user == null ? "알수없음" : user.getNickname(),
+                                    user == null ? null : user.getProfileImageUrl(),
+                                    user == null ? null : user.getServerName(),
+                                    user != null && user.isVerified());
+                    return new PostFeedItem(
+                            post.getId(),
+                            post.getUserId(),
+                            author,
+                            post.readableContent(),
+                            media,
+                            counts == null ? 0 : counts.viewCount(),
+                            counts == null ? 0 : counts.likeCount(),
+                            counts == null ? 0 : counts.commentCount(),
+                            liked.contains(post.getId()),
+                            bookmarked.contains(post.getId()),
+                            post.getCreatedAt(),
+                            post.getUpdatedAt());
+                });
     }
 
     private Pageable adjustSort(Pageable pageable) {

@@ -31,6 +31,10 @@ management:
 spring:
   application:
     name: devnogi-community-server
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 27MB
   docker:
     compose:
       file: docker-compose-local.yaml

@@ -1,5 +1,6 @@
 package until.the.eternity.dcs.domain.comment.application;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -54,9 +55,11 @@ class CommentConverterTest {
     @DisplayName("CommentCreateRequest 에서 Comment 로 parentId와 함께 변환할 수 있다.")
     void fromCreateRequestToComment_parentId() {
         // given
+        Post post = Post.builder().id(id).build();
+        comment = Comment.builder().id(id).content(content).post(post).build();
         when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
         when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(id))
-                .thenReturn(Optional.of(Post.builder().id(id).build()));
+                .thenReturn(Optional.of(post));
         CommentCreateRequest request = new CommentCreateRequest(id, content);
 
         // when
@@ -65,6 +68,42 @@ class CommentConverterTest {
         // then
         assertNotNull(comment);
         assertEquals(id, comment.getParentComment().getId());
+    }
+
+    @Test
+    void rejectsParentFromAnotherPost() {
+        Post requestedPost = Post.builder().id(1L).build();
+        Comment foreignParent =
+                Comment.builder().id(2L).post(Post.builder().id(99L).build()).build();
+        when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
+                .thenReturn(Optional.of(requestedPost));
+        when(commentRepository.findById(2L)).thenReturn(Optional.of(foreignParent));
+
+        assertThatThrownBy(
+                        () ->
+                                commentConverter.fromCreateRequestToComment(
+                                        new CommentCreateRequest(2L, content), userId, 1L))
+                .isInstanceOf(
+                        until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException
+                                .class);
+    }
+
+    @Test
+    void rejectsReplyToReply() {
+        Post post = Post.builder().id(1L).build();
+        Comment root = Comment.builder().id(2L).post(post).build();
+        Comment reply = Comment.builder().id(3L).post(post).parentComment(root).build();
+        when(postRepository.findByIdAndIsDeletedFalseAndIsBlockedFalse(1L))
+                .thenReturn(Optional.of(post));
+        when(commentRepository.findById(3L)).thenReturn(Optional.of(reply));
+
+        assertThatThrownBy(
+                        () ->
+                                commentConverter.fromCreateRequestToComment(
+                                        new CommentCreateRequest(3L, content), userId, 1L))
+                .isInstanceOf(
+                        until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException
+                                .class);
     }
 
     @Test

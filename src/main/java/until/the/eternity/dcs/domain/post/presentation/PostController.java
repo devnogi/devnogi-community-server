@@ -16,6 +16,7 @@ import until.the.eternity.dcs.common.response.CustomPageResponse;
 import until.the.eternity.dcs.domain.post.application.PostService;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
+import until.the.eternity.dcs.domain.post.dto.request.PostMediaUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostPageRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostUpdateRequest;
 import until.the.eternity.dcs.domain.post.dto.response.PostDetailResponse;
@@ -40,8 +41,10 @@ public class PostController {
             content = @Content(schema = @Schema(implementation = PostSummaryResponse.class)))
     public ResponseEntity<PostPersistResponse> createPost(
             @Valid @RequestPart(value = "data") PostCreateRequest request,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
-        return ResponseEntity.status(CREATED).body(postService.createPost(request, files));
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @RequestPart(value = "media", required = false) List<MultipartFile> media) {
+        return ResponseEntity.status(CREATED)
+                .body(postService.createPost(request, media != null ? media : files));
     }
 
     @GetMapping("/details/{id}")
@@ -73,7 +76,39 @@ public class PostController {
         return CustomPageResponse.from(postService.findPosts(request));
     }
 
-    @PatchMapping("/{id}")
+    @GetMapping("/feed")
+    public CustomPageResponse<until.the.eternity.dcs.domain.post.dto.response.PostFeedItem> getFeed(
+            @ModelAttribute PostPageRequest request,
+            @RequestParam(name = "tab", defaultValue = "LATEST") String tab,
+            @RequestParam(required = false) String keyword) {
+        return CustomPageResponse.from(postService.findFeed(request, tab, keyword, null));
+    }
+
+    @GetMapping("/mine")
+    public CustomPageResponse<until.the.eternity.dcs.domain.post.dto.response.PostFeedItem> getMine(
+            @ModelAttribute PostPageRequest request) {
+        return CustomPageResponse.from(postService.findMyFeed(request));
+    }
+
+    @GetMapping("/bookmarks")
+    public CustomPageResponse<until.the.eternity.dcs.domain.post.dto.response.PostFeedItem>
+            getBookmarks(@ModelAttribute PostPageRequest request) {
+        return CustomPageResponse.from(postService.findBookmarks(request));
+    }
+
+    @PutMapping("/{id}/bookmark")
+    public ResponseEntity<Void> bookmark(@PathVariable Long id) {
+        postService.bookmark(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/bookmark")
+    public ResponseEntity<Void> removeBookmark(@PathVariable Long id) {
+        postService.removeBookmark(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/{id}", consumes = "application/json")
     @Operation(
             summary = "게시글 수정 API",
             description = """
@@ -86,6 +121,14 @@ public class PostController {
     public ResponseEntity<PostPersistResponse> updatePost(
             @PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdateRequest) {
         return ResponseEntity.status(OK).body(postService.updatePost(id, postUpdateRequest));
+    }
+
+    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<PostPersistResponse> updatePlainPost(
+            @PathVariable Long id,
+            @RequestPart("data") PostMediaUpdateRequest request,
+            @RequestPart(value = "media", required = false) List<MultipartFile> media) {
+        return ResponseEntity.ok(postService.updatePlainPost(id, request, media));
     }
 
     @DeleteMapping("/{id}")

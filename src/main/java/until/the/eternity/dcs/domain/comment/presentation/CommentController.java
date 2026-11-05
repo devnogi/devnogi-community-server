@@ -19,6 +19,7 @@ import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.UserCommentPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
+import until.the.eternity.dcs.domain.comment.dto.response.CommentThreadResponse;
 import until.the.eternity.dcs.domain.comment.dto.response.UserCommentActivityResponse;
 
 @RestController
@@ -83,6 +84,20 @@ public class CommentController {
     public CustomPageResponse<CommentPageResponseItem> findByPostId(
             @PathVariable("postId") Long postId, @ModelAttribute CustomPageRequest request) {
         return CustomPageResponse.from(commentService.findByPostId(postId, request));
+    }
+
+    @GetMapping("/{postId}/threads")
+    public CustomPageResponse<CommentThreadResponse> findThreads(
+            @PathVariable Long postId, @ModelAttribute CustomPageRequest request) {
+        return CustomPageResponse.from(commentService.findThreads(postId, request));
+    }
+
+    @GetMapping("/{postId}/{parentId}/replies")
+    public CustomPageResponse<CommentPageResponseItem> findReplies(
+            @PathVariable Long postId,
+            @PathVariable Long parentId,
+            @ModelAttribute CustomPageRequest request) {
+        return CustomPageResponse.from(commentService.findReplies(postId, parentId, request));
     }
 
     @GetMapping("/user/{userId}")
