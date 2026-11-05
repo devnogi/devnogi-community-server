@@ -9,13 +9,19 @@ public record UserSummaryConsumerDTO(
         @NotNull(message = "사용자 ID는 필수입니다.") Long id,
         @NotBlank(message = "닉네임은 비어있을 수 없습니다.") String nickname,
         String profileImageUrl,
-        @Pattern(regexp = ".*\\S.*", message = "서버명은 비어있을 수 없습니다.") String serverName) {
+        @Pattern(regexp = ".*\\S.*", message = "서버명은 비어있을 수 없습니다.") String serverName,
+        Boolean verified) {
     public UserSummary toEntity() {
+        boolean resolvedVerified =
+                this.verified() != null
+                        ? this.verified()
+                        : this.serverName() != null && !this.serverName().isBlank();
         return UserSummary.builder()
                 .id(this.id())
                 .nickname(this.nickname())
                 .profileImageUrl(this.profileImageUrl())
                 .serverName(this.serverName())
+                .verified(resolvedVerified)
                 .build();
     }
 }

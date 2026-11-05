@@ -21,7 +21,7 @@ public class Announcement extends AuditableEntity {
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @Column(name = "user_id", nullable = false)

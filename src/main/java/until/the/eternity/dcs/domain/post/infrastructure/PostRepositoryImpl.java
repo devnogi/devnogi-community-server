@@ -263,7 +263,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                                 post.board.eq(board))
                         .orderBy(rankScore.desc())
                         .offset(pageable.getOffset())
-                        .limit(5);
+                        .limit(pageable.getPageSize());
 
         for (Sort.Order order : pageable.getSort()) {
             String property = order.getProperty();
@@ -371,7 +371,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                                 post.isDeleted.eq(false))
                         .orderBy(rankScore.desc())
                         .offset(pageable.getOffset())
-                        .limit(5);
+                        .limit(pageable.getPageSize());
 
         for (Sort.Order order : pageable.getSort()) {
             String property = order.getProperty();

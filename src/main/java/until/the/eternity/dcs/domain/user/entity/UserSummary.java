@@ -31,6 +31,10 @@ public class UserSummary {
     @Column(name = "server_name", length = 50)
     private String serverName;
 
+    @Column(name = "is_verified", nullable = false)
+    @Builder.Default
+    private boolean verified = false;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserGrade grade = USER;

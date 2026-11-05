@@ -18,12 +18,17 @@ public class AnnouncementConverter {
                 .board(post.getBoard())
                 .userId(post.getUserId())
                 .title(post.getTitle())
-                .content(post.getContent())
+                .content(post.readableContent())
                 .isDraft(post.getIsDraft())
                 .viewCount(postMeta.viewCount())
                 .likeCount(postMeta.likeCount())
                 .commentCount(postMeta.commentCount())
-                .isGlobal(request.isGlobal())
+                .isGlobal(
+                        post.getBoard() == null
+                                        && post.getContentFormat()
+                                                == until.the.eternity.dcs.domain.post.enums
+                                                        .PostContentFormat.PLAIN_TEXT_V1
+                                || request.isGlobal())
                 .build();
     }
 

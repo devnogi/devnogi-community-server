@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import until.the.eternity.dcs.common.infrastructure.MinioService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostArchive;
@@ -26,6 +28,8 @@ public class PostArchiveService {
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository;
     private final PostLikeRepository postLikeRepository;
+    private final until.the.eternity.dcs.domain.post.infrastructure.PostBookmarkRepository
+            postBookmarkRepository;
     private final PostMetaRepository postMetaRepository;
     private final PostMetaService postMetaService;
     private final MinioService minioService;
@@ -41,6 +45,7 @@ public class PostArchiveService {
                 postList.stream().map(PostArchive::from).collect(Collectors.toList());
         postTagRepository.deleteAllByPostIdIn(postIdList);
         postLikeRepository.deleteAllByPostIdIn(postIdList);
+        postBookmarkRepository.deleteAllByPostIdIn(postIdList);
         postMetaRepository.deleteAllByPostIdIn(postIdList);
         List<String> filesToDelete = new ArrayList<>();
         for (Post post : postList) {
@@ -54,12 +59,24 @@ public class PostArchiveService {
         }
         postRepository.deleteAllByIdIn(postIdList);
         postArchiveRepository.saveAll(postArchiveList);
-        for (String fileName : filesToDelete) {
-            try {
-                minioService.deleteFile(fileName);
-            } catch (Exception e) {
-                log.error("MinIO 파일 삭제 실패 (파일명: {}): {}", fileName, e.getMessage());
-            }
+        deleteFilesAfterCommit(filesToDelete);
+    }
+
+    private void deleteFilesAfterCommit(List<String> filesToDelete) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        filesToDelete.forEach(PostArchiveService.this::deleteFileSafely);
+                    }
+                });
+    }
+
+    private void deleteFileSafely(String fileName) {
+        try {
+            minioService.deleteFile(fileName);
+        } catch (Exception e) {
+            log.error("MinIO 파일 삭제 실패 (파일명: {}): {}", fileName, e.getMessage());
         }
     }
 }

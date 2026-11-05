@@ -7,12 +7,15 @@ import static until.the.eternity.dcs.domain.user.enums.UserGrade.ADMIN;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.CommentCreateRequest;
@@ -21,12 +24,14 @@ import until.the.eternity.dcs.domain.comment.dto.request.CommentUpdateRequest;
 import until.the.eternity.dcs.domain.comment.dto.request.UserCommentPageRequest;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPageResponseItem;
 import until.the.eternity.dcs.domain.comment.dto.response.CommentPersistResponse;
+import until.the.eternity.dcs.domain.comment.dto.response.CommentThreadResponse;
 import until.the.eternity.dcs.domain.comment.dto.response.UserCommentActivityResponse;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
 import until.the.eternity.dcs.domain.comment.entity.CommentLike;
 import until.the.eternity.dcs.domain.comment.entity.CommentMeta;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepository;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentReplyCount;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
@@ -175,6 +180,55 @@ class CommentServiceTest {
         assertEquals(1, response.getNumberOfElements());
         assertEquals(1, response.getContent().size());
         assertEquals(content, response.getContent().get(0).content());
+    }
+
+    @Test
+    void findThreadsBatchLoadsRepliesMetadataUsersAndLikedState() {
+        Post post = Post.builder().id(id).build();
+        Comment parent = Comment.builder().id(10L).post(post).userId(1L).content("parent").build();
+        List<Comment> replies = new ArrayList<>();
+        for (long replyId = 11; replyId <= 14; replyId++) {
+            replies.add(
+                    Comment.builder()
+                            .id(replyId)
+                            .post(post)
+                            .parentComment(parent)
+                            .userId(1L)
+                            .content("reply-" + replyId)
+                            .build());
+        }
+        when(commentRepository.findAllByPostIdAndParentCommentIsNull(eq(id), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(parent)));
+        when(commentRepository.findFirst3ReplyIdsByPostIdAndParentIds(id, List.of(10L)))
+                .thenReturn(List.of(11L, 12L, 13L));
+        when(commentRepository.findAllByIdIn(List.of(11L, 12L, 13L)))
+                .thenReturn(replies.subList(0, 3));
+        CommentReplyCount replyCount = mock(CommentReplyCount.class);
+        when(replyCount.getParentId()).thenReturn(10L);
+        when(replyCount.getReplyCount()).thenReturn(4L);
+        when(commentRepository.countRepliesByPostIdAndParentIds(id, List.of(10L)))
+                .thenReturn(List.of(replyCount));
+        when(userService.findByIdIn(List.of(1L)))
+                .thenReturn(List.of(UserSummary.builder().id(1L).nickname("user").build()));
+        when(commentMetaRepository.findByCommentIdIn(List.of(10L, 11L, 12L, 13L)))
+                .thenReturn(List.of());
+        when(commentLikeRepository.findIdsByUserIdAndCommentIdIn(99L, List.of(10L, 11L, 12L, 13L)))
+                .thenReturn(Set.of(11L));
+        SecurityContextHolder.getContext()
+                .setAuthentication(new TestingAuthenticationToken(99L, null, "ROLE_USER"));
+
+        Page<CommentThreadResponse> result =
+                commentService.findThreads(id, new CustomPageRequest(1, 20, null, null));
+
+        assertEquals(4, result.getContent().getFirst().replyCount());
+        assertEquals(3, result.getContent().getFirst().replies().size());
+        assertTrue(result.getContent().getFirst().replies().getFirst().isLiked());
+        verify(userService, times(1)).findByIdIn(List.of(1L));
+        verify(commentMetaRepository, times(1)).findByCommentIdIn(List.of(10L, 11L, 12L, 13L));
+        verify(commentLikeRepository, times(1))
+                .findIdsByUserIdAndCommentIdIn(99L, List.of(10L, 11L, 12L, 13L));
+        verify(commentRepository).findAllByIdIn(List.of(11L, 12L, 13L));
+        SecurityContextHolder.clearContext();
     }
 
     @Test

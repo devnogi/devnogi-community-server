@@ -13,6 +13,7 @@ import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
+import until.the.eternity.dcs.domain.post.enums.PostContentFormat;
 
 class AnnouncementConverterTest {
     AnnouncementConverter announcementConverter;
@@ -51,6 +52,29 @@ class AnnouncementConverterTest {
         assertThat(announcement.getIsGlobal()).isTrue();
         assertThat(announcement.getIsDraft()).isFalse();
         assertThat(announcement.getPostId()).isEqualTo(post.getId());
+    }
+
+    @Test
+    void categorylessPlainPostBecomesGlobalAnnouncement() {
+        Post post =
+                Post.builder()
+                        .id(id)
+                        .userId(userId)
+                        .title("본문 첫 문장")
+                        .content("본문 첫 문장")
+                        .plainContent("본문 첫 문장")
+                        .contentFormat(PostContentFormat.PLAIN_TEXT_V1)
+                        .isDraft(false)
+                        .build();
+        PostMetaResponse postMeta = PostMetaResponse.from(PostMeta.create(id, 0));
+
+        Announcement result =
+                announcementConverter.fromCreateRequestAndPost(
+                        new AnnouncementCreateRequest(false), post, postMeta);
+
+        assertThat(result.getIsGlobal()).isTrue();
+        assertThat(result.getBoard()).isNull();
+        assertThat(result.getTitle()).isEqualTo("본문 첫 문장");
     }
 
     @Test

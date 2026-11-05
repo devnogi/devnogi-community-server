@@ -78,6 +78,34 @@ public class PostRepositoryTest {
     }
 
     @Test
+    void globalPopularFeedUsesRequestedPageSize() {
+        for (int i = 0; i < 7; i++) {
+            createPost("popular-" + i, 100 - i, 0, 0);
+        }
+        em.flush();
+        em.clear();
+
+        Page<Post> result = postRepository.findPopularPosts(PageRequest.of(0, 6));
+
+        assertThat(result.getContent()).hasSize(6);
+    }
+
+    @Test
+    void feedSearchIncludesLegacyTitleWhenPlainContentIsNull() {
+        Post legacy = createPost("legacy-title-keyword", 0, 0, 0);
+        createPost("unrelated", 0, 0, 0);
+        em.flush();
+        em.clear();
+
+        Page<Post> result =
+                postRepository.findFeed(
+                        "title-keyword",
+                        PageRequest.of(0, 10, Sort.by(Sort.Order.desc("createdAt"))));
+
+        assertThat(result.getContent()).extracting(Post::getId).containsExactly(legacy.getId());
+    }
+
+    @Test
     @DisplayName("좋아요가 30개 이상인 게시글 로직 검증")
     void verifyMostLikedPostRanking() {
         // Given: 데이터 준비 (저장 로직 포함)

@@ -19,6 +19,18 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
 
     Page<Post> findAllByIsDeletedFalseAndIsBlockedFalse(Pageable pageable);
 
+    Page<Post> findAllByIsDeletedFalseAndIsBlockedFalseAndIsDraftFalse(Pageable pageable);
+
+    Page<Post> findAllByUserIdAndIsDeletedFalseAndIsBlockedFalseAndIsDraftFalse(
+            Long userId, Pageable pageable);
+
+    @Query(
+            value =
+                    "select p from Post p where p.isDeleted = false and p.isBlocked = false and p.isDraft = false and (:keyword is null or :keyword = '' or lower(concat(coalesce(p.title, ''), ' ', coalesce(p.plainContent, p.content, ''))) like lower(concat('%', :keyword, '%')))",
+            countQuery =
+                    "select count(p) from Post p where p.isDeleted = false and p.isBlocked = false and p.isDraft = false and (:keyword is null or :keyword = '' or lower(concat(coalesce(p.title, ''), ' ', coalesce(p.plainContent, p.content, ''))) like lower(concat('%', :keyword, '%')))")
+    Page<Post> findFeed(@Param("keyword") String keyword, Pageable pageable);
+
     Page<Post> findAllByBoardIdAndIsDeletedFalseAndIsBlockedFalse(Pageable pageable, Long id);
 
     List<Post> findAllByIsDeletedTrueAndDeletedAtLessThanEqual(LocalDateTime date);

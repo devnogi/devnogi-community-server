@@ -35,6 +35,12 @@ public class CommentConverter {
                         .findById(parentId)
                         .orElseThrow(() -> new CommentNotFoundException(parentId));
 
+        if (parentComment.getPost() == null
+                || !parentComment.getPost().getId().equals(postId)
+                || parentComment.getParentComment() != null) {
+            throw new CommentNotFoundException(parentId);
+        }
+
         return Comment.builder()
                 .post(post)
                 .userId(userId)

@@ -20,6 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import until.the.eternity.dcs.common.notification.RedisSender;
 import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.common.request.CustomPageRequest;
+import until.the.eternity.dcs.domain.comment.exception.CommentNotFoundException;
+import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
+import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
+import until.the.eternity.dcs.domain.post.infrastructure.PostRepository;
 import until.the.eternity.dcs.domain.report.dto.request.ReportCreateRequest;
 import until.the.eternity.dcs.domain.report.dto.request.ReportUpdateRequest;
 import until.the.eternity.dcs.domain.report.dto.response.*;
@@ -43,13 +47,46 @@ public class ReportService {
     private final RedisSender redisSender;
     private final ReportPermissionEvaluator reportPermissionEvaluator;
     private final UserSummaryService userSummaryService;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     @PreAuthorize("@reportPermissionEvaluator.canCreate(authentication)")
     public ReportPersistResponse createReport(ReportCreateRequest request) {
         Long userId = getCurrentUserId();
-        Report newReport = reportConverter.fromReportCreateRequestToReport(request, userId);
+        ReportTargetType targetType =
+                ReportTargetType.fromCode(request.targetType())
+                        .orElseThrow(
+                                () ->
+                                        new until.the.eternity.dcs.domain.report.exception
+                                                .TargetNotFoundException(request.targetType()));
+        Long targetUserId = resolveTargetUserId(targetType, request.targetId());
+        Report newReport =
+                reportConverter.fromReportCreateRequestToReport(request, userId, targetUserId);
         return reportConverter.fromReportToReportPersistResponse(reportRepository.save(newReport));
+    }
+
+    private Long resolveTargetUserId(ReportTargetType targetType, Long targetId) {
+        if (targetId == null) {
+            throw new until.the.eternity.dcs.domain.report.exception.TargetNotFoundException(
+                    targetType.getCode());
+        }
+        return switch (targetType) {
+            case POST ->
+                    postRepository
+                            .findByIdAndIsDeletedFalseAndIsBlockedFalse(targetId)
+                            .orElseThrow(() -> new PostNotFoundException(targetId))
+                            .getUserId();
+            case COMMENT ->
+                    commentRepository
+                            .findById(targetId)
+                            .orElseThrow(() -> new CommentNotFoundException(targetId))
+                            .getUserId();
+            case USER -> {
+                userSummaryService.findUserSummary(targetId);
+                yield targetId;
+            }
+        };
     }
 
     @PreAuthorize("@reportPermissionEvaluator.isAuthorized(authentication)")

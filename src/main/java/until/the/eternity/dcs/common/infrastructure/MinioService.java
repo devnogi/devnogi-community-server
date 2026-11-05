@@ -6,17 +6,15 @@ import io.minio.*;
 import io.minio.http.Method;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import until.the.eternity.dcs.common.exception.FileStorageException;
-import until.the.eternity.dcs.common.exception.InvalidExtensionException;
 import until.the.eternity.dcs.common.exception.InvalidFileNameException;
 import until.the.eternity.dcs.common.exception.MissingFileUploadException;
+import until.the.eternity.dcs.domain.post.application.PostMediaValidator;
 
 @Service
 @RequiredArgsConstructor
@@ -48,13 +46,8 @@ public class MinioService {
                 || originalFilename.lastIndexOf('.') == originalFilename.length() - 1) {
             throw new InvalidFileNameException();
         }
-        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-
-        List<String> allowedExtensions = Arrays.asList(".jpg", ".jpeg", ".png", ".gif");
-
-        if (!allowedExtensions.contains(extension.toLowerCase())) {
-            throw new InvalidExtensionException();
-        }
+        PostMediaValidator.ValidatedMedia media = PostMediaValidator.validate(file);
+        String extension = "." + media.extension();
 
         String fileName = UUID.randomUUID() + extension;
         try {
@@ -63,7 +56,7 @@ public class MinioService {
             minioClient.putObject(
                     PutObjectArgs.builder().bucket(bucketName).object(fileName).stream(
                                     inputStream, file.getSize(), -1)
-                            .contentType(file.getContentType())
+                            .contentType(media.mimeType())
                             .build());
 
             return fileName;
