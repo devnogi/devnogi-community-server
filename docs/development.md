@@ -36,6 +36,10 @@ PR과 수동 진단은 고정된 공통 `spring-ci`의 `community-redis` 프로�
 
 각 서비스의 Compose는 개별 개발 환경이다. 전체 MSA가 자동 연결된다는 뜻은 아니다. Kafka는 bootstrap 주소뿐 아니라 브로커 advertised.listeners가 각 애플리케이션 컨테이너에서 접근 가능한 주소여야 한다. 호스트용 localhost 광고 주소를 컨테이너에 그대로 사용하지 않는다. 통합 환경에서는 공통 네트워크의 내부 리스너를 사용하거나 개발 호스트 주소로 광고하도록 별도 구성한다.
 
+`USER_INFO_UPDATE_EVENT`는 revision이 있는 최신 Auth 스냅샷과 revision이 없는 구형 이벤트를 함께 수용한다. revision이 있는 이벤트는 사용자별로 더 큰 revision만 적용하며, 구형 이벤트는 아직 versioned 이벤트가 적용되지 않은 행에만 적용한다. 짧은 Kafka 재시도 뒤 실패한 레코드는 `USER_INFO_UPDATE_EVENT.DLT`로 이동하고 원본 topic/partition/offset 기준으로 `user_summary_dlt_inbox`에 한 번 저장한 뒤 재처리한다. inbox pending 수, oldest age, max attempts 경고에는 payload나 개인정보를 기록하지 않는다.
+
+운영에서는 `KAFKA_BOOTSTRAP_SERVERS`를 반드시 설정한다. prod2의 공통 네트워크에서는 `kafka:29092`를 사용하며, 외부 프록시 도메인이나 컨테이너 IP를 고정하지 않는다. DLT 토픽과 source 이상의 partition, consumer assignment, 미해결 inbox를 배포 전후에 확인한다.
+
 ## 공동 로컬 인프라 연결
 
 공동 루트 가이드로 devnogi-infra-prod의 mysql/kafka를 먼저 시작하면 memonogi-local 네트워크가 만들어진다. 기존 Compose 뒤에 -f docker-compose-shared.yml을 추가하면 애플리케이션이 공통 Kafka 내부 리스너(devnogi-local-kafka:29092)를 사용한다. auth는 공통 MySQL에도 연결한다. community/batch의 자체 DB 등은 유지되며 community의 별도 kafka는 선택하지 않는다. 명령: `docker compose --env-file .env.local -f docker-compose-local.yaml -f docker-compose-shared.yml up --build backend`.

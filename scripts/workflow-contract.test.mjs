@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { secretKinds } from './secret-scan.mjs';
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const pin = '698f7b25995156af3f2df7f17171e5c3f5e77d76';
@@ -31,7 +32,7 @@ test('production caller only permits main push or manual dispatch', () => {
   assert.match(prod, /health-timeout: '300'/);
   assert.match(prod, /platform: linux\/amd64/);
   assert.match(prod, /secrets: inherit/);
-  assert.match(build, /^version = "1\.0\.5-SNAPSHOT"$/m);
+  assert.match(build, /^version = "1\.0\.6-SNAPSHOT"$/m);
   assert.match(build, /tasks\.register<Test>\("redisIntegrationTest"\)/);
   assert.match(build, /tasks\.test[\s\S]*excludeTags\("redis-integration"\)/);
   assert.match(build, /includeTags\("redis-integration"\)/);
@@ -47,4 +48,9 @@ test('callers agree on Community inputs and Compose requires the image', () => {
   }
   assert.match(read('docker-compose-prod.yml'), /backend:\s*\n\s*container_name: devnogi-community-server\s*\n\s*image: \$\{IMAGE_REF:\?IMAGE_REF is required\}/);
   assert.match(read('docker-compose-prod.yml'), /ports:\s*\n\s*- "127\.0\.0\.1:\$\{SERVICE_PORT:-8093\}:8093"/);
+});
+
+test('secret scan rejects hardcoded JWT environment defaults', () => {
+  const synthetic = '${JWT_SECRET_KEY:' + 'a'.repeat(64) + '}';
+  assert.deepEqual(secretKinds(synthetic), ['jwt-default-secret']);
 });

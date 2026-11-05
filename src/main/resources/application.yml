@@ -82,11 +82,6 @@ spring:
       time-to-live: 3600000
       cache-null-values: false
 
-jwt:
-  secret-key: ${JWT_SECRET_KEY:e4f1a5c8d2b7e9f0a6c3d1b8e5f2c7a9d4e6f3b1a2c8d5e9f0b3a7c2d1e8f5a4}
-  access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600} # seconds (1 hour)
-  refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY:86400} # seconds (1 day)
-
 springdoc:
   swagger-ui:
     persist-authorization: true
@@ -121,16 +116,14 @@ spring:
     bootstrap-servers: kafka:29092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
     consumer:
       group-id: devnogi-community-group
       auto-offset-reset: latest
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 decorator:
   datasource:
@@ -157,18 +150,17 @@ spring:
       ssl:
         enabled: false
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID:devnogi-community-group}
       auto-offset-reset: latest
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: "false" #헤더 필수 무시 => 차후 해당 설정 삭제 예정
-        spring.json.value.default.type: until.the.eternity.dcs.domain.user.dto.response.UserSummaryConsumerDTO
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
 
 springdoc:
   swagger-ui:
@@ -211,16 +203,12 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID:devnogi-community-group}
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: "false" #헤더 필수 무시 => 차후 해당 설정 삭제 예정
-        spring.json.value.default.type: until.the.eternity.dcs.domain.user.dto.response.UserSummaryConsumerDTO
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
 logging:
   level:
     root: INFO

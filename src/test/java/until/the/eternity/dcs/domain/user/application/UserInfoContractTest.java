@@ -6,6 +6,10 @@ import jakarta.persistence.Column;
 import jakarta.validation.Validation;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import until.the.eternity.dcs.domain.user.dto.response.UserSummaryConsumerDTO;
@@ -23,6 +27,7 @@ class UserInfoContractTest {
             assertNull(user.profileImageUrl());
             assertNull(user.serverName());
             assertFalse(user.verified());
+            assertNull(user.revision());
             assertEquals(user.id(), user.toEntity().getId());
         }
     }
@@ -46,6 +51,11 @@ class UserInfoContractTest {
                     factory.getValidator()
                             .validate(new UserSummaryConsumerDTO(42L, "name", null, "  ", false))
                             .isEmpty());
+            assertFalse(
+                    factory.getValidator()
+                            .validate(
+                                    new UserSummaryConsumerDTO(42L, "name", null, null, false, 0L))
+                            .isEmpty());
         }
     }
 
@@ -54,5 +64,17 @@ class UserInfoContractTest {
         UserSummary user = new UserSummaryConsumerDTO(42L, "name", null, "류트", true).toEntity();
 
         assertTrue(user.isVerified());
+    }
+
+    @Test
+    void mainKafkaProfilesUseHeaderIndependentDeserializerAndDltProducer() throws Exception {
+        for (String profile : List.of("local", "prod", "docker")) {
+            var consumer = MainKafkaConsumerProperties.forProfile(profile);
+            var producer = MainKafkaConsumerProperties.producerForProfile(profile);
+
+            assertEquals(ByteArrayDeserializer.class, consumer.get("value.deserializer"));
+            assertEquals(StringSerializer.class, producer.get("key.serializer"));
+            assertEquals(ByteArraySerializer.class, producer.get("value.serializer"));
+        }
     }
 }

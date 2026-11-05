@@ -35,6 +35,9 @@ public class UserSummary {
     @Builder.Default
     private boolean verified = false;
 
+    @Column(name = "last_auth_sync_revision")
+    private Long lastAuthSyncRevision;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserGrade grade = USER;

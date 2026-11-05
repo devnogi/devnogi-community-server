@@ -1,9 +1,15 @@
 package until.the.eternity.dcs.common.exception;
 
+import static until.the.eternity.dcs.common.exception.GlobalExceptionCode.ACCESS_DENIED;
+import static until.the.eternity.dcs.common.exception.GlobalExceptionCode.AUTHENTICATION_REQUIRED;
 import static until.the.eternity.dcs.common.exception.GlobalExceptionCode.SERVER_ERROR;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -24,15 +30,43 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     protected ResponseEntity<ApiResponse<?>> handleMethodArgumentTypeMismatch(
-            MethodArgumentTypeMismatchException exception) {
+            MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
         if ("boardId".equals(exception.getName()) && exception.getRequiredType() == Long.class) {
             return handleCustomException(new AnnouncementInvalidBoardIdParameterException());
         }
-        return handleException(exception);
+        return handleException(exception, request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    protected ResponseEntity<ApiResponse<?>> handleAccessDenied(
+            AccessDeniedException exception, HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean authenticated =
+                authentication != null
+                        && authentication.isAuthenticated()
+                        && authentication.getPrincipal() != null;
+        GlobalExceptionCode code = authenticated ? ACCESS_DENIED : AUTHENTICATION_REQUIRED;
+        log.warn(
+                "Authorization rejected: method={} path={} code={} type={} request_id={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                code.name(),
+                exception.getClass().getSimpleName(),
+                request.getHeader("X-Request-Id"));
+        ExceptionResponse exResponse = ExceptionResponse.from(code);
+        return ResponseEntity.status(exResponse.status())
+                .body(ApiResponse.error(exResponse.code(), exResponse.message()));
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<ApiResponse<?>> handleException(Exception exception) {
+    protected ResponseEntity<ApiResponse<?>> handleException(
+            Exception exception, HttpServletRequest request) {
+        log.error(
+                "Unhandled request failure: method={} path={} type={} request_id={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getClass().getSimpleName(),
+                request.getHeader("X-Request-Id"));
         ExceptionResponse exResponse = ExceptionResponse.from(SERVER_ERROR);
         ApiResponse<?> response = ApiResponse.error(exResponse.code(), exResponse.message());
         return ResponseEntity.status(exResponse.status()).body(response);
