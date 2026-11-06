@@ -99,6 +99,12 @@ decorator:
     p6spy:
       enable-logging: false
 
+outfit:
+  catalog:
+    base-url: ${OUTFIT_CATALOG_BASE_URL:http://localhost:8090/oab}
+    warmup-enabled: ${OUTFIT_CATALOG_WARMUP_ENABLED:true}
+    warmup-interval-ms: 3600000
+
 app:
   notification:
     stream: notif-stream

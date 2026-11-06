@@ -11,6 +11,8 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - MANAGEMENT_HEALTH_DB_ENABLED=true
       - MANAGEMENT_HEALTH_REDIS_ENABLED=true
+      - OUTFIT_CATALOG_BASE_URL=${OUTFIT_CATALOG_BASE_URL:-https://api.memonogi.com/oab}
+      - OUTFIT_CATALOG_WARMUP_ENABLED=${OUTFIT_CATALOG_WARMUP_ENABLED:-true}
 
       - DB_HOST=devnogi-mysql
       - DB_PORT=${DB_PORT}

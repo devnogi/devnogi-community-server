@@ -13,12 +13,16 @@ services:
       - "8093:8093"
     tty: true
     stdin_open: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       # JVM 설정
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
       - SPRING_PROFILES_ACTIVE=local
       - MINIO_URL=http://minio:9000
       - MINIO_BUCKET=dcs-local-bucket
+      - OUTFIT_CATALOG_BASE_URL=${OUTFIT_CATALOG_BASE_URL:-http://host.docker.internal:8090/oab}
+      - OUTFIT_CATALOG_WARMUP_ENABLED=${OUTFIT_CATALOG_WARMUP_ENABLED:-true}
 
       # application.yml 변수 매핑
       - DB_HOST=mysql
