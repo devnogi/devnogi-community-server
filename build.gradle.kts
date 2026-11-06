@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "until.the.eternity"
-version = "1.0.8-SNAPSHOT"
+version = "1.0.9-SNAPSHOT"
 
 java {
 	toolchain {
@@ -69,7 +69,7 @@ tasks.withType<Test> {
 
 tasks.test {
 	useJUnitPlatform {
-		excludeTags("redis-integration")
+		excludeTags("redis-integration", "outfit-mysql")
 	}
 	outputs.dir(project.extra["snippetsDir"]!!)
 }
@@ -158,4 +158,16 @@ tasks.register("verify") {
     group = "verification"
     description = "Run tests, configured static checks, and build the application JAR."
     dependsOn("check", "bootJar")
+}
+
+tasks.register<Test>("outfitMysqlTest") {
+    group = "verification"
+    description = "Verify outfit migrations and behavior against explicitly configured isolated MySQL."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("outfit-mysql") }
+    outputs.upToDateWhen { false }
+    doFirst {
+        check(!System.getenv("TEST_MYSQL_URL").isNullOrBlank()) { "TEST_MYSQL_URL is required" }
+    }
 }
