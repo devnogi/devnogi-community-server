@@ -103,9 +103,9 @@ public class CommentService {
 
         List<Long> userIds = comments.stream().map(Comment::getUserId).toList();
         List<UserSummary> userSummaryList = userSummaryService.findByIdIn(userIds);
-        Map<Long, String> userIdToNameMap =
+        Map<Long, UserSummary> userSummaries =
                 userSummaryList.stream()
-                        .collect(Collectors.toMap(UserSummary::getId, UserSummary::getNickname));
+                        .collect(Collectors.toMap(UserSummary::getId, summary -> summary));
 
         if (!checkIsAnonymousUser()) {
             Long userId = getCurrentUserId();
@@ -116,20 +116,26 @@ public class CommentService {
 
                 return comments.map(
                         c -> {
-                            String username = userIdToNameMap.getOrDefault(c.getUserId(), "익명");
+                            UserSummary author = userSummaries.get(c.getUserId());
                             return commentConverter.fromCommentToPageResponse(
                                     c,
                                     likedCommentIds.contains(c.getId()),
                                     commentMetaMap.getOrDefault(c.getId(), 0),
-                                    username);
+                                    author == null ? "익명" : author.getNickname(),
+                                    author == null ? null : author.getServerName(),
+                                    author != null && author.isVerified());
                         });
             }
         }
         return comments.map(
                 c -> {
-                    String username = userIdToNameMap.getOrDefault(c.getUserId(), "익명");
+                    UserSummary author = userSummaries.get(c.getUserId());
                     return commentConverter.fromCommentToPageResponseNonAuth(
-                            c, commentMetaMap.getOrDefault(c.getId(), 0), username);
+                            c,
+                            commentMetaMap.getOrDefault(c.getId(), 0),
+                            author == null ? "익명" : author.getNickname(),
+                            author == null ? null : author.getServerName(),
+                            author != null && author.isVerified());
                 });
     }
 
@@ -222,11 +228,11 @@ public class CommentService {
                         .collect(
                                 Collectors.toMap(
                                         CommentMeta::getCommentId, CommentMeta::getLikeCount));
-        Map<Long, String> usernames =
+        Map<Long, UserSummary> userSummaries =
                 userSummaryService
                         .findByIdIn(comments.stream().map(Comment::getUserId).distinct().toList())
                         .stream()
-                        .collect(Collectors.toMap(UserSummary::getId, UserSummary::getNickname));
+                        .collect(Collectors.toMap(UserSummary::getId, summary -> summary));
         Long currentUserId = optionalCurrentUserId();
         Set<Long> likedIds =
                 currentUserId == null
@@ -238,12 +244,11 @@ public class CommentService {
                         Collectors.toMap(
                                 Comment::getId,
                                 comment ->
-                                        commentConverter.fromCommentToPageResponse(
+                                        renderComment(
                                                 comment,
                                                 likedIds.contains(comment.getId()),
                                                 likeCounts.getOrDefault(comment.getId(), 0),
-                                                usernames.getOrDefault(
-                                                        comment.getUserId(), "익명"))));
+                                                userSummaries.get(comment.getUserId()))));
     }
 
     private Long optionalCurrentUserId() {
@@ -267,11 +272,27 @@ public class CommentService {
                         .collect(
                                 Collectors.toMap(
                                         CommentMeta::getCommentId, CommentMeta::getLikeCount));
+        UserSummary author =
+                userSummaryService.findByIdIn(List.of(userId)).stream().findFirst().orElse(null);
 
         return comments.map(
                 comment ->
                         UserCommentActivityResponse.of(
-                                comment, likeCounts.getOrDefault(comment.getId(), 0)));
+                                comment,
+                                likeCounts.getOrDefault(comment.getId(), 0),
+                                author == null ? null : author.getServerName(),
+                                author != null && author.isVerified()));
+    }
+
+    private CommentPageResponseItem renderComment(
+            Comment comment, boolean isLiked, int likeCount, UserSummary author) {
+        return commentConverter.fromCommentToPageResponse(
+                comment,
+                isLiked,
+                likeCount,
+                author == null ? "익명" : author.getNickname(),
+                author == null ? null : author.getServerName(),
+                author != null && author.isVerified());
     }
 
     @Transactional

@@ -11,15 +11,20 @@ public record UserCommentActivityResponse(
         @Schema(description = "원문 게시글 제목", example = "게시글 제목입니다.") String postTitle,
         @Schema(description = "댓글 내용", example = "좋은 정보 감사합니다.") String content,
         @Schema(description = "좋아요 수", example = "3") Integer likeCount,
+        @Schema(description = "인증 서버명", example = "류트") String serverName,
+        @Schema(description = "인게임 인증 여부", example = "true") Boolean verified,
         @Schema(description = "작성일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime createdAt) {
-    public static UserCommentActivityResponse of(Comment comment, int likeCount) {
+    public static UserCommentActivityResponse of(
+            Comment comment, int likeCount, String serverName, boolean verified) {
         return new UserCommentActivityResponse(
                 comment.getId(),
                 comment.getPost().getId(),
                 comment.getPost().getTitle(),
                 comment.getContent(),
                 likeCount,
+                serverName,
+                verified,
                 comment.getCreatedAt());
     }
 }
