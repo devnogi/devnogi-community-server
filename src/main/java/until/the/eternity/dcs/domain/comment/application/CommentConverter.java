@@ -54,12 +54,23 @@ public class CommentConverter {
     }
 
     public CommentPageResponseItem fromCommentToPageResponse(
-            Comment comment, Boolean isLiked, Integer likeCount, String username) {
-        return CommentPageResponseItem.from(comment, isLiked, likeCount, username);
+            Comment comment,
+            Boolean isLiked,
+            Integer likeCount,
+            String username,
+            String serverName,
+            boolean verified) {
+        return CommentPageResponseItem.from(
+                comment, isLiked, likeCount, username, serverName, verified);
     }
 
     public CommentPageResponseItem fromCommentToPageResponseNonAuth(
-            Comment comment, Integer likeCount, String username) {
-        return CommentPageResponseItem.from(comment, false, likeCount, username);
+            Comment comment,
+            Integer likeCount,
+            String username,
+            String serverName,
+            boolean verified) {
+        return CommentPageResponseItem.from(
+                comment, false, likeCount, username, serverName, verified);
     }
 }

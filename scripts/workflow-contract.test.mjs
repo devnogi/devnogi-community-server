@@ -32,7 +32,7 @@ test('production caller only permits main push or manual dispatch', () => {
   assert.match(prod, /health-timeout: '300'/);
   assert.match(prod, /platform: linux\/amd64/);
   assert.match(prod, /secrets: inherit/);
-  assert.match(build, /^version = "1\.0\.7-SNAPSHOT"$/m);
+  assert.match(build, /^version = "1\.0\.8-SNAPSHOT"$/m);
   assert.match(build, /tasks\.register<Test>\("redisIntegrationTest"\)/);
   assert.match(build, /tasks\.test[\s\S]*excludeTags\("redis-integration"\)/);
   assert.match(build, /includeTags\("redis-integration"\)/);

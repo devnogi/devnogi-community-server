@@ -145,6 +145,15 @@ class CommentServiceTest {
         // given
         Page<Comment> page = new PageImpl<>(List.of(comment));
         when(commentRepository.findAllByPostId(anyLong(), any(Pageable.class))).thenReturn(page);
+        when(userService.findByIdIn(List.of(userId)))
+                .thenReturn(
+                        List.of(
+                                UserSummary.builder()
+                                        .id(userId)
+                                        .nickname("user")
+                                        .serverName("하프")
+                                        .verified(true)
+                                        .build()));
         CustomPageRequest request = new CustomPageRequest(1, 10, "createdAt", "desc");
 
         // when
@@ -157,6 +166,8 @@ class CommentServiceTest {
         assertEquals(1, response.getNumberOfElements());
         assertEquals(1, response.getContent().size());
         assertEquals(content, response.getContent().get(0).content());
+        assertEquals("하프", response.getContent().get(0).serverName());
+        assertTrue(response.getContent().get(0).verified());
     }
 
     @Test
@@ -209,7 +220,14 @@ class CommentServiceTest {
         when(commentRepository.countRepliesByPostIdAndParentIds(id, List.of(10L)))
                 .thenReturn(List.of(replyCount));
         when(userService.findByIdIn(List.of(1L)))
-                .thenReturn(List.of(UserSummary.builder().id(1L).nickname("user").build()));
+                .thenReturn(
+                        List.of(
+                                UserSummary.builder()
+                                        .id(1L)
+                                        .nickname("user")
+                                        .serverName("류트")
+                                        .verified(true)
+                                        .build()));
         when(commentMetaRepository.findByCommentIdIn(List.of(10L, 11L, 12L, 13L)))
                 .thenReturn(List.of());
         when(commentLikeRepository.findIdsByUserIdAndCommentIdIn(99L, List.of(10L, 11L, 12L, 13L)))
@@ -223,6 +241,10 @@ class CommentServiceTest {
         assertEquals(4, result.getContent().getFirst().replyCount());
         assertEquals(3, result.getContent().getFirst().replies().size());
         assertTrue(result.getContent().getFirst().replies().getFirst().isLiked());
+        assertEquals("류트", result.getContent().getFirst().comment().serverName());
+        assertTrue(result.getContent().getFirst().comment().verified());
+        assertEquals("류트", result.getContent().getFirst().replies().getFirst().serverName());
+        assertTrue(result.getContent().getFirst().replies().getFirst().verified());
         verify(userService, times(1)).findByIdIn(List.of(1L));
         verify(commentMetaRepository, times(1)).findByCommentIdIn(List.of(10L, 11L, 12L, 13L));
         verify(commentLikeRepository, times(1))
@@ -242,6 +264,15 @@ class CommentServiceTest {
         meta.like();
         meta.like();
         when(commentMetaRepository.findByCommentIdIn(List.of(id))).thenReturn(List.of(meta));
+        when(userService.findByIdIn(List.of(userId)))
+                .thenReturn(
+                        List.of(
+                                UserSummary.builder()
+                                        .id(userId)
+                                        .nickname("user")
+                                        .serverName("만돌린")
+                                        .verified(true)
+                                        .build()));
 
         Page<UserCommentActivityResponse> response =
                 commentService.findByUserId(userId, new UserCommentPageRequest(1, 20));
@@ -253,6 +284,8 @@ class CommentServiceTest {
         assertEquals("post title", item.postTitle());
         assertEquals(content, item.content());
         assertEquals(2, item.likeCount());
+        assertEquals("만돌린", item.serverName());
+        assertTrue(item.verified());
         assertEquals(comment.getCreatedAt(), item.createdAt());
     }
 
