@@ -12,7 +12,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum UserGrade {
     USER("user", "일반 사용자"),
-    ADMIN("admin", "관리자");
+    ADMIN("admin", "관리자"),
+    SUPER_ADMIN("super_admin", "최고 관리자");
 
     private final String code;
     private final String description;

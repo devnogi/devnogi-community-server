@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "until.the.eternity"
-version = "1.0.9-SNAPSHOT"
+version = "1.0.10-SNAPSHOT"
 
 java {
 	toolchain {
@@ -69,7 +69,7 @@ tasks.withType<Test> {
 
 tasks.test {
 	useJUnitPlatform {
-		excludeTags("redis-integration", "outfit-mysql")
+		excludeTags("redis-integration", "outfit-mysql", "guild-mysql")
 	}
 	outputs.dir(project.extra["snippetsDir"]!!)
 }
@@ -166,6 +166,18 @@ tasks.register<Test>("outfitMysqlTest") {
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath
     useJUnitPlatform { includeTags("outfit-mysql") }
+    outputs.upToDateWhen { false }
+    doFirst {
+        check(!System.getenv("TEST_MYSQL_URL").isNullOrBlank()) { "TEST_MYSQL_URL is required" }
+    }
+}
+
+tasks.register<Test>("guildMysqlTest") {
+    group = "verification"
+    description = "Verify guild migrations, permissions and concurrent decisions on isolated MySQL."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("guild-mysql") }
     outputs.upToDateWhen { false }
     doFirst {
         check(!System.getenv("TEST_MYSQL_URL").isNullOrBlank()) { "TEST_MYSQL_URL is required" }

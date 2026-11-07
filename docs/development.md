@@ -1,5 +1,14 @@
 # 개발과 검증
 
+## 길드 API
+
+Gateway의 `/dcs/api/guilds`에서 목록·홈·추억글·모집글을 조회한다. React BFF는 모든 변경 요청에 `X-Guild-Action: 1`을 전달한다. 회원 ID와 관리자 역할은 Gateway의 검증 결과를 사용한다. 등록·지원을 처리할 때 Community는 `AUTH_SERVER_URL`의 Auth 공개 인증 요약과 로컬 회원 요약을 대조한다. 인증 정보가 아직 동기화되지 않았으면 409, Auth를 조회할 수 없으면 503을 반환한다.
+
+- `/api/guilds/registrations`에서 등록을 신청하고 본인 내역을 조회한다. 관리자는 `/api/admin/guilds/registrations/{id}/review`에서 심사한다. 승인 후 등록자는 홈을 꾸밀 수 있고 마스터는 공석이다.
+- 관리자는 `PUT /api/admin/guilds/{id}/master`로 마스터를 지정한다. 마스터는 길드원 직책을 바꿀 수 있고 마스터·부마스터는 모집을 운영한다. 지원 수락 시 메모노기의 길드원 명단에 반영된다.
+- 길드 추억글과 모집글은 각각 `/api/guilds/{id}/posts`, `/api/guilds/{id}/recruitments`를 사용한다. 길드원 전용 글은 목록·홈·상세·사진에서 동일한 소속 검사를 거친다.
+- `guildMysqlTest`는 `TEST_MYSQL_URL`, `TEST_MYSQL_USER`, `TEST_MYSQL_PASSWORD`를 지정한 격리된 **로컬 테스트 MySQL**에서 실행한다. 테스트 계정은 전용 스키마 구성 권한이 필요하다. PR CI가 MySQL 8에서 실행한다.
+
 ## 검증
 
 처음 clone한 뒤 `./gradlew installGitHooks` (Windows: `.\gradlew.bat installGitHooks`)를 실행하면 현재 worktree에 Git hook이 설치된다. 커밋 전에는 staged whitespace/conflict marker와 전체 소스의 Spotless 포맷 및 import를 검사한다. 실패하면 `./gradlew spotlessApply`를 직접 실행하고 변경을 검토해 다시 stage한다. hook은 자동 수정하거나 stage하지 않는다. push 전에는 PMD 미사용 코드 검사, 테스트 및 빌드를 포함하는 `./gradlew verify`를 실행한다.
