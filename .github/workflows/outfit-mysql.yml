@@ -32,3 +32,9 @@ jobs:
           TEST_MYSQL_USER: root
           TEST_MYSQL_PASSWORD: outfit-test-only
         run: bash ./gradlew outfitMysqlTest --no-daemon
+      - name: Verify guild approval, privacy and concurrent applications on MySQL
+        env:
+          TEST_MYSQL_URL: jdbc:mysql://127.0.0.1:3306/outfit_test?useSSL=false&allowPublicKeyRetrieval=true
+          TEST_MYSQL_USER: root
+          TEST_MYSQL_PASSWORD: outfit-test-only
+        run: bash ./gradlew guildMysqlTest --no-daemon

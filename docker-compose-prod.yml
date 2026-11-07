@@ -9,6 +9,7 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -Dspring.profiles.active=prod
       - SPRING_PROFILES_ACTIVE=prod
+      - AUTH_SERVER_URL=${AUTH_SERVER_URL:-http://auth-server:8091}
       - MANAGEMENT_HEALTH_DB_ENABLED=true
       - MANAGEMENT_HEALTH_REDIS_ENABLED=true
       - OUTFIT_CATALOG_BASE_URL=${OUTFIT_CATALOG_BASE_URL:-https://api.memonogi.com/oab}
