@@ -24,8 +24,7 @@ public class MinioService {
     private final MinioClient minioClient;
     private final String bucketName;
 
-    public MinioService(
-            MinioClient minioClient, @Value("${minio.bucket}") String bucketName) {
+    public MinioService(MinioClient minioClient, @Value("${minio.bucket}") String bucketName) {
         this.minioClient = minioClient;
         this.bucketName = bucketName;
     }

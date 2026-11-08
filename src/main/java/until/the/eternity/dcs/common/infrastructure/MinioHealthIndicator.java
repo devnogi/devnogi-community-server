@@ -23,15 +23,12 @@ public class MinioHealthIndicator implements HealthIndicator {
     public Health health() {
         try {
             boolean exists =
-                    minioClient.bucketExists(
-                            BucketExistsArgs.builder().bucket(bucketName).build());
+                    minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             return exists
                     ? Health.up().build()
                     : Health.down().withDetail("error", "bucket-not-found").build();
         } catch (Exception exception) {
-            return Health.down()
-                    .withDetail("error", exception.getClass().getSimpleName())
-                    .build();
+            return Health.down().withDetail("error", exception.getClass().getSimpleName()).build();
         }
     }
 }
