@@ -52,6 +52,8 @@ class MinioServiceTest {
                 "media",
                 "look.jpg",
                 "image/jpeg",
-                new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+                new byte[] {
+                    (byte) 0xff, (byte) 0xd8, (byte) 0xff, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+                });
     }
 }
