@@ -11,6 +11,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +52,7 @@ class CommentServiceTest {
     RedisSender redisSender = mock(RedisSender.class);
     CommentPermissionEvaluator commentPermissionEvaluator = mock(CommentPermissionEvaluator.class);
     PostMetaService postMetaService = mock(PostMetaService.class);
+    ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
     CommentService commentService =
             new CommentService(
@@ -63,7 +65,8 @@ class CommentServiceTest {
                     redisSender,
                     commentPermissionEvaluator,
                     userService,
-                    postMetaService);
+                    postMetaService,
+                    eventPublisher);
 
     Comment comment;
     Long id = 1L;
@@ -103,6 +106,9 @@ class CommentServiceTest {
 
         // then
         assertNotNull(response);
+        verify(postMetaService).addComment(id);
+        verify(eventPublisher).publishEvent(any(CommentCreatedNotification.class));
+        verify(redisSender, never()).enqueue(any());
     }
 
     @Test
@@ -137,6 +143,7 @@ class CommentServiceTest {
         // then
         Optional<Comment> comment = commentRepository.findById(id);
         assertTrue(comment.get().getIsDeleted());
+        verify(postMetaService).deleteComment(id);
     }
 
     @Test

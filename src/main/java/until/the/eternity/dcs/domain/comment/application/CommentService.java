@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,6 +57,7 @@ public class CommentService {
     private final CommentPermissionEvaluator commentPermissionEvaluator;
     private final UserSummaryService userSummaryService;
     private final PostMetaService postMetaService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @PreAuthorize("@commentPermissionEvaluator.canCreate(authentication)")
@@ -65,7 +67,8 @@ public class CommentService {
         Comment save = commentRepository.save(comment);
         connectCommentWithPost(postId, save);
 
-        sendCommentCreatedNotice(postId, request.parentComment());
+        eventPublisher.publishEvent(
+                createCommentCreatedNotification(postId, request.parentComment()));
 
         return commentConverter.fromCommentToPersistResponse(save);
     }
@@ -326,17 +329,19 @@ public class CommentService {
         postMetaService.deleteComment(postId);
     }
 
-    private void sendCommentCreatedNotice(Long postId, Long parentId) {
+    private CommentCreatedNotification createCommentCreatedNotification(
+            Long postId, Long parentId) {
         if (parentId != null) {
             Comment parent =
                     commentRepository
                             .findById(parentId)
                             .orElseThrow(() -> new CommentNotFoundException(parentId));
-            redisSender.enqueue(NotificationJob.of(parent.getUserId(), COMMENT_REPLY, parentId));
-        } else {
-            Post post = findPostById(postId);
-            redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_COMMENT, postId));
+            return new CommentCreatedNotification(
+                    NotificationJob.of(parent.getUserId(), COMMENT_REPLY, parentId));
         }
+        Post post = findPostById(postId);
+        return new CommentCreatedNotification(
+                NotificationJob.of(post.getUserId(), POST_COMMENT, postId));
     }
 
     private Post findPostById(Long postId) {

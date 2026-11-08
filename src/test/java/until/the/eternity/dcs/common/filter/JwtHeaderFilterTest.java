@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -32,6 +34,22 @@ class JwtHeaderFilterTest {
         assertThat(authentication.getAuthorities())
                 .extracting("authority")
                 .containsExactly("ROLE_USER");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ADMIN", "SUPER_ADMIN"})
+    void administratorHeadersRemainAuthenticated(String role) throws Exception {
+        var request = new MockHttpServletRequest("POST", "/api/comments");
+        request.addHeader("X-Auth-User-Id", "42");
+        request.addHeader("X-Auth-Roles", role);
+
+        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        assertThat(authentication.isAuthenticated()).isTrue();
+        assertThat(authentication.getAuthorities())
+                .extracting("authority")
+                .containsExactly("ROLE_" + role);
     }
 
     @Test
