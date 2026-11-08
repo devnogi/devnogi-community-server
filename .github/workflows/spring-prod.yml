@@ -130,11 +130,10 @@ jobs:
           PROD2_SSH_PORT: ${{ secrets.PROD2_SSH_PORT }}
           PROD2_SSH_PRIVATE_KEY: ${{ secrets.PROD2_SSH_PRIVATE_KEY }}
           PROD2_HOST_FINGERPRINT: ${{ secrets.PROD2_HOST_FINGERPRINT }}
-          PROD2_ENV_FILE: ${{ secrets.PROD2_ENV_FILE }}
         run: |
           set -euo pipefail
           [[ -n "$PROD2_HOST" && -n "$PROD2_USER" && "$PROD2_SSH_PORT" == 46232 ]]
-          [[ -n "$PROD2_SSH_PRIVATE_KEY" && -n "$PROD2_ENV_FILE" ]]
+          [[ -n "$PROD2_SSH_PRIVATE_KEY" ]]
           [[ "$PROD2_HOST_FINGERPRINT" =~ ^SHA256:[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]$ ]]
 
           recovery="$RUNNER_TEMP/community-minio-recovery"
@@ -142,13 +141,14 @@ jobs:
           trap 'rm -rf "$work"' EXIT
           mkdir -p "$recovery"
           printf '%s\n' "$PROD2_SSH_PRIVATE_KEY" > "$work/key"
-          printf '%s\n' "$PROD2_ENV_FILE" > "$work/current.env"
-          chmod 600 "$work/key" "$work/current.env"
+          chmod 600 "$work/key"
 
           ssh-keyscan -T 15 -p "$PROD2_SSH_PORT" -t ed25519 "$PROD2_HOST" > "$work/known_hosts" 2> "$work/scan.log"
           fingerprint=$(ssh-keygen -E sha256 -lf "$work/known_hosts" 2> "$work/scan.log")
           [[ "$fingerprint" == "256 $PROD2_HOST_FINGERPRINT "*' (ED25519)' ]]
           opts=(-i "$work/key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null -o HostKeyAlgorithms=ssh-ed25519 -o ConnectTimeout=15)
+          scp -P "$PROD2_SSH_PORT" "${opts[@]}" "$PROD2_USER@$PROD2_HOST:/opt/community/.env.prod" "$work/current.env" >/dev/null
+          chmod 600 "$work/current.env"
 
           cat > "$work/extract.sh" <<'REMOTE_SCRIPT'
           set -euo pipefail
