@@ -16,6 +16,7 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
 import until.the.eternity.dcs.domain.post.dto.response.PostMetaResponse;
 import until.the.eternity.dcs.domain.post.entity.PostMeta;
 import until.the.eternity.dcs.domain.post.enums.PostMetaType;
+import until.the.eternity.dcs.domain.post.exception.PostMetaInvariantViolationException;
 import until.the.eternity.dcs.domain.post.infrastructure.PostMetaRepository;
 
 @Service
@@ -103,19 +104,14 @@ public class PostMetaService {
         redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
     }
 
+    @Transactional
     public void addComment(Long postId) {
-        String key = generateKey(postId);
-
-        redisTemplate.opsForHash().increment(key, COMMENT_COUNT_FIELD, 1);
-
-        redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
+        updateCommentCount(postId, 1);
     }
 
+    @Transactional
     public void deleteComment(Long postId) {
-        String key = generateKey(postId);
-        redisTemplate.opsForHash().increment(key, COMMENT_COUNT_FIELD, -1);
-
-        redisTemplate.expire(key, POST_META_TTL_HOURS, TimeUnit.HOURS);
+        updateCommentCount(postId, -1);
     }
 
     public boolean canDoMethod(Long postId, String method, String userIp) {
@@ -218,6 +214,12 @@ public class PostMetaService {
             return Integer.parseInt(value.toString());
         } catch (NumberFormatException e) {
             return 0;
+        }
+    }
+
+    private void updateCommentCount(Long postId, int delta) {
+        if (postMetaRepository.incrementCommentCount(postId, delta) == 0) {
+            throw new PostMetaInvariantViolationException(postId);
         }
     }
 }

@@ -12,6 +12,11 @@ public interface PostMetaRepository extends JpaRepository<PostMeta, Long> {
 
     Optional<PostMeta> findByPostId(Long postId);
 
+    @Modifying(flushAutomatically = true)
+    @Query(
+            "UPDATE PostMeta pm SET pm.commentCount = pm.commentCount + :delta WHERE pm.postId = :postId")
+    int incrementCommentCount(@Param("postId") Long postId, @Param("delta") int delta);
+
     @Modifying
     @Query("DELETE FROM PostMeta pm WHERE pm.postId IN :postIdList")
     void deleteAllByPostIdIn(@Param("postIdList") List<Long> postIdList);

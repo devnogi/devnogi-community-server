@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "until.the.eternity"
-version = "1.0.10-SNAPSHOT"
+version = "1.0.11-SNAPSHOT"
 
 java {
 	toolchain {
