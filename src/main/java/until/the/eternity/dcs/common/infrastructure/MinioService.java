@@ -7,23 +7,27 @@ import io.minio.http.Method;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import until.the.eternity.dcs.common.exception.ExceptionCode;
 import until.the.eternity.dcs.common.exception.FileStorageException;
 import until.the.eternity.dcs.common.exception.InvalidFileNameException;
 import until.the.eternity.dcs.common.exception.MissingFileUploadException;
 import until.the.eternity.dcs.domain.post.application.PostMediaValidator;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class MinioService {
 
     private final MinioClient minioClient;
+    private final String bucketName;
 
-    @Value("${minio.bucket}")
-    private String bucketName;
+    public MinioService(MinioClient minioClient, @Value("${minio.bucket}") String bucketName) {
+        this.minioClient = minioClient;
+        this.bucketName = bucketName;
+    }
 
     // 버킷 존재 여부 확인 및 생성
     public void createBucketIfNotExists() throws Exception {
@@ -50,9 +54,7 @@ public class MinioService {
         String extension = "." + media.extension();
 
         String fileName = UUID.randomUUID() + extension;
-        try {
-            InputStream inputStream = file.getInputStream();
-
+        try (InputStream inputStream = file.getInputStream()) {
             minioClient.putObject(
                     PutObjectArgs.builder().bucket(bucketName).object(fileName).stream(
                                     inputStream, file.getSize(), -1)
@@ -61,9 +63,9 @@ public class MinioService {
 
             return fileName;
         } catch (IOException e) {
-            throw new FileStorageException(FILE_UPLOAD_FAILED_EXCEPTION);
+            throw storageFailure("upload", FILE_UPLOAD_FAILED_EXCEPTION, e);
         } catch (Exception e) {
-            throw new FileStorageException(FILE_READ_FAILED_EXCEPTION);
+            throw storageFailure("upload", FILE_UPLOAD_FAILED_EXCEPTION, e);
         }
     }
 
@@ -73,7 +75,7 @@ public class MinioService {
             return minioClient.getObject(
                     GetObjectArgs.builder().bucket(bucketName).object(fileName).build());
         } catch (Exception e) {
-            throw new FileStorageException(FILE_DOWNLOAD_FAILED_EXCEPTION);
+            throw storageFailure("download", FILE_DOWNLOAD_FAILED_EXCEPTION, e);
         }
     }
 
@@ -83,7 +85,7 @@ public class MinioService {
             minioClient.removeObject(
                     RemoveObjectArgs.builder().bucket(bucketName).object(fileName).build());
         } catch (Exception e) {
-            throw new FileStorageException(FILE_DELETE_FAILED_EXCEPTION);
+            throw storageFailure("delete", FILE_DELETE_FAILED_EXCEPTION, e);
         }
     }
 
@@ -97,7 +99,18 @@ public class MinioService {
                             .method(Method.GET)
                             .build());
         } catch (Exception e) {
-            throw new FileStorageException(FILE_URL_GENERATION_FAILED_EXCEPTION);
+            throw storageFailure("presign", FILE_URL_GENERATION_FAILED_EXCEPTION, e);
         }
+    }
+
+    private FileStorageException storageFailure(
+            String operation, ExceptionCode code, Exception exception) {
+        Throwable cause = exception.getCause();
+        log.error(
+                "MinIO {} failed: exception={} cause={}",
+                operation,
+                exception.getClass().getSimpleName(),
+                cause == null ? "none" : cause.getClass().getSimpleName());
+        return new FileStorageException(code, exception);
     }
 }

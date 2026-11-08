@@ -9,6 +9,7 @@ const ci = read('.github/workflows/pull-request-test.yml');
 const prod = read('.github/workflows/spring-prod.yml');
 const build = read('build.gradle.kts');
 const redisIntegrationTest = read('src/test/java/until/the/eternity/dcs/common/notification/RedisNotificationIntegrationTest.java');
+const minioHealthIndicator = read('src/main/java/until/the/eternity/dcs/common/infrastructure/MinioHealthIndicator.java');
 
 test('PR caller targets the approved reusable Community CI', () => {
   assert.match(ci, /pull_request:\s*\n\s*branches: \[dev, main\]/);
@@ -32,7 +33,7 @@ test('production caller only permits main push or manual dispatch', () => {
   assert.match(prod, /health-timeout: '300'/);
   assert.match(prod, /platform: linux\/amd64/);
   assert.match(prod, /secrets: inherit/);
-  assert.match(build, /^version = "1\.0\.11-SNAPSHOT"$/m);
+  assert.match(build, /^version = "1\.0\.12-SNAPSHOT"$/m);
   assert.match(build, /tasks\.register<Test>\("redisIntegrationTest"\)/);
   assert.match(build, /tasks\.test[\s\S]*excludeTags\("redis-integration", "outfit-mysql", "guild-mysql"\)/);
   assert.match(build, /tasks\.register<Test>\("guildMysqlTest"\)/);
@@ -52,6 +53,11 @@ test('callers agree on Community inputs and Compose requires the image', () => {
   assert.match(read('docker-compose-prod.yml'), /ports:\s*\n\s*- "127\.0\.0\.1:\$\{SERVICE_PORT:-8093\}:8093"/);
   assert.match(read('docker-compose-prod.yml'), /KAFKA_BOOTSTRAP_SERVERS=kafka:29092/);
   assert.doesNotMatch(read('docker-compose-prod.yml'), /KAFKA_BOOTSTRAP_SERVERS=\$\{KAFKA_BOOTSTRAP_SERVERS\}/);
+  for (const key of ['MINIO_ENDPOINT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'MINIO_BUCKET']) {
+    assert.match(read('docker-compose-prod.yml'), new RegExp(`${key}=\\$\\{${key}\\}`));
+  }
+  assert.match(minioHealthIndicator, /implements HealthIndicator/);
+  assert.match(minioHealthIndicator, /minioClient\.bucketExists/);
 });
 
 test('secret scan rejects hardcoded JWT environment defaults', () => {
