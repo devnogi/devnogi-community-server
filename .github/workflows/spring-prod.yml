@@ -115,6 +115,128 @@ jobs:
           opts=(-i "$work/key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null -o HostKeyAlgorithms=ssh-ed25519 -o ConnectTimeout=15)
           ssh -p "$PROD2_SSH_PORT" "${opts[@]}" "$PROD2_USER@$PROD2_HOST" bash -s -- "$REMOTE_DIR" < "$work/diagnose.sh"
 
+  export-recovered-minio-env:
+    needs: diagnose-minio
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/community-minio-recovery'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Build encrypted recovered environment
+        shell: bash
+        env:
+          PROD2_HOST: ${{ secrets.PROD2_HOST }}
+          PROD2_USER: ${{ secrets.PROD2_USER }}
+          PROD2_SSH_PORT: ${{ secrets.PROD2_SSH_PORT }}
+          PROD2_SSH_PRIVATE_KEY: ${{ secrets.PROD2_SSH_PRIVATE_KEY }}
+          PROD2_HOST_FINGERPRINT: ${{ secrets.PROD2_HOST_FINGERPRINT }}
+          PROD2_ENV_FILE: ${{ secrets.PROD2_ENV_FILE }}
+        run: |
+          set -euo pipefail
+          [[ -n "$PROD2_HOST" && -n "$PROD2_USER" && "$PROD2_SSH_PORT" == 46232 ]]
+          [[ -n "$PROD2_SSH_PRIVATE_KEY" && -n "$PROD2_ENV_FILE" ]]
+          [[ "$PROD2_HOST_FINGERPRINT" =~ ^SHA256:[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]$ ]]
+
+          recovery="$RUNNER_TEMP/community-minio-recovery"
+          work=$(mktemp -d "$RUNNER_TEMP/minio-export.XXXXXXXX")
+          trap 'rm -rf "$work"' EXIT
+          mkdir -p "$recovery"
+          printf '%s\n' "$PROD2_SSH_PRIVATE_KEY" > "$work/key"
+          printf '%s\n' "$PROD2_ENV_FILE" > "$work/current.env"
+          chmod 600 "$work/key" "$work/current.env"
+
+          ssh-keyscan -T 15 -p "$PROD2_SSH_PORT" -t ed25519 "$PROD2_HOST" > "$work/known_hosts" 2> "$work/scan.log"
+          fingerprint=$(ssh-keygen -E sha256 -lf "$work/known_hosts" 2> "$work/scan.log")
+          [[ "$fingerprint" == "256 $PROD2_HOST_FINGERPRINT "*' (ED25519)' ]]
+          opts=(-i "$work/key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null -o HostKeyAlgorithms=ssh-ed25519 -o ConnectTimeout=15)
+
+          cat > "$work/extract.sh" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+          infra_env=/opt/infra/.env.infra2
+          [[ -r "$infra_env" ]]
+          read_value() {
+            local key=$1 value
+            value=$(awk -v prefix="$key=" 'index($0, prefix) == 1 { sub(prefix, ""); print; exit }' "$infra_env")
+            [[ -n "$value" && "$value" != *$'\n'* && "$value" != *$'\r'* ]]
+            printf '%s' "$value"
+          }
+          printf 'MINIO_ACCESS_KEY=%s\n' "$(read_value COMMUNITY_MINIO_ACCESS_KEY)"
+          printf 'MINIO_SECRET_KEY=%s\n' "$(read_value COMMUNITY_MINIO_SECRET_KEY)"
+          printf 'MINIO_BUCKET=%s\n' "$(read_value COMMUNITY_MINIO_BUCKET)"
+          REMOTE_SCRIPT
+          ssh -p "$PROD2_SSH_PORT" "${opts[@]}" "$PROD2_USER@$PROD2_HOST" bash -s < "$work/extract.sh" > "$work/infra.env"
+          chmod 600 "$work/infra.env"
+
+          CURRENT_ENV="$work/current.env" INFRA_ENV="$work/infra.env" PATCHED_ENV="$work/patched.env" node <<'NODE'
+          const fs = require('fs');
+
+          const currentPath = process.env.CURRENT_ENV;
+          const infraPath = process.env.INFRA_ENV;
+          const outputPath = process.env.PATCHED_ENV;
+          const current = fs.readFileSync(currentPath, 'utf8');
+          const infra = fs.readFileSync(infraPath, 'utf8');
+          const parse = (text) => new Map(text.split(/\r?\n/).filter(Boolean).map((line) => {
+            const index = line.indexOf('=');
+            if (index <= 0) throw new Error('Invalid recovery environment line');
+            return [line.slice(0, index), line.slice(index + 1)];
+          }));
+          const replacements = parse(infra);
+          replacements.set('MINIO_ENDPOINT', 'https://storage.memonogi.com');
+          for (const key of ['MINIO_ENDPOINT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY', 'MINIO_BUCKET']) {
+            const count = current.split(/\r?\n/).filter((line) => new RegExp(`^\\s*(?:export\\s+)?${key}\\s*=`).test(line)).length;
+            if (count !== 1 || !replacements.get(key)) throw new Error(`Invalid ${key} contract`);
+          }
+          const patched = current.split(/\r?\n/).map((line) => {
+            const match = line.match(/^(\s*(?:export\s+)?)(MINIO_ENDPOINT|MINIO_ACCESS_KEY|MINIO_SECRET_KEY|MINIO_BUCKET)(\s*=).*/);
+            return match ? `${match[1]}${match[2]}${match[3]}${replacements.get(match[2])}` : line;
+          }).join('\n');
+          fs.writeFileSync(outputPath, patched.endsWith('\n') ? patched : `${patched}\n`, { mode: 0o600 });
+          NODE
+
+          cat > "$work/public.pem" <<'PUBLIC_KEY'
+          -----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAwu21kMOpZhlmKeBxKJ4f
+          gxCS3UMzPzT2TxbtUKv08JHgBkcLfn2ljr1aPwLe4h1cyJOUygH/0u5mvYfhK74p
+          cL9lqeM1ibfxBvfVjPn5BFjeqe2+DjwYtWav7RzkCGopf+GC8/JBTn7iGHIwjQfd
+          xYVH+pHOLtRAozwxzcbFcLRd4Fm2nDSOSljymEisuYvD7h5FXJmg/rCP5YpRQFK7
+          c/gkIjc2psS2MC7nkjQ8aPPBWZKfPeXD/1dkivGbFrW7+0t7tia54WGPLkEzwAx4
+          PavHJj733VUTcycdJDMlqwTPI0A+ndM7ukYYZKW0vVfpAQod2ZRmWQUkoEHhXVT1
+          pLLtojbwFTxaEGOfEqnHSYCQZ4THgB3oAXYO6dvXTfQhyEPaprRMWXyL+TX381gt
+          Mu4Dm3lPhW9OBccLFhosiUJKbC2NSWEpptZ1iT1h0WLJgsbhnI8/YD2yNCMCj2EK
+          FvjmJt02wvgrA8aVBPffVXjISKssbSd55b/6Y4nJZ1fjAgMBAAE=
+          -----END PUBLIC KEY-----
+          PUBLIC_KEY
+
+          PATCHED_ENV="$work/patched.env" PUBLIC_KEY="$work/public.pem" OUTPUT="$recovery/recovered-env.json" node <<'NODE'
+          const crypto = require('crypto');
+          const fs = require('fs');
+
+          const plaintext = fs.readFileSync(process.env.PATCHED_ENV);
+          const publicKey = fs.readFileSync(process.env.PUBLIC_KEY, 'utf8');
+          const key = crypto.randomBytes(32);
+          const iv = crypto.randomBytes(12);
+          const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+          const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+          const wrappedKey = crypto.publicEncrypt({ key: publicKey, oaepHash: 'sha256' }, key);
+          fs.writeFileSync(process.env.OUTPUT, JSON.stringify({
+            algorithm: 'RSA-OAEP-SHA256+A256GCM',
+            wrappedKey: wrappedKey.toString('base64'),
+            iv: iv.toString('base64'),
+            tag: cipher.getAuthTag().toString('base64'),
+            ciphertext: ciphertext.toString('base64'),
+          }), { mode: 0o600 });
+          NODE
+
+          rm -f "$work/current.env" "$work/infra.env" "$work/patched.env" "$work/key"
+
+      - name: Upload encrypted recovered environment
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: community-minio-recovered-env
+          path: ${{ runner.temp }}/community-minio-recovery/recovered-env.json
+          if-no-files-found: error
+          retention-days: 1
+
   workflow-contract:
     runs-on: ubuntu-latest
     steps:
