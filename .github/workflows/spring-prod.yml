@@ -9,6 +9,113 @@ concurrency:
   group: community-production
   cancel-in-progress: false
 jobs:
+  diagnose-minio:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/fix/community-minio-recovery'
+    environment: production
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Compare Community and Infra MinIO configuration
+        shell: bash
+        env:
+          PROD2_HOST: ${{ secrets.PROD2_HOST }}
+          PROD2_USER: ${{ secrets.PROD2_USER }}
+          PROD2_SSH_PORT: ${{ secrets.PROD2_SSH_PORT }}
+          PROD2_SSH_PRIVATE_KEY: ${{ secrets.PROD2_SSH_PRIVATE_KEY }}
+          PROD2_HOST_FINGERPRINT: ${{ secrets.PROD2_HOST_FINGERPRINT }}
+          REMOTE_DIR: ${{ vars.PROD2_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          [[ -n "$PROD2_HOST" && -n "$PROD2_USER" && "$PROD2_SSH_PORT" == 46232 ]]
+          [[ -n "$PROD2_SSH_PRIVATE_KEY" && "$PROD2_HOST_FINGERPRINT" =~ ^SHA256:[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]$ ]]
+          [[ "$REMOTE_DIR" =~ ^/([a-zA-Z0-9_-]+/)*[a-zA-Z0-9_-]+$ ]]
+
+          work=$(mktemp -d "$RUNNER_TEMP/minio-diagnostic.XXXXXXXX")
+          trap 'rm -rf "$work"' EXIT
+          printf '%s\n' "$PROD2_SSH_PRIVATE_KEY" > "$work/key"
+          chmod 600 "$work/key"
+          ssh-keyscan -T 15 -p "$PROD2_SSH_PORT" -t ed25519 "$PROD2_HOST" > "$work/known_hosts" 2> "$work/scan.log"
+          fingerprint=$(ssh-keygen -E sha256 -lf "$work/known_hosts" 2> "$work/scan.log")
+          [[ "$fingerprint" == "256 $PROD2_HOST_FINGERPRINT "*' (ED25519)' ]]
+
+          cat > "$work/diagnose.sh" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+          remote_dir=$1
+          container=devnogi-community-server
+          infra_env=/opt/infra/.env.infra2
+
+          [[ -f "$remote_dir/.env.prod" && -r "$infra_env" ]]
+          docker inspect "$container" >/dev/null
+          docker inspect minio >/dev/null
+
+          container_env=$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container")
+          from_container() {
+            local key=$1
+            printf '%s\n' "$container_env" | awk -v prefix="$key=" 'index($0, prefix) == 1 { sub(prefix, ""); print; exit }'
+          }
+          from_infra() {
+            local key=$1
+            awk -v prefix="$key=" 'index($0, prefix) == 1 { sub(prefix, ""); print; exit }' "$infra_env"
+          }
+
+          app_endpoint=$(from_container MINIO_ENDPOINT)
+          app_access=$(from_container MINIO_ACCESS_KEY)
+          app_secret=$(from_container MINIO_SECRET_KEY)
+          app_bucket=$(from_container MINIO_BUCKET)
+          infra_access=$(from_infra COMMUNITY_MINIO_ACCESS_KEY)
+          infra_secret=$(from_infra COMMUNITY_MINIO_SECRET_KEY)
+          infra_bucket=$(from_infra COMMUNITY_MINIO_BUCKET)
+
+          [[ -n "$app_endpoint" && -n "$app_access" && -n "$app_secret" && -n "$app_bucket" ]]
+          [[ -n "$infra_access" && -n "$infra_secret" && -n "$infra_bucket" ]]
+
+          [[ "$app_endpoint" == 'https://storage.memonogi.com' ]] && endpoint_expected=true || endpoint_expected=false
+          [[ "$app_access" == "$infra_access" ]] && access_matches=true || access_matches=false
+          [[ "$app_secret" == "$infra_secret" ]] && secret_matches=true || secret_matches=false
+          [[ "$app_bucket" == "$infra_bucket" ]] && bucket_matches=true || bucket_matches=false
+
+          internal_ok=false
+          configured_ok=false
+          if docker exec \
+            -e DIAG_ENDPOINT='http://127.0.0.1:9001' \
+            -e DIAG_ACCESS="$app_access" \
+            -e DIAG_SECRET="$app_secret" \
+            -e DIAG_BUCKET="$app_bucket" \
+            minio sh -eu -c '
+              config=$(mktemp -d /tmp/community-minio-diagnostic.XXXXXX)
+              trap '\''rm -rf "$config"'\'' EXIT
+              mc --config-dir "$config" alias set diag "$DIAG_ENDPOINT" "$DIAG_ACCESS" "$DIAG_SECRET" >/dev/null
+              mc --config-dir "$config" stat "diag/$DIAG_BUCKET" >/dev/null
+            ' >/dev/null 2>&1; then
+            internal_ok=true
+          fi
+          if docker exec \
+            -e DIAG_ENDPOINT="$app_endpoint" \
+            -e DIAG_ACCESS="$app_access" \
+            -e DIAG_SECRET="$app_secret" \
+            -e DIAG_BUCKET="$app_bucket" \
+            minio sh -eu -c '
+              config=$(mktemp -d /tmp/community-minio-diagnostic.XXXXXX)
+              trap '\''rm -rf "$config"'\'' EXIT
+              mc --config-dir "$config" alias set diag "$DIAG_ENDPOINT" "$DIAG_ACCESS" "$DIAG_SECRET" >/dev/null
+              mc --config-dir "$config" stat "diag/$DIAG_BUCKET" >/dev/null
+            ' >/dev/null 2>&1; then
+            configured_ok=true
+          fi
+
+          printf 'ENDPOINT_EXPECTED=%s\n' "$endpoint_expected"
+          printf 'ACCESS_MATCHES_INFRA=%s\n' "$access_matches"
+          printf 'SECRET_MATCHES_INFRA=%s\n' "$secret_matches"
+          printf 'BUCKET_MATCHES_INFRA=%s\n' "$bucket_matches"
+          printf 'INTERNAL_CREDENTIALS_OK=%s\n' "$internal_ok"
+          printf 'CONFIGURED_ENDPOINT_OK=%s\n' "$configured_ok"
+          REMOTE_SCRIPT
+
+          chmod 700 "$work/diagnose.sh"
+          opts=(-i "$work/key" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null -o HostKeyAlgorithms=ssh-ed25519 -o ConnectTimeout=15)
+          ssh -p "$PROD2_SSH_PORT" "${opts[@]}" "$PROD2_USER@$PROD2_HOST" bash -s -- "$REMOTE_DIR" < "$work/diagnose.sh"
+
   workflow-contract:
     runs-on: ubuntu-latest
     steps:
