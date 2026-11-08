@@ -207,11 +207,14 @@ jobs:
           -----END PUBLIC KEY-----
           PUBLIC_KEY
 
-          PATCHED_ENV="$work/patched.env" PUBLIC_KEY="$work/public.pem" OUTPUT="$recovery/recovered-env.json" node <<'NODE'
+          CURRENT_ENV="$work/current.env" PATCHED_ENV="$work/patched.env" PUBLIC_KEY="$work/public.pem" OUTPUT="$recovery/recovered-env.json" node <<'NODE'
           const crypto = require('crypto');
           const fs = require('fs');
 
-          const plaintext = fs.readFileSync(process.env.PATCHED_ENV);
+          const plaintext = Buffer.from(JSON.stringify({
+            original: fs.readFileSync(process.env.CURRENT_ENV).toString('base64'),
+            recovered: fs.readFileSync(process.env.PATCHED_ENV).toString('base64'),
+          }));
           const publicKey = fs.readFileSync(process.env.PUBLIC_KEY, 'utf8');
           const key = crypto.randomBytes(32);
           const iv = crypto.randomBytes(12);
