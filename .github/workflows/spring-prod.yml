@@ -23,7 +23,7 @@ jobs:
           PROD2_SSH_PORT: ${{ secrets.PROD2_SSH_PORT }}
           PROD2_SSH_PRIVATE_KEY: ${{ secrets.PROD2_SSH_PRIVATE_KEY }}
           PROD2_HOST_FINGERPRINT: ${{ secrets.PROD2_HOST_FINGERPRINT }}
-          REMOTE_DIR: ${{ vars.PROD2_REMOTE_DIR }}
+          REMOTE_DIR: /opt/community
         run: |
           set -euo pipefail
           [[ -n "$PROD2_HOST" && -n "$PROD2_USER" && "$PROD2_SSH_PORT" == 46232 ]]
