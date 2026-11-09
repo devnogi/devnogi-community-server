@@ -1,6 +1,7 @@
 package until.the.eternity.dcs.domain.post.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class PostConverterTest {
         Post post = Post.builder().id(1L).title(title).build();
         post.setCreatedAt(LocalDateTime.now());
         PostMetaResponse postMetaResponse = PostMetaResponse.from(postMeta);
+        when(mockUserSummary.getProfileImageUrl()).thenReturn("https://cdn.example/profile.png");
         // when
         PostSummaryResponse result =
                 postConverter.fromPostToPostSummaryResponse(
@@ -80,7 +82,22 @@ public class PostConverterTest {
         assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount());
         assertThat(result.likeCount()).isEqualTo(postMeta.getLikeCount());
         assertThat(result.commentCount()).isEqualTo(postMeta.getCommentCount());
+        assertThat(result.profileImageUrl()).isEqualTo("https://cdn.example/profile.png");
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("사용자 요약이 없으면 프로필 이미지는 null이다")
+    void should_FallbackToNullProfileImage_When_UserSummaryMissing() {
+        Post post = Post.builder().id(1L).title("제목").build();
+        post.setCreatedAt(LocalDateTime.now());
+
+        PostSummaryResponse result =
+                postConverter.fromPostToPostSummaryResponse(
+                        post, PostMetaResponse.from(postMeta), null);
+
+        assertThat(result.username()).isEqualTo("알수없음");
+        assertThat(result.profileImageUrl()).isNull();
     }
 
     @Test

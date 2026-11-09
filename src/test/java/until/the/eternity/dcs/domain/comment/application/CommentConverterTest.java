@@ -134,7 +134,8 @@ class CommentConverterTest {
 
         // when
         CommentPageResponseItem response =
-                commentConverter.fromCommentToPageResponse(comment, false, 0, username, "류트", true);
+                commentConverter.fromCommentToPageResponse(
+                        comment, false, 0, username, "https://cdn.example/profile.png", "류트", true);
 
         // then
         assertNotNull(response);
@@ -143,6 +144,7 @@ class CommentConverterTest {
         assertNull(response.parentComment());
         assertEquals(content, response.content());
         assertEquals(0, response.likeCount());
+        assertEquals("https://cdn.example/profile.png", response.profileImageUrl());
         assertEquals("류트", response.serverName());
         assertTrue(response.verified());
     }

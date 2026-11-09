@@ -158,6 +158,7 @@ class CommentServiceTest {
                                 UserSummary.builder()
                                         .id(userId)
                                         .nickname("user")
+                                        .profileImageUrl("https://cdn.example/profile.png")
                                         .serverName("하프")
                                         .verified(true)
                                         .build()));
@@ -173,6 +174,8 @@ class CommentServiceTest {
         assertEquals(1, response.getNumberOfElements());
         assertEquals(1, response.getContent().size());
         assertEquals(content, response.getContent().get(0).content());
+        assertEquals(
+                "https://cdn.example/profile.png", response.getContent().get(0).profileImageUrl());
         assertEquals("하프", response.getContent().get(0).serverName());
         assertTrue(response.getContent().get(0).verified());
     }
@@ -198,6 +201,7 @@ class CommentServiceTest {
         assertEquals(1, response.getNumberOfElements());
         assertEquals(1, response.getContent().size());
         assertEquals(content, response.getContent().get(0).content());
+        assertNull(response.getContent().get(0).profileImageUrl());
     }
 
     @Test
