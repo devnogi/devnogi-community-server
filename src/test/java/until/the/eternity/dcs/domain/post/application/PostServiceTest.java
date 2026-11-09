@@ -96,7 +96,12 @@ class PostServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockUser = UserSummary.builder().id(1L).nickname("testUser").build();
+        mockUser =
+                UserSummary.builder()
+                        .id(1L)
+                        .nickname("testUser")
+                        .profileImageUrl("https://cdn.example/profile.png")
+                        .build();
 
         mockBoard = Board.builder().id(1L).build();
 
@@ -157,6 +162,7 @@ class PostServiceTest {
                         .title("Test Title")
                         .userId(1L)
                         .username("testUser")
+                        .profileImageUrl("https://cdn.example/profile.png")
                         .viewCount(0)
                         .likeCount(0)
                         .build();
@@ -274,6 +280,7 @@ class PostServiceTest {
                     .willReturn(mockDetailResponse);
             given(userSummaryService.findUserSummary(userId))
                     .willReturn(mockUserSummaryDetailResponse);
+            given(userSummaryService.findByIdIn(List.of(userId))).willReturn(List.of(mockUser));
             int cnt = postMeta.getViewCount();
             // When
             PostDetailResponse result = postService.findPost(postId);
@@ -281,6 +288,7 @@ class PostServiceTest {
             // Then
             assertThat(result.id()).isEqualTo(mockDetailResponse.id());
             assertThat(result.author().nickname()).isEqualTo(username);
+            assertThat(result.profileImageUrl()).isEqualTo("https://cdn.example/profile.png");
             assertThat(result.media()).isEmpty();
             assertThat(result.viewCount()).isEqualTo(cnt + 1);
             assertThat(result.viewCount()).isEqualTo(postMeta.getViewCount() + 1);

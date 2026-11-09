@@ -12,6 +12,8 @@ public record CommentPageResponseItem(
         @Schema(description = "댓글 아이디", example = "1", requiredMode = REQUIRED) Long id,
         @Schema(description = "글쓴이 아이디", example = "1", requiredMode = REQUIRED) Long userId,
         @Schema(description = "글쓴이 이름", example = "홍길동") String username,
+        @Schema(description = "글쓴이 프로필 이미지 URL", requiredMode = NOT_REQUIRED)
+                String profileImageUrl,
         @Schema(description = "인증 서버명", example = "류트", requiredMode = NOT_REQUIRED)
                 String serverName,
         @Schema(description = "인게임 인증 여부", example = "true", requiredMode = REQUIRED)
@@ -32,6 +34,7 @@ public record CommentPageResponseItem(
             Boolean isLiked,
             Integer likeCount,
             String username,
+            String profileImageUrl,
             String serverName,
             boolean verified) {
         if (comment.getParentComment() == null) {
@@ -39,6 +42,7 @@ public record CommentPageResponseItem(
                     .id(comment.getId())
                     .userId(comment.getUserId())
                     .username(username)
+                    .profileImageUrl(profileImageUrl)
                     .serverName(serverName)
                     .verified(verified)
                     .content(comment.getContent())
@@ -53,6 +57,7 @@ public record CommentPageResponseItem(
                 .id(comment.getId())
                 .userId(comment.getUserId())
                 .username(username)
+                .profileImageUrl(profileImageUrl)
                 .serverName(serverName)
                 .verified(verified)
                 .parentComment(comment.getParentComment().getId())

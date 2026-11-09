@@ -125,6 +125,7 @@ public class CommentService {
                                     likedCommentIds.contains(c.getId()),
                                     commentMetaMap.getOrDefault(c.getId(), 0),
                                     author == null ? "익명" : author.getNickname(),
+                                    author == null ? null : author.getProfileImageUrl(),
                                     author == null ? null : author.getServerName(),
                                     author != null && author.isVerified());
                         });
@@ -137,6 +138,7 @@ public class CommentService {
                             c,
                             commentMetaMap.getOrDefault(c.getId(), 0),
                             author == null ? "익명" : author.getNickname(),
+                            author == null ? null : author.getProfileImageUrl(),
                             author == null ? null : author.getServerName(),
                             author != null && author.isVerified());
                 });
@@ -294,6 +296,7 @@ public class CommentService {
                 isLiked,
                 likeCount,
                 author == null ? "익명" : author.getNickname(),
+                author == null ? null : author.getProfileImageUrl(),
                 author == null ? null : author.getServerName(),
                 author != null && author.isVerified());
     }

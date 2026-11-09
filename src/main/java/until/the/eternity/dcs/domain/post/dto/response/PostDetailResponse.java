@@ -13,6 +13,8 @@ public record PostDetailResponse(
         @Schema(description = "게시판 정보") Long boardId,
         @Schema(description = "작성자 ID", example = "1") Long userId,
         @Schema(description = "작성자 이름", example = "홍길동") String username,
+        @Schema(description = "작성자 프로필 이미지 URL", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+                String profileImageUrl,
         @Schema(description = "게시글 제목", example = "게시글 제목입니다.") String title,
         @Schema(description = "게시글 내용", example = "게시글 내용입니다.") String content,
         @Schema(description = "조회수", example = "10") Integer viewCount,
@@ -43,6 +45,7 @@ public record PostDetailResponse(
                 .boardId(post.getBoard() == null ? null : post.getBoard().getId())
                 .userId(post.getUserId())
                 .username(username)
+                .profileImageUrl(null)
                 .title(post.getTitle())
                 .content(post.readableContent())
                 .viewCount(postMeta.viewCount())
@@ -78,6 +81,7 @@ public record PostDetailResponse(
                 boardId,
                 userId,
                 username,
+                socialAuthor.profileImageUrl(),
                 title,
                 content,
                 viewCount,

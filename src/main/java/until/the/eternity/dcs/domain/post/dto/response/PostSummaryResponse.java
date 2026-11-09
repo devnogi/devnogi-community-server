@@ -13,6 +13,8 @@ public record PostSummaryResponse(
         @Schema(description = "게시글 제목", example = "게시글 제목입니다.") String title,
         @Schema(description = "작성자 ID", example = "1") Long userId,
         @Schema(description = "작성자 이름", example = "홍길동") String username,
+        @Schema(description = "작성자 프로필 이미지 URL", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+                String profileImageUrl,
         @Schema(description = "조회수", example = "10") Integer viewCount,
         @Schema(description = "좋아요 수", example = "5") Integer likeCount,
         @Schema(description = "댓글 수", example = "3") Integer commentCount,
@@ -22,8 +24,10 @@ public record PostSummaryResponse(
     public static PostSummaryResponse of(
             Post post, PostMetaResponse postMeta, UserSummary userSummary) {
         String username = "알수없음";
+        String profileImageUrl = null;
         if (userSummary != null) {
             username = userSummary.getNickname();
+            profileImageUrl = userSummary.getProfileImageUrl();
         }
 
         return PostSummaryResponse.builder()
@@ -31,6 +35,7 @@ public record PostSummaryResponse(
                 .title(post.getTitle())
                 .userId(post.getUserId())
                 .username(username)
+                .profileImageUrl(profileImageUrl)
                 .viewCount(postMeta.viewCount())
                 .likeCount(postMeta.likeCount())
                 .commentCount(postMeta.commentCount())
