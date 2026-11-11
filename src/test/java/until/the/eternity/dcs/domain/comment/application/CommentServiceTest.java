@@ -41,6 +41,8 @@ import until.the.eternity.dcs.domain.user.application.UserSummaryService;
 import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class CommentServiceTest {
+    until.the.eternity.dcs.domain.experience.ActivityOutbox activityOutbox =
+            mock(until.the.eternity.dcs.domain.experience.ActivityOutbox.class);
     CommentRepository commentRepository = mock(CommentRepository.class);
     CommentLikeRepository commentLikeRepository = mock(CommentLikeRepository.class);
     PostRepository postRepository = mock(PostRepository.class);
@@ -57,6 +59,7 @@ class CommentServiceTest {
     CommentService commentService =
             new CommentService(
                     commentRepository,
+                    activityOutbox,
                     commentConverter,
                     commentLikeRepository,
                     commentLikeConverter,
@@ -107,6 +110,13 @@ class CommentServiceTest {
         // then
         assertNotNull(response);
         verify(postMetaService).addComment(id);
+        verify(activityOutbox).lockPost(id);
+        verify(activityOutbox)
+                .created(
+                        until.the.eternity.dcs.domain.experience.ActivitySource.COMMENT,
+                        id,
+                        userId,
+                        id);
         verify(eventPublisher).publishEvent(any(CommentCreatedNotification.class));
         verify(redisSender, never()).enqueue(any());
     }
@@ -144,6 +154,7 @@ class CommentServiceTest {
         Optional<Comment> comment = commentRepository.findById(id);
         assertTrue(comment.get().getIsDeleted());
         verify(postMetaService).deleteComment(id);
+        verify(activityOutbox).deletedComment(id);
     }
 
     @Test

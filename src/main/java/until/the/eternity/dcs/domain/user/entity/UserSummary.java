@@ -38,6 +38,13 @@ public class UserSummary {
     @Column(name = "last_auth_sync_revision")
     private Long lastAuthSyncRevision;
 
+    @Column(name = "activity_grade", length = 32)
+    private String activityGrade;
+
+    public String getActivityGrade() {
+        return verified ? activityGrade : null;
+    }
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserGrade grade = USER;

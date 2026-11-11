@@ -66,7 +66,11 @@ class GuildContentMysqlTest {
                         return new Identity("류트", "캐릭터" + user);
                     }
                 };
-        content = new GuildContent(db, access);
+        content =
+                new GuildContent(
+                        db,
+                        new until.the.eternity.dcs.domain.experience.ActivityOutbox(db, true),
+                        access);
         applications = new GuildApplications(db, access, content);
         for (String table :
                 List.of(
@@ -128,7 +132,13 @@ class GuildContentMysqlTest {
 
     @Test
     void registerCustomizeAppointRecruitAcceptAndWrite() {
-        var registry = new GuildRegistryController(new GuildRegistry(db, content.access));
+        var registry =
+                new GuildRegistryController(
+                        new GuildRegistry(
+                                db,
+                                new until.the.eternity.dcs.domain.experience.ActivityOutbox(
+                                        db, true),
+                                content.access));
         var api =
                 new GuildContentController(
                         content, new GuildMedia(content, mock(MinioService.class)), applications);

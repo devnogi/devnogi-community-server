@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Community USER_ACTIVITY_EVENT v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "schemaVersion",
+    "activityKey",
+    "activityType",
+    "actorUserId",
+    "authorUserId",
+    "targetType",
+    "targetId",
+    "rootTargetType",
+    "rootTargetId",
+    "active",
+    "sourceRevision",
+    "occurredAt"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "activityKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "activityType": {
+      "enum": [
+        "POST_PUBLISHED",
+        "COMMENT_CREATED",
+        "OUTFIT_PUBLISHED",
+        "GUILD_POST_PUBLISHED",
+        "GUILD_REGISTERED",
+        "LIKE"
+      ]
+    },
+    "actorUserId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "authorUserId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "targetType": {
+      "$ref": "#/$defs/targetType"
+    },
+    "targetId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "rootTargetType": {
+      "$ref": "#/$defs/targetType"
+    },
+    "rootTargetId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "sourceRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "targetType": {
+      "enum": [
+        "POST",
+        "COMMENT",
+        "OUTFIT",
+        "OUTFIT_COMMENT",
+        "GUILD_POST",
+        "GUILD_RECRUITMENT",
+        "GUILD"
+      ]
+    }
+  }
+}

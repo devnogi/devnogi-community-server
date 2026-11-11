@@ -147,6 +147,7 @@ class CommentRedisFailureIntegrationTest {
         CommentNotificationAsyncConfig.class,
         CommentController.class,
         CommentService.class,
+        until.the.eternity.dcs.domain.experience.ActivityOutbox.class,
         CommentConverter.class,
         CommentLikeConverter.class,
         CommentCreatedNotificationListener.class,

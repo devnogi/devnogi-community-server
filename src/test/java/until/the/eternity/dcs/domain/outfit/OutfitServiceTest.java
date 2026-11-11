@@ -40,6 +40,10 @@ class OutfitServiceTest {
         new JdbcTemplate(ds)
                 .execute(
                         "CREATE TABLE user_summary(id BIGINT PRIMARY KEY,nickname VARCHAR(50),profile_image_url VARCHAR(255),server_name VARCHAR(50),is_verified BOOLEAN)");
+        new ResourceDatabasePopulator(
+                        new ClassPathResource(
+                                "db/migration/V20261111000001__activity_experience_outbox.sql"))
+                .execute(ds);
         return ds;
     }
 
@@ -47,6 +51,7 @@ class OutfitServiceTest {
     void setup() {
         DataSource ds = dataSource();
         jdbc = new JdbcTemplate(ds);
+        jdbc.update("DELETE FROM activity_outbox");
         jdbc.update("DELETE FROM outfit_comment WHERE parent_id IS NOT NULL");
         for (String table :
                 List.of(
@@ -70,6 +75,7 @@ class OutfitServiceTest {
         service =
                 new OutfitService(
                         repository,
+                        new until.the.eternity.dcs.domain.experience.ActivityOutbox(jdbc, true),
                         storage,
                         catalog,
                         new TransactionTemplate(new DataSourceTransactionManager(ds)));
@@ -111,6 +117,50 @@ class OutfitServiceTest {
                         required(),
                         List.of(new OutfitDtos.MediaOrder(null, 0))),
                 List.of(photo()));
+    }
+
+    @Test
+    void experienceTracksLikeStateAndKeepsReplyUntilRootDeletion() {
+        var post = create();
+        service.reaction(post.id(), true, true); // Self-like never produces XP.
+        assertEquals(1L, jdbc.queryForObject("SELECT COUNT(*) FROM activity_outbox", Long.class));
+        login(90002);
+        service.reaction(post.id(), true, true);
+        service.reaction(post.id(), true, true);
+        service.reaction(post.id(), true, false);
+        service.reaction(post.id(), true, false);
+        service.reaction(post.id(), true, true);
+        assertEquals(
+                List.of(true, false, true),
+                jdbc.query(
+                        "SELECT active FROM activity_outbox WHERE activity_type='LIKE' ORDER BY id",
+                        (r, n) -> r.getBoolean(1)));
+        var comment = service.comment(post.id(), null, new OutfitDtos.CommentWrite("root", null));
+        var reply =
+                service.comment(
+                        post.id(), null, new OutfitDtos.CommentWrite("reply", comment.id()));
+        service.deleteComment(post.id(), comment.id());
+        String replyKey = "OUTFIT_COMMENT:" + reply.id() + ":CREATE";
+        assertEquals(
+                0L,
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM activity_outbox WHERE activity_key=? AND active=false",
+                        Long.class,
+                        replyKey));
+        login(90001);
+        service.delete(post.id());
+        assertEquals(
+                1L,
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM activity_outbox WHERE activity_key=? AND active=false",
+                        Long.class,
+                        replyKey));
+        assertEquals(
+                1L,
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM activity_outbox WHERE activity_key=? AND active=false",
+                        Long.class,
+                        "OUTFIT:" + post.id() + ":CREATE"));
     }
 
     @Test
@@ -457,6 +507,7 @@ class OutfitServiceTest {
         var transactional =
                 new OutfitService(
                         broken,
+                        new until.the.eternity.dcs.domain.experience.ActivityOutbox(jdbc, true),
                         storage,
                         catalog,
                         new TransactionTemplate(

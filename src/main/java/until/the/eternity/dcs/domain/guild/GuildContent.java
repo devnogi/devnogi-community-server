@@ -7,16 +7,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import until.the.eternity.dcs.domain.experience.ActivityOutbox;
+import until.the.eternity.dcs.domain.experience.ActivitySource;
 
 @Service
 @RequiredArgsConstructor
 public class GuildContent {
     final JdbcTemplate db;
+    private final ActivityOutbox activityOutbox;
     final GuildAccess access;
     static final String POSTS =
-            "SELECT p.id,p.guild_id AS guildId,p.author_id AS authorId,p.title,p.body,p.visibility,(p.photo_key IS NOT NULL) AS hasPhoto,p.created_at AS createdAt,p.updated_at AS updatedAt FROM guild_post p JOIN guild g ON g.id=p.guild_id WHERE g.is_deleted=0 AND p.is_deleted=0 AND p.guild_id=? AND (p.visibility='PUBLIC' OR EXISTS(SELECT 1 FROM guild_member m WHERE m.guild_id=g.id AND m.user_id=? AND m.left_at IS NULL)) ";
+            "SELECT p.id,p.guild_id AS guildId,p.author_id AS authorId,u.nickname AS authorNickname,COALESCE(u.is_verified,0) AS authorVerified,CASE WHEN u.is_verified=1 THEN u.activity_grade ELSE NULL END AS activityGrade,p.title,p.body,p.visibility,(p.photo_key IS NOT NULL) AS hasPhoto,p.created_at AS createdAt,p.updated_at AS updatedAt FROM guild_post p LEFT JOIN user_summary u ON u.id=p.author_id JOIN guild g ON g.id=p.guild_id WHERE g.is_deleted=0 AND p.is_deleted=0 AND p.guild_id=? AND (p.visibility='PUBLIC' OR EXISTS(SELECT 1 FROM guild_member m WHERE m.guild_id=g.id AND m.user_id=? AND m.left_at IS NULL)) ";
     static final String RECRUITS =
-            "SELECT r.id,r.guild_id AS guildId,r.author_id AS authorId,r.title,r.body,r.requirements,r.status,r.created_at AS createdAt,r.updated_at AS updatedAt FROM guild_recruitment_post r JOIN guild g ON g.id=r.guild_id WHERE g.is_deleted=0 AND r.is_deleted=0 AND r.guild_id=? ";
+            "SELECT r.id,r.guild_id AS guildId,r.author_id AS authorId,u.nickname AS authorNickname,COALESCE(u.is_verified,0) AS authorVerified,CASE WHEN u.is_verified=1 THEN u.activity_grade ELSE NULL END AS activityGrade,r.title,r.body,r.requirements,r.status,r.created_at AS createdAt,r.updated_at AS updatedAt FROM guild_recruitment_post r LEFT JOIN user_summary u ON u.id=r.author_id JOIN guild g ON g.id=r.guild_id WHERE g.is_deleted=0 AND r.is_deleted=0 AND r.guild_id=? ";
     static final String GUILDS =
             "SELECT g.id,g.name,g.server,g.master_id AS masterId,g.register_id AS registerId,p.tagline,p.description,p.theme,p.tags,p.activity_time AS activityTime,(p.banner_key IS NOT NULL) AS hasBanner,(p.emblem_key IS NOT NULL) AS hasEmblem, EXISTS(SELECT 1 FROM guild_recruitment_post r WHERE r.guild_id=g.id AND r.status='OPEN' AND r.is_deleted=0) AS recruiting FROM guild g LEFT JOIN guild_profile p ON p.guild_id=g.id WHERE g.is_deleted=0 ";
 
@@ -190,18 +193,26 @@ public class GuildContent {
                         req,
                         id);
         }
-        return Map.of(
-                "id",
+        long savedId =
                 id == null
                         ? Objects.requireNonNull(
                                 db.queryForObject("SELECT LAST_INSERT_ID()", Long.class))
-                        : id);
+                        : id;
+        if (id == null)
+            activityOutbox.created(
+                    post ? ActivitySource.GUILD_POST : ActivitySource.GUILD_RECRUITMENT,
+                    savedId,
+                    u,
+                    savedId);
+        return Map.of("id", savedId);
     }
 
     @Transactional
     public void remove(int g, long id, boolean post, boolean delete) {
         access.lockGuild(g);
         author(g, id, post);
+        if (post || delete)
+            activityOutbox.deletedRoot(post ? "GUILD_POST" : "GUILD_RECRUITMENT", id);
         if (post) db.update("UPDATE guild_post SET is_deleted=1 WHERE id=?", id);
         else {
             db.update(

@@ -29,6 +29,8 @@ import until.the.eternity.dcs.common.notification.dto.NotificationJob;
 import until.the.eternity.dcs.domain.board.application.BoardService;
 import until.the.eternity.dcs.domain.board.entity.Board;
 import until.the.eternity.dcs.domain.comment.entity.Comment;
+import until.the.eternity.dcs.domain.experience.ActivityOutbox;
+import until.the.eternity.dcs.domain.experience.ActivitySource;
 import until.the.eternity.dcs.domain.post.dto.request.PostCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostLikeCreateRequest;
 import until.the.eternity.dcs.domain.post.dto.request.PostMediaUpdateRequest;
@@ -64,6 +66,7 @@ import until.the.eternity.dcs.domain.user.exception.UserNotFoundException;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final ActivityOutbox activityOutbox;
     private final PostConverter postConverter;
     private final PostLikeRepository postLikeRepository;
     private final PostLikeConverter postLikeConverter;
@@ -134,6 +137,9 @@ public class PostService {
 
         postTagService.savePostTags(postTags);
         postMetaService.createPostMeta(savedPost.getId());
+        if (savedPost.markFirstPublication())
+            activityOutbox.created(
+                    ActivitySource.POST, savedPost.getId(), userId, savedPost.getId());
         return postConverter.fromPostToPostPersistResponse(savedPost);
     }
 
@@ -182,7 +188,8 @@ public class PostService {
                         socialUser == null ? nickname : socialUser.getNickname(),
                         socialUser == null ? null : socialUser.getProfileImageUrl(),
                         socialUser == null ? null : socialUser.getServerName(),
-                        socialUser != null && socialUser.isVerified());
+                        socialUser != null && socialUser.isVerified(),
+                        socialUser == null ? null : socialUser.getActivityGrade());
         List<PostFeedItem.Media> media =
                 post.getImages().stream()
                         .sorted(java.util.Comparator.comparingInt(PostImage::getDisplayOrder))
@@ -263,7 +270,10 @@ public class PostService {
     public PostPersistResponse updatePost(Long id, PostUpdateRequest postUpdateRequest) {
         Long userId = getCurrentUserId();
 
+        activityOutbox.lockPost(id);
         Post post = findById(id);
+        boolean wasDraft = Boolean.TRUE.equals(post.getIsDraft());
+        post.preserveLegacyPublication();
 
         List<String> currentList =
                 post.getPostTags().stream().map(postTag -> postTag.getTag().getName()).toList();
@@ -305,6 +315,8 @@ public class PostService {
         }
 
         Post updatedPost = postRepository.save(post);
+        if (wasDraft && post.markFirstPublication())
+            activityOutbox.created(ActivitySource.POST, id, post.getUserId(), id);
 
         return postConverter.fromPostToPostPersistResponse(updatedPost);
     }
@@ -315,7 +327,10 @@ public class PostService {
             Long id, PostMediaUpdateRequest request, List<MultipartFile> newFiles) {
         Long userId = getCurrentUserId();
         validatePlainContent(request.content());
+        activityOutbox.lockPost(id);
         Post post = findById(id);
+        boolean wasDraft = Boolean.TRUE.equals(post.getIsDraft());
+        post.preserveLegacyPublication();
         Set<Long> retainedIds =
                 request.retainedMediaIds() == null
                         ? Set.of()
@@ -383,6 +398,8 @@ public class PostService {
             }
             post.updatePlainContent(request.content(), userId);
             Post saved = postRepository.save(post);
+            if (wasDraft && post.markFirstPublication())
+                activityOutbox.created(ActivitySource.POST, id, post.getUserId(), id);
             registerMediaCleanup(removed, List.copyOf(uploaded));
             return postConverter.fromPostToPostPersistResponse(saved);
         } catch (Exception e) {
@@ -439,7 +456,9 @@ public class PostService {
     @PreAuthorize("@postPermissionEvaluator.canDelete(authentication,#id)")
     public void deletePost(Long id) {
         Long userId = getCurrentUserId();
+        activityOutbox.lockPost(id);
         Post post = findById(id);
+        activityOutbox.deletedRoot("POST", id);
         post.delete(userId);
         post.getComments().forEach(Comment::disconnectWithPost);
     }
@@ -449,6 +468,7 @@ public class PostService {
     public void togglePostLike(PostLikeCreateRequest postLikeCreateRequest) {
         Long userId = getCurrentUserId();
         Long postId = postLikeCreateRequest.postId();
+        activityOutbox.lockPost(postId);
         Post post = findById(postId);
         String userIp =
                 checkIsAnonymousUser() ? getCurrentUserIp() : String.valueOf(getCurrentUserId());
@@ -460,6 +480,9 @@ public class PostService {
             PostLike newPostLike = postLikeConverter.toEntity(userId, post);
 
             postLikeRepository.save(newPostLike);
+            if (!Boolean.TRUE.equals(post.getIsDraft()))
+                activityOutbox.changed(
+                        ActivitySource.POST_LIKE, postId, userId, post.getUserId(), postId, true);
             postMetaService.likePost(postId, userIp);
 
             redisSender.enqueue(NotificationJob.of(post.getUserId(), POST_LIKE, postId));
@@ -469,6 +492,8 @@ public class PostService {
             return;
         }
         postLikeRepository.deleteByUserIdAndPostId(userId, postId);
+        activityOutbox.changed(
+                ActivitySource.POST_LIKE, postId, userId, post.getUserId(), postId, false);
         postMetaService.unlikePost(postId, userIp);
     }
 
@@ -652,7 +677,8 @@ public class PostService {
                                     user == null ? "알수없음" : user.getNickname(),
                                     user == null ? null : user.getProfileImageUrl(),
                                     user == null ? null : user.getServerName(),
-                                    user != null && user.isVerified());
+                                    user != null && user.isVerified(),
+                                    user == null ? null : user.getActivityGrade());
                     return new PostFeedItem(
                             post.getId(),
                             post.getUserId(),

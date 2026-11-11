@@ -18,6 +18,7 @@ public record CommentPageResponseItem(
                 String serverName,
         @Schema(description = "인게임 인증 여부", example = "true", requiredMode = REQUIRED)
                 Boolean verified,
+        String activityGrade,
         @Schema(description = "대댓글일 경우 상위 댓글의 아이디", example = "1", requiredMode = NOT_REQUIRED)
                 Long parentComment,
         @Schema(description = "댓글 내용", example = "정말 좋은 게시글이네요!!", requiredMode = REQUIRED)
@@ -36,7 +37,8 @@ public record CommentPageResponseItem(
             String username,
             String profileImageUrl,
             String serverName,
-            boolean verified) {
+            boolean verified,
+            String activityGrade) {
         if (comment.getParentComment() == null) {
             return CommentPageResponseItem.builder()
                     .id(comment.getId())
@@ -45,6 +47,7 @@ public record CommentPageResponseItem(
                     .profileImageUrl(profileImageUrl)
                     .serverName(serverName)
                     .verified(verified)
+                    .activityGrade(verified ? activityGrade : null)
                     .content(comment.getContent())
                     .likeCount(likeCount)
                     .isDeleted(comment.getIsDeleted())
@@ -60,6 +63,7 @@ public record CommentPageResponseItem(
                 .profileImageUrl(profileImageUrl)
                 .serverName(serverName)
                 .verified(verified)
+                .activityGrade(verified ? activityGrade : null)
                 .parentComment(comment.getParentComment().getId())
                 .content(comment.getContent())
                 .likeCount(likeCount)

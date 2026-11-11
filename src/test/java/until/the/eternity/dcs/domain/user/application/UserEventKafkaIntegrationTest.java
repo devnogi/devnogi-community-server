@@ -99,6 +99,26 @@ class UserEventKafkaIntegrationTest {
     }
 
     @Test
+    void activityGradeUsesRevisionAndVerificationWithoutChangingRole() throws Exception {
+        sendAndAwaitOffset(
+                new UserSummaryConsumerDTO(42L, "graded", null, "test", true, 10L, "EXPERT"));
+        var user = repository.findById(42L).orElseThrow();
+        user.update(null, null, null, UserGrade.ADMIN);
+        repository.save(user);
+        sendAndAwaitOffset(
+                new UserSummaryConsumerDTO(42L, "old", null, "test", true, 9L, "SENIOR"));
+        assertThat(repository.findById(42L).orElseThrow().getActivityGrade()).isEqualTo("EXPERT");
+        sendAndAwaitOffset(
+                new UserSummaryConsumerDTO(42L, "graded", null, null, false, 11L, "EXPERT"));
+        var unverified = repository.findById(42L).orElseThrow();
+        assertThat(unverified.getActivityGrade()).isNull();
+        assertThat(unverified.getGrade()).isEqualTo(UserGrade.ADMIN);
+        sendAndAwaitOffset(
+                new UserSummaryConsumerDTO(42L, "graded", null, "test", true, 12L, "EXPERT"));
+        assertThat(repository.findById(42L).orElseThrow().getActivityGrade()).isEqualTo("EXPERT");
+    }
+
+    @Test
     void appliesOnlyNewerRevisionsAndPreservesCommunityFields() throws Exception {
         sendAndAwaitOffset(new UserSummaryConsumerDTO(42L, "first", null, null, false, 2L));
         var saved = repository.findById(42L).orElseThrow();

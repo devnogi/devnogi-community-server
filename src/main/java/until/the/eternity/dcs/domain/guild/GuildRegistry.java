@@ -8,11 +8,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import until.the.eternity.dcs.domain.experience.ActivityOutbox;
+import until.the.eternity.dcs.domain.experience.ActivitySource;
 
 @Service
 @RequiredArgsConstructor
 public class GuildRegistry {
     private final JdbcTemplate db;
+    private final ActivityOutbox activityOutbox;
     private final GuildAccess access;
     private static final String REGISTRATIONS =
             """
@@ -87,6 +90,7 @@ public class GuildRegistry {
                     identity.server(),
                     user);
             guild = db.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+            activityOutbox.created(ActivitySource.GUILD, guild, user, guild);
             db.update("INSERT INTO guild_profile(guild_id) VALUES(?)", guild);
             join(guild, user, "MEMBER");
         }

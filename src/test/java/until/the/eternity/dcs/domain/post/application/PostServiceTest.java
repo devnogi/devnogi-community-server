@@ -50,6 +50,7 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 class PostServiceTest {
 
     @Mock private PostRepository postRepository;
+    @Mock private until.the.eternity.dcs.domain.experience.ActivityOutbox activityOutbox;
 
     @Mock private PostConverter postConverter;
 
@@ -163,6 +164,7 @@ class PostServiceTest {
                         .userId(1L)
                         .username("testUser")
                         .profileImageUrl("https://cdn.example/profile.png")
+                        .verified(false)
                         .viewCount(0)
                         .likeCount(0)
                         .build();
@@ -241,7 +243,56 @@ class PostServiceTest {
             verify(postConverter).fromCreateRequestToPost(eq(createRequest), eq(1L));
             verify(postRepository).save(mockPost);
             verify(postConverter).fromPostToPostPersistResponse(mockPost);
+            verify(activityOutbox)
+                    .created(
+                            until.the.eternity.dcs.domain.experience.ActivitySource.POST,
+                            mockPost.getId(),
+                            userId,
+                            mockPost.getId());
         }
+    }
+
+    @Test
+    void draftAwardsOnPublicationButNotDraftCreationOrLaterEdits() {
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
+        mockPost.update(null, null, true, null, null);
+        given(postConverter.fromCreateRequestToPost(createRequest, userId)).willReturn(mockPost);
+        given(postRepository.save(mockPost)).willReturn(mockPost);
+        given(postRepository.findWithTagsById(mockPost.getId())).willReturn(Optional.of(mockPost));
+        postService.createPost(createRequest, List.of());
+        verify(activityOutbox, never()).created(any(), anyLong(), anyLong(), anyLong());
+        postService.updatePost(mockPost.getId(), updateRequest);
+        var firstPublication = mockPost.getFirstPublishedAt();
+        postService.updatePost(mockPost.getId(), new PostUpdateRequest(null, null, true, null));
+        postService.updatePost(mockPost.getId(), updateRequest);
+        assertThat(mockPost.getFirstPublishedAt()).isEqualTo(firstPublication);
+        verify(activityOutbox, never()).deletedRoot(anyString(), anyLong());
+        verify(activityOutbox, times(1))
+                .created(
+                        until.the.eternity.dcs.domain.experience.ActivitySource.POST,
+                        mockPost.getId(),
+                        mockPost.getUserId(),
+                        mockPost.getId());
+    }
+
+    @Test
+    void editingPublicPostFromOldWriterPreservesPublicationWithoutAward() {
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(postPermissionEvaluator.getCurrentUserId(authentication)).willReturn(userId);
+        var originalPublication = LocalDateTime.of(2026, 11, 10, 12, 0);
+        mockPost.setCreatedAt(originalPublication);
+        given(postRepository.save(mockPost)).willReturn(mockPost);
+        given(postRepository.findWithTagsById(mockPost.getId())).willReturn(Optional.of(mockPost));
+        assertThat(mockPost.getFirstPublishedAt()).isNull();
+        postService.updatePost(mockPost.getId(), updateRequest);
+        postService.updatePost(mockPost.getId(), new PostUpdateRequest(null, null, true, null));
+        postService.updatePost(mockPost.getId(), updateRequest);
+        assertThat(mockPost.getFirstPublishedAt()).isEqualTo(originalPublication);
+        verify(activityOutbox, never()).created(any(), anyLong(), anyLong(), anyLong());
+        verify(activityOutbox, never()).deletedRoot(anyString(), anyLong());
     }
 
     @Nested
@@ -474,6 +525,7 @@ class PostServiceTest {
 
             // When
             postService.deletePost(postId);
+            verify(activityOutbox).deletedRoot("POST", postId);
 
             // Then
             verify(postRepository).findWithTagsById(postId);
@@ -518,6 +570,14 @@ class PostServiceTest {
 
             // then
             verify(postMetaService).likePost(1L, "1");
+            verify(activityOutbox)
+                    .changed(
+                            until.the.eternity.dcs.domain.experience.ActivitySource.POST_LIKE,
+                            1L,
+                            userId,
+                            mockPost.getUserId(),
+                            1L,
+                            true);
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
         }
 
@@ -540,6 +600,14 @@ class PostServiceTest {
 
             // then
             verify(postMetaService).unlikePost(1L, "1");
+            verify(activityOutbox)
+                    .changed(
+                            until.the.eternity.dcs.domain.experience.ActivitySource.POST_LIKE,
+                            1L,
+                            userId,
+                            mockPost.getUserId(),
+                            1L,
+                            false);
             verify(postRepository).findWithTagsById(1L);
             verify(postLikeRepository).existsByUserIdAndPostId(mockUser.getId(), mockPost.getId());
             verify(postLikeRepository).deleteByUserIdAndPostId(mockUser.getId(), mockPost.getId());

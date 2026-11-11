@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "until.the.eternity"
-version = "1.0.13-SNAPSHOT"
+version = "1.0.14-SNAPSHOT"
 
 java {
 	toolchain {
@@ -69,7 +69,7 @@ tasks.withType<Test> {
 
 tasks.test {
 	useJUnitPlatform {
-		excludeTags("redis-integration", "outfit-mysql", "guild-mysql")
+		excludeTags("redis-integration", "outfit-mysql", "guild-mysql", "experience-mysql")
 	}
 	outputs.dir(project.extra["snippetsDir"]!!)
 }
@@ -182,4 +182,14 @@ tasks.register<Test>("guildMysqlTest") {
     doFirst {
         check(!System.getenv("TEST_MYSQL_URL").isNullOrBlank()) { "TEST_MYSQL_URL is required" }
     }
+}
+
+tasks.register<Test>("experienceMysqlTest") {
+    group = "verification"
+    description = "Verify activity lifecycle, outbox leases and resumable baseline on isolated MySQL."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("experience-mysql") }
+    outputs.upToDateWhen { false }
+    doFirst { check(!System.getenv("TEST_MYSQL_URL").isNullOrBlank()) { "TEST_MYSQL_URL is required" } }
 }
