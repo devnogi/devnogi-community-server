@@ -14,6 +14,7 @@ public record UserCommentActivityResponse(
         @Schema(description = "인증 서버명", example = "류트") String serverName,
         @Schema(description = "인게임 인증 여부", example = "true") Boolean verified,
         String activityGrade,
+        String arcana,
         @Schema(description = "작성일시") @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
                 LocalDateTime createdAt) {
     public static UserCommentActivityResponse of(
@@ -21,7 +22,8 @@ public record UserCommentActivityResponse(
             int likeCount,
             String serverName,
             boolean verified,
-            String activityGrade) {
+            String activityGrade,
+            String arcana) {
         return new UserCommentActivityResponse(
                 comment.getId(),
                 comment.getPost().getId(),
@@ -31,6 +33,7 @@ public record UserCommentActivityResponse(
                 serverName,
                 verified,
                 verified ? activityGrade : null,
+                arcana,
                 comment.getCreatedAt());
     }
 }

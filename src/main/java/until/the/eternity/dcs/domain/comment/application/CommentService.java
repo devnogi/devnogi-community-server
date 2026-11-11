@@ -136,7 +136,8 @@ public class CommentService {
                                     author == null ? null : author.getProfileImageUrl(),
                                     author == null ? null : author.getServerName(),
                                     author != null && author.isVerified(),
-                                    author == null ? null : author.getActivityGrade());
+                                    author == null ? null : author.getActivityGrade(),
+                                    author == null ? null : author.getArcana());
                         });
             }
         }
@@ -150,7 +151,8 @@ public class CommentService {
                             author == null ? null : author.getProfileImageUrl(),
                             author == null ? null : author.getServerName(),
                             author != null && author.isVerified(),
-                            author == null ? null : author.getActivityGrade());
+                            author == null ? null : author.getActivityGrade(),
+                            author == null ? null : author.getArcana());
                 });
     }
 
@@ -297,7 +299,8 @@ public class CommentService {
                                 likeCounts.getOrDefault(comment.getId(), 0),
                                 author == null ? null : author.getServerName(),
                                 author != null && author.isVerified(),
-                                author == null ? null : author.getActivityGrade()));
+                                author == null ? null : author.getActivityGrade(),
+                                author == null ? null : author.getArcana()));
     }
 
     private CommentPageResponseItem renderComment(
@@ -310,7 +313,8 @@ public class CommentService {
                 author == null ? null : author.getProfileImageUrl(),
                 author == null ? null : author.getServerName(),
                 author != null && author.isVerified(),
-                author == null ? null : author.getActivityGrade());
+                author == null ? null : author.getActivityGrade(),
+                author == null ? null : author.getArcana());
     }
 
     @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)

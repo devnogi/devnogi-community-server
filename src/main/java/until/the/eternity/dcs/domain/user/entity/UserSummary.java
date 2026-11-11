@@ -41,6 +41,9 @@ public class UserSummary {
     @Column(name = "activity_grade", length = 32)
     private String activityGrade;
 
+    @Column(length = 32)
+    private String arcana;
+
     public String getActivityGrade() {
         return verified ? activityGrade : null;
     }

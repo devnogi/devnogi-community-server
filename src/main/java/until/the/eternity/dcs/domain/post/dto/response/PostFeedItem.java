@@ -22,7 +22,17 @@ public record PostFeedItem(
             String profileImageUrl,
             String serverName,
             boolean verified,
-            String activityGrade) {
+            String activityGrade,
+            String arcana) {
+        public Author(
+                String nickname,
+                String profileImageUrl,
+                String serverName,
+                boolean verified,
+                String activityGrade) {
+            this(nickname, profileImageUrl, serverName, verified, activityGrade, null);
+        }
+
         public Author(
                 String nickname, String profileImageUrl, String serverName, boolean verified) {
             this(nickname, profileImageUrl, serverName, verified, null);

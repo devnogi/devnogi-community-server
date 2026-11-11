@@ -61,7 +61,8 @@ public class CommentConverter {
             String profileImageUrl,
             String serverName,
             boolean verified,
-            String activityGrade) {
+            String activityGrade,
+            String arcana) {
         return CommentPageResponseItem.from(
                 comment,
                 isLiked,
@@ -70,7 +71,8 @@ public class CommentConverter {
                 profileImageUrl,
                 serverName,
                 verified,
-                activityGrade);
+                activityGrade,
+                arcana);
     }
 
     public CommentPageResponseItem fromCommentToPageResponseNonAuth(
@@ -80,7 +82,8 @@ public class CommentConverter {
             String profileImageUrl,
             String serverName,
             boolean verified,
-            String activityGrade) {
+            String activityGrade,
+            String arcana) {
         return CommentPageResponseItem.from(
                 comment,
                 false,
@@ -89,6 +92,7 @@ public class CommentConverter {
                 profileImageUrl,
                 serverName,
                 verified,
-                activityGrade);
+                activityGrade,
+                arcana);
     }
 }

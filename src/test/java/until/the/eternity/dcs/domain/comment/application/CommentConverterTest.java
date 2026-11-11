@@ -142,7 +142,8 @@ class CommentConverterTest {
                         "https://cdn.example/profile.png",
                         "류트",
                         true,
-                        "EXPERT");
+                        "EXPERT",
+                        "DARK_MAGE");
 
         // then
         assertNotNull(response);
@@ -155,5 +156,23 @@ class CommentConverterTest {
         assertEquals("류트", response.serverName());
         assertTrue(response.verified());
         assertEquals("EXPERT", response.activityGrade());
+        assertEquals("DARK_MAGE", response.arcana());
+    }
+
+    @Test
+    void replyRetainsOptionalArcanaWhileUnverifiedGradeStaysHidden() {
+        Comment reply =
+                Comment.builder()
+                        .id(2L)
+                        .userId(userId)
+                        .content(content)
+                        .parentComment(Comment.builder().id(1L).build())
+                        .build();
+        var response =
+                commentConverter.fromCommentToPageResponseNonAuth(
+                        reply, 0, username, null, null, false, "EXPERT", "SAINT_BARD");
+        assertEquals(1L, response.parentComment());
+        assertEquals("SAINT_BARD", response.arcana());
+        assertNull(response.activityGrade());
     }
 }

@@ -1,0 +1,1 @@
+ALTER TABLE user_summary ADD COLUMN arcana VARCHAR(32) NULL;
