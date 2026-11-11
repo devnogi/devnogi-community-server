@@ -19,7 +19,17 @@ public final class OutfitDtos {
             String nickname,
             String profileImageUrl,
             String serverName,
-            boolean verified) {}
+            boolean verified,
+            String activityGrade) {
+        public Author(
+                long id,
+                String nickname,
+                String profileImageUrl,
+                String serverName,
+                boolean verified) {
+            this(id, nickname, profileImageUrl, serverName, verified, null);
+        }
+    }
 
     public record Image(long id, String url, int displayOrder) {}
 

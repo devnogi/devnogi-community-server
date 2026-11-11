@@ -59,8 +59,13 @@ class GuildRegistryMysqlTest {
         var access = spy(new GuildAccess(jdbc, "http://localhost"));
         doReturn(91001L).when(access).user();
         doReturn(new GuildAccess.Identity("류트", "registrant")).when(access).verified(91001L);
-        var registry = new GuildRegistry(jdbc, access);
+        var registry =
+                new GuildRegistry(
+                        jdbc,
+                        new until.the.eternity.dcs.domain.experience.ActivityOutbox(jdbc, true),
+                        access);
         tx.executeWithoutResult(s -> registry.submit("길드", "신청"));
+        assertEquals(0L, jdbc.queryForObject("SELECT COUNT(*) FROM activity_outbox", Long.class));
         long request = jdbc.queryForObject("SELECT id FROM guild_registration_request", Long.class);
         doNothing().when(access).requireAdmin();
         doReturn(91002L).when(access).user();
@@ -96,10 +101,17 @@ class GuildRegistryMysqlTest {
                 jdbc.queryForObject(
                         "SELECT role FROM guild_member WHERE active_user=91001", String.class));
         int guild = jdbc.queryForObject("SELECT id FROM guild", Integer.class);
+        assertEquals(
+                1L,
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM activity_outbox WHERE activity_type='GUILD_REGISTERED' AND actor_user_id=91001 AND author_user_id=91001 AND target_id=? AND active=true",
+                        Long.class,
+                        guild));
         tx.executeWithoutResult(s -> registry.master(guild, 91001));
         assertEquals("MASTER", access.role(guild, 91001));
         doReturn(91001L).when(access).user();
         tx.executeWithoutResult(s -> registry.leave(guild));
+        assertEquals(1L, jdbc.queryForObject("SELECT COUNT(*) FROM activity_outbox", Long.class));
         assertNull(access.role(guild, 91001));
         assertNull(
                 jdbc.queryForObject("SELECT master_id FROM guild WHERE id=?", Long.class, guild));

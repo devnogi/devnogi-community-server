@@ -13,6 +13,8 @@ import org.springframework.transaction.support.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import until.the.eternity.dcs.common.infrastructure.MinioService;
+import until.the.eternity.dcs.domain.experience.ActivityOutbox;
+import until.the.eternity.dcs.domain.experience.ActivitySource;
 import until.the.eternity.dcs.domain.outfit.catalog.OutfitCatalogService;
 import until.the.eternity.dcs.domain.post.application.PostMediaValidator;
 
@@ -21,6 +23,7 @@ import until.the.eternity.dcs.domain.post.application.PostMediaValidator;
 @Slf4j
 public class OutfitService {
     private final OutfitRepository repository;
+    private final ActivityOutbox activityOutbox;
     private final MinioService storage;
     private final OutfitCatalogService catalog;
     private final TransactionTemplate transaction;
@@ -181,6 +184,8 @@ public class OutfitService {
                                                             .addValue("content", request.content())
                                                             .addValue("now", time));
                                     existing = List.of();
+                                    activityOutbox.created(
+                                            ActivitySource.OUTFIT, postId, user, postId);
                                 } else {
                                     owner(repository.post(id, true), user);
                                     postId = id;
@@ -310,6 +315,7 @@ public class OutfitService {
         transaction.executeWithoutResult(
                 status -> {
                     owner(repository.post(id, true), user);
+                    activityOutbox.deletedRoot("OUTFIT", id);
                     List<String> names =
                             repository.images(id).stream()
                                     .map(OutfitRepository.ImageRow::storedName)
@@ -338,7 +344,7 @@ public class OutfitService {
         long user = currentUser();
         transaction.executeWithoutResult(
                 status -> {
-                    repository.post(id, true);
+                    var target = repository.post(id, true);
                     String table = like ? "outfit_like" : "outfit_bookmark";
                     Map<String, Object> params = Map.of("id", id, "user", user, "now", now());
                     long count =
@@ -347,6 +353,9 @@ public class OutfitService {
                                             + table
                                             + " WHERE outfit_id=:id AND user_id=:user",
                                     params);
+                    if (like && ((enabled && count == 0) || (!enabled && count > 0)))
+                        activityOutbox.changed(
+                                ActivitySource.OUTFIT_LIKE, id, user, target.userId(), id, enabled);
                     if (enabled && count == 0) {
                         repository.update(
                                 "INSERT INTO "
@@ -482,6 +491,7 @@ public class OutfitService {
                             repository.update(
                                     "UPDATE outfit_post SET comment_count=comment_count+1 WHERE id=:id",
                                     Map.of("id", id));
+                            activityOutbox.created(ActivitySource.OUTFIT_COMMENT, newId, user, id);
                             return newId;
                         });
         return comments(List.of(repository.comment(Objects.requireNonNull(saved), id))).getFirst();
@@ -496,6 +506,13 @@ public class OutfitService {
                     if (old.userId() != user)
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "작성자만 삭제할 수 있습니다.");
                     if (!old.deleted()) {
+                        activityOutbox.changed(
+                                ActivitySource.OUTFIT_COMMENT,
+                                comment,
+                                old.userId(),
+                                old.userId(),
+                                id,
+                                false);
                         repository.update(
                                 "UPDATE outfit_comment SET is_deleted=true,content='',updated_at=:now WHERE id=:id",
                                 Map.of("now", now(), "id", comment));

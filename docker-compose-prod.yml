@@ -9,6 +9,8 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -Dspring.profiles.active=prod
       - SPRING_PROFILES_ACTIVE=prod
+      - EXPERIENCE_CAPTURE_ENABLED=${EXPERIENCE_CAPTURE_ENABLED:-false}
+      - EXPERIENCE_PUBLISH_ENABLED=${EXPERIENCE_PUBLISH_ENABLED:-false}
       - AUTH_SERVER_URL=${AUTH_SERVER_URL:-http://auth-server:8091}
       - MANAGEMENT_HEALTH_DB_ENABLED=true
       - MANAGEMENT_HEALTH_REDIS_ENABLED=true

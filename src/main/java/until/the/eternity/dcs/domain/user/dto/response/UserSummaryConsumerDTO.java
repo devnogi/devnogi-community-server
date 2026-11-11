@@ -13,7 +13,19 @@ public record UserSummaryConsumerDTO(
         @Pattern(regexp = "(?s).*\\P{javaWhitespace}.*", message = "서버명은 비어있을 수 없습니다.")
                 String serverName,
         Boolean verified,
-        @Positive Long revision) {
+        @Positive Long revision,
+        @Pattern(regexp = "APPRENTICE|SENIOR|EXPERT|CHAMPION|MASTER|GRANDMASTER")
+                String activityGrade) {
+    public UserSummaryConsumerDTO(
+            Long id,
+            String nickname,
+            String profileImageUrl,
+            String serverName,
+            Boolean verified,
+            Long revision) {
+        this(id, nickname, profileImageUrl, serverName, verified, revision, null);
+    }
+
     public UserSummaryConsumerDTO(
             Long id, String nickname, String profileImageUrl, String serverName) {
         this(id, nickname, profileImageUrl, serverName, null, null);
@@ -38,6 +50,7 @@ public record UserSummaryConsumerDTO(
                 .serverName(this.serverName())
                 .verified(resolvedVerified())
                 .lastAuthSyncRevision(this.revision())
+                .activityGrade(this.activityGrade())
                 .build();
     }
 }

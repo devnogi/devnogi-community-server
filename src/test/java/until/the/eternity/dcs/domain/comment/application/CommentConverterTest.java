@@ -135,7 +135,14 @@ class CommentConverterTest {
         // when
         CommentPageResponseItem response =
                 commentConverter.fromCommentToPageResponse(
-                        comment, false, 0, username, "https://cdn.example/profile.png", "류트", true);
+                        comment,
+                        false,
+                        0,
+                        username,
+                        "https://cdn.example/profile.png",
+                        "류트",
+                        true,
+                        "EXPERT");
 
         // then
         assertNotNull(response);
@@ -147,5 +154,6 @@ class CommentConverterTest {
         assertEquals("https://cdn.example/profile.png", response.profileImageUrl());
         assertEquals("류트", response.serverName());
         assertTrue(response.verified());
+        assertEquals("EXPERT", response.activityGrade());
     }
 }

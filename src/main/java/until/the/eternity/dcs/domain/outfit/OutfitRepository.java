@@ -98,7 +98,7 @@ public class OutfitRepository {
     public Map<Long, OutfitDtos.Author> authors(List<Long> ids) {
         Map<Long, OutfitDtos.Author> result = new HashMap<>();
         jdbc.query(
-                "SELECT id,nickname,profile_image_url,server_name,is_verified FROM user_summary WHERE id IN (:ids)",
+                "SELECT id,nickname,profile_image_url,server_name,is_verified,activity_grade FROM user_summary WHERE id IN (:ids)",
                 Map.of("ids", ids),
                 (org.springframework.jdbc.core.RowCallbackHandler)
                         r -> {
@@ -110,7 +110,10 @@ public class OutfitRepository {
                                             r.getString("nickname"),
                                             r.getString("profile_image_url"),
                                             r.getString("server_name"),
-                                            r.getBoolean("is_verified")));
+                                            r.getBoolean("is_verified"),
+                                            r.getBoolean("is_verified")
+                                                    ? r.getString("activity_grade")
+                                                    : null));
                         });
         return result;
     }

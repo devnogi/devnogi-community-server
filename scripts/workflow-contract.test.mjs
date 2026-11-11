@@ -33,10 +33,12 @@ test('production caller only permits main push or manual dispatch', () => {
   assert.match(prod, /health-timeout: '300'/);
   assert.match(prod, /platform: linux\/amd64/);
   assert.match(prod, /secrets: inherit/);
-  assert.match(build, /^version = "1\.0\.13-SNAPSHOT"$/m);
+  assert.match(build, /^version = "1\.0\.14-SNAPSHOT"$/m);
   assert.match(build, /tasks\.register<Test>\("redisIntegrationTest"\)/);
-  assert.match(build, /tasks\.test[\s\S]*excludeTags\("redis-integration", "outfit-mysql", "guild-mysql"\)/);
+  assert.match(build, /tasks\.test[\s\S]*excludeTags\("redis-integration", "outfit-mysql", "guild-mysql", "experience-mysql"\)/);
   assert.match(build, /tasks\.register<Test>\("guildMysqlTest"\)/);
+  assert.match(build, /tasks\.register<Test>\("experienceMysqlTest"\)/);
+  assert.match(read('.github/workflows/outfit-mysql.yml'), /gradlew experienceMysqlTest --no-daemon/);
   assert.match(read('.github/workflows/outfit-mysql.yml'), /gradlew guildMysqlTest --no-daemon/);
   assert.match(build, /includeTags\("redis-integration"\)/);
   assert.match(redisIntegrationTest, /@Tag\("redis-integration"\)/);

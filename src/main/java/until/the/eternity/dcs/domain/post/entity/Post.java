@@ -50,6 +50,21 @@ public class Post extends SoftDeleteEntity {
     @Builder.Default
     private Boolean isDraft = false;
 
+    @Column(name = "first_published_at")
+    private java.time.LocalDateTime firstPublishedAt;
+
+    public boolean markFirstPublication() {
+        if (Boolean.TRUE.equals(isDraft) || firstPublishedAt != null) return false;
+        firstPublishedAt = java.time.LocalDateTime.now();
+        return true;
+    }
+
+    public void preserveLegacyPublication() {
+        if (!Boolean.TRUE.equals(isDraft) && firstPublishedAt == null) {
+            firstPublishedAt = getCreatedAt();
+        }
+    }
+
     @Column(name = "is_blocked")
     @Builder.Default
     private Boolean isBlocked = false;

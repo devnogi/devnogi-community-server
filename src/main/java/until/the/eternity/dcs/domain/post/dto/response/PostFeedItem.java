@@ -18,7 +18,16 @@ public record PostFeedItem(
         LocalDateTime updatedAt) {
 
     public record Author(
-            String nickname, String profileImageUrl, String serverName, boolean verified) {}
+            String nickname,
+            String profileImageUrl,
+            String serverName,
+            boolean verified,
+            String activityGrade) {
+        public Author(
+                String nickname, String profileImageUrl, String serverName, boolean verified) {
+            this(nickname, profileImageUrl, serverName, verified, null);
+        }
+    }
 
     public record Media(Long id, String type, String url, String contentType, int order) {}
 }

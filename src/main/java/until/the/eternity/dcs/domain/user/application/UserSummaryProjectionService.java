@@ -42,14 +42,15 @@ public class UserSummaryProjectionService {
                 jdbc.update(
                         "INSERT INTO user_summary "
                                 + "(id, nickname, profile_image_url, server_name, is_verified, "
-                                + "last_auth_sync_revision, level, grade) "
-                                + "VALUES (?, ?, ?, ?, ?, ?, 1, 'USER')",
+                                + "last_auth_sync_revision, level, grade, activity_grade) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, 1, 'USER', ?)",
                         event.id(),
                         event.nickname(),
                         event.profileImageUrl(),
                         event.serverName(),
                         event.resolvedVerified(),
-                        event.revision());
+                        event.revision(),
+                        event.activityGrade());
                 return;
             } catch (DataIntegrityViolationException conflict) {
                 // Only a concurrent insert of this ID is retryable. A different user's unique
@@ -66,22 +67,24 @@ public class UserSummaryProjectionService {
         if (event.revision() == null) {
             return jdbc.update(
                     "UPDATE user_summary SET nickname = ?, profile_image_url = ?, server_name = ?, "
-                            + "is_verified = ? "
+                            + "is_verified = ?, activity_grade = ? "
                             + "WHERE id = ? AND last_auth_sync_revision IS NULL",
                     event.nickname(),
                     event.profileImageUrl(),
                     event.serverName(),
                     event.resolvedVerified(),
+                    event.activityGrade(),
                     event.id());
         }
         return jdbc.update(
                 "UPDATE user_summary SET nickname = ?, profile_image_url = ?, server_name = ?, "
-                        + "is_verified = ?, last_auth_sync_revision = ? WHERE id = ? "
+                        + "is_verified = ?, activity_grade = ?, last_auth_sync_revision = ? WHERE id = ? "
                         + "AND (last_auth_sync_revision IS NULL OR last_auth_sync_revision < ?)",
                 event.nickname(),
                 event.profileImageUrl(),
                 event.serverName(),
                 event.resolvedVerified(),
+                event.activityGrade(),
                 event.revision(),
                 event.id(),
                 event.revision());

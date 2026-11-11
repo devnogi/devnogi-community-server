@@ -15,6 +15,8 @@ public record PostSummaryResponse(
         @Schema(description = "작성자 이름", example = "홍길동") String username,
         @Schema(description = "작성자 프로필 이미지 URL", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
                 String profileImageUrl,
+        Boolean verified,
+        String activityGrade,
         @Schema(description = "조회수", example = "10") Integer viewCount,
         @Schema(description = "좋아요 수", example = "5") Integer likeCount,
         @Schema(description = "댓글 수", example = "3") Integer commentCount,
@@ -36,6 +38,8 @@ public record PostSummaryResponse(
                 .userId(post.getUserId())
                 .username(username)
                 .profileImageUrl(profileImageUrl)
+                .verified(userSummary != null && userSummary.isVerified())
+                .activityGrade(userSummary == null ? null : userSummary.getActivityGrade())
                 .viewCount(postMeta.viewCount())
                 .likeCount(postMeta.likeCount())
                 .commentCount(postMeta.commentCount())

@@ -36,6 +36,8 @@ import until.the.eternity.dcs.domain.comment.infrastructure.CommentLikeRepositor
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentMetaRepository;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentReplyCount;
 import until.the.eternity.dcs.domain.comment.infrastructure.CommentRepository;
+import until.the.eternity.dcs.domain.experience.ActivityOutbox;
+import until.the.eternity.dcs.domain.experience.ActivitySource;
 import until.the.eternity.dcs.domain.post.application.PostMetaService;
 import until.the.eternity.dcs.domain.post.entity.Post;
 import until.the.eternity.dcs.domain.post.exception.PostNotFoundException;
@@ -48,6 +50,7 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final ActivityOutbox activityOutbox;
     private final CommentConverter commentConverter;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentLikeConverter commentLikeConverter;
@@ -63,9 +66,12 @@ public class CommentService {
     @PreAuthorize("@commentPermissionEvaluator.canCreate(authentication)")
     public CommentPersistResponse create(Long postId, CommentCreateRequest request) {
         Long userId = getCurrentUserId();
+        activityOutbox.lockPost(postId);
         Comment comment = commentConverter.fromCreateRequestToComment(request, userId, postId);
         Comment save = commentRepository.save(comment);
         connectCommentWithPost(postId, save);
+        if (!Boolean.TRUE.equals(save.getPost().getIsDraft()))
+            activityOutbox.created(ActivitySource.COMMENT, save.getId(), save.getUserId(), postId);
 
         eventPublisher.publishEvent(
                 createCommentCreatedNotification(postId, request.parentComment()));
@@ -82,11 +88,13 @@ public class CommentService {
         return commentConverter.fromCommentToPersistResponse(comment);
     }
 
-    @Transactional
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     @PreAuthorize("@commentPermissionEvaluator.canDelete(authentication,#id)")
     public void delete(Long id) {
         Long userId = getCurrentUserId();
+        activityOutbox.lockCommentRoot(id);
         Comment comment = findById(id);
+        activityOutbox.deletedComment(id);
         comment.delete(userId);
 
         disconnectCommentWithPost(comment);
@@ -127,7 +135,8 @@ public class CommentService {
                                     author == null ? "익명" : author.getNickname(),
                                     author == null ? null : author.getProfileImageUrl(),
                                     author == null ? null : author.getServerName(),
-                                    author != null && author.isVerified());
+                                    author != null && author.isVerified(),
+                                    author == null ? null : author.getActivityGrade());
                         });
             }
         }
@@ -140,7 +149,8 @@ public class CommentService {
                             author == null ? "익명" : author.getNickname(),
                             author == null ? null : author.getProfileImageUrl(),
                             author == null ? null : author.getServerName(),
-                            author != null && author.isVerified());
+                            author != null && author.isVerified(),
+                            author == null ? null : author.getActivityGrade());
                 });
     }
 
@@ -286,7 +296,8 @@ public class CommentService {
                                 comment,
                                 likeCounts.getOrDefault(comment.getId(), 0),
                                 author == null ? null : author.getServerName(),
-                                author != null && author.isVerified()));
+                                author != null && author.isVerified(),
+                                author == null ? null : author.getActivityGrade()));
     }
 
     private CommentPageResponseItem renderComment(
@@ -298,22 +309,39 @@ public class CommentService {
                 author == null ? "익명" : author.getNickname(),
                 author == null ? null : author.getProfileImageUrl(),
                 author == null ? null : author.getServerName(),
-                author != null && author.isVerified());
+                author != null && author.isVerified(),
+                author == null ? null : author.getActivityGrade());
     }
 
-    @Transactional
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     @PreAuthorize("@commentPermissionEvaluator.canToggleLike(authentication)")
     public void toggleLike(CommentLikeToggleRequest request) {
         Long userId = getCurrentUserId();
-
+        long root = activityOutbox.lockCommentRoot(request.commentId());
+        Comment target = findById(request.commentId());
         if (commentLikeRepository.findByCommentIdAndUserId(request.commentId(), userId).isEmpty()) {
             likeComment(request, userId);
+            if (!Boolean.TRUE.equals(target.getPost().getIsDraft()))
+                activityOutbox.changed(
+                        ActivitySource.COMMENT_LIKE,
+                        request.commentId(),
+                        userId,
+                        target.getUserId(),
+                        root,
+                        true);
 
             redisSender.enqueue(NotificationJob.of(userId, COMMENT_LIKE, request.commentId()));
 
             return;
         }
         unlikeComment(request, userId);
+        activityOutbox.changed(
+                ActivitySource.COMMENT_LIKE,
+                request.commentId(),
+                userId,
+                target.getUserId(),
+                root,
+                false);
     }
 
     private void connectCommentWithPost(Long postId, Comment save) {
