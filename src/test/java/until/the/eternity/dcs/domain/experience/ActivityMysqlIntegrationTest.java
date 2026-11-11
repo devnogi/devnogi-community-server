@@ -22,6 +22,61 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Tag("experience-mysql")
 class ActivityMysqlIntegrationTest {
+    @Test
+    void arcanaProjectionPreservesLegacyMissingAndClearsExplicitNullOnMysql() {
+        try (var factory = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
+            var projection =
+                    new until.the.eternity.dcs.domain.user.application.UserSummaryProjectionService(
+                            db, factory.getValidator());
+            var arcana = com.fasterxml.jackson.databind.node.TextNode.valueOf("DARK_MAGE");
+            tx.executeWithoutResult(
+                    status ->
+                            projection.apply(
+                                    new until.the.eternity.dcs.domain.user.dto.response
+                                            .UserSummaryConsumerDTO(
+                                            1L,
+                                            "xp-author",
+                                            null,
+                                            null,
+                                            true,
+                                            1L,
+                                            "EXPERT",
+                                            arcana)));
+            tx.executeWithoutResult(
+                    status ->
+                            projection.apply(
+                                    new until.the.eternity.dcs.domain.user.dto.response
+                                            .UserSummaryConsumerDTO(
+                                            1L, "xp-author", null, null, true, 2L, "EXPERT")));
+            assertEquals(
+                    "DARK_MAGE",
+                    db.queryForObject("SELECT arcana FROM user_summary WHERE id=1", String.class));
+            tx.executeWithoutResult(
+                    status ->
+                            projection.apply(
+                                    new until.the.eternity.dcs.domain.user.dto.response
+                                            .UserSummaryConsumerDTO(
+                                            1L,
+                                            "xp-author",
+                                            null,
+                                            null,
+                                            true,
+                                            3L,
+                                            "EXPERT",
+                                            com.fasterxml.jackson.databind.node.NullNode
+                                                    .instance)));
+            assertNull(
+                    db.queryForObject("SELECT arcana FROM user_summary WHERE id=1", String.class));
+            assertEquals(
+                    "ADMIN",
+                    db.queryForObject("SELECT grade FROM user_summary WHERE id=1", String.class));
+            assertEquals(
+                    "EXPERT",
+                    db.queryForObject(
+                            "SELECT activity_grade FROM user_summary WHERE id=1", String.class));
+        }
+    }
+
     static final java.util.TimeZone ORIGINAL_ZONE = java.util.TimeZone.getDefault();
     static JdbcTemplate db;
     static TransactionTemplate tx;

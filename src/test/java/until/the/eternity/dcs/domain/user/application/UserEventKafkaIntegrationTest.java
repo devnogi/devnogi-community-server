@@ -68,6 +68,35 @@ import until.the.eternity.dcs.domain.user.infrastructure.UserSummaryRepository;
 @DirtiesContext
 @ExtendWith(OutputCaptureExtension.class)
 class UserEventKafkaIntegrationTest {
+    @Test
+    void arcanaDistinguishesLegacyMissingFromExplicitClearAndRejectsStaleRevision()
+            throws Exception {
+        var mapper = new ObjectMapper();
+        var payload =
+                mapper.createObjectNode()
+                        .put("id", 42L)
+                        .put("nickname", "arcana")
+                        .putNull("serverName")
+                        .put("verified", false)
+                        .put("revision", 1L)
+                        .put("arcana", "DARK_MAGE");
+        sendRawAndAwaitOffset(mapper.writeValueAsBytes(payload));
+        assertThat(repository.findById(42L).orElseThrow().getArcana()).isEqualTo("DARK_MAGE");
+        payload.put("revision", 2L).remove("arcana");
+        sendRawAndAwaitOffset(mapper.writeValueAsBytes(payload));
+        assertThat(repository.findById(42L).orElseThrow().getArcana()).isEqualTo("DARK_MAGE");
+        payload.put("revision", 1L).putNull("arcana");
+        sendRawAndAwaitOffset(mapper.writeValueAsBytes(payload));
+        assertThat(repository.findById(42L).orElseThrow().getArcana()).isEqualTo("DARK_MAGE");
+        payload.put("revision", 3L).putNull("arcana");
+        sendRawAndAwaitOffset(mapper.writeValueAsBytes(payload));
+        assertThat(repository.findById(42L).orElseThrow().getArcana()).isNull();
+        payload.put("revision", 4L).put("arcana", "UNKNOWN");
+        sendRawAndAwaitOffset(mapper.writeValueAsBytes(payload));
+        assertThat(rejected.poll(5, TimeUnit.SECONDS)).isNotNull();
+        assertThat(repository.findById(42L).orElseThrow().getLastAuthSyncRevision()).isEqualTo(3L);
+    }
+
     static final String TOPIC = "USER_INFO_UPDATE_EVENT";
     private static final String GROUP = "devnogi-community-group";
 

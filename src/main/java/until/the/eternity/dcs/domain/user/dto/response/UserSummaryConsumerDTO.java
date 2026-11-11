@@ -1,5 +1,9 @@
 package until.the.eternity.dcs.domain.user.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -15,7 +19,47 @@ public record UserSummaryConsumerDTO(
         Boolean verified,
         @Positive Long revision,
         @Pattern(regexp = "APPRENTICE|SENIOR|EXPERT|CHAMPION|MASTER|GRANDMASTER")
-                String activityGrade) {
+                String activityGrade,
+        @JsonProperty("arcana") JsonNode arcanaValue) {
+    public UserSummaryConsumerDTO(
+            Long id,
+            String nickname,
+            String profileImageUrl,
+            String serverName,
+            Boolean verified,
+            Long revision,
+            String activityGrade) {
+        this(id, nickname, profileImageUrl, serverName, verified, revision, activityGrade, null);
+    }
+
+    public String arcana() {
+        return arcanaValue == null || arcanaValue.isNull() ? null : arcanaValue.textValue();
+    }
+
+    public boolean hasArcana() {
+        return arcanaValue != null;
+    }
+
+    @AssertTrue(message = "Invalid arcana")
+    @JsonIgnore
+    public boolean isArcanaValid() {
+        return arcanaValue == null
+                || arcanaValue.isNull()
+                || (arcanaValue.isTextual()
+                        && java.util.Set.of(
+                                        "ELEMENTAL_KNIGHT",
+                                        "SAINT_BARD",
+                                        "DARK_MAGE",
+                                        "ALCHEMIC_STINGER",
+                                        "SACRED_GUARD",
+                                        "BLAST_LANCER",
+                                        "VARIABLE_GUNNER",
+                                        "FORBIDDEN_ALCHEMIST",
+                                        "MELODIC_PUPPETEER",
+                                        "FURY_FIGHTER")
+                                .contains(arcanaValue.textValue()));
+    }
+
     public UserSummaryConsumerDTO(
             Long id,
             String nickname,
@@ -51,6 +95,7 @@ public record UserSummaryConsumerDTO(
                 .verified(resolvedVerified())
                 .lastAuthSyncRevision(this.revision())
                 .activityGrade(this.activityGrade())
+                .arcana(this.arcana())
                 .build();
     }
 }

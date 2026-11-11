@@ -101,6 +101,7 @@ class PostServiceTest {
                 UserSummary.builder()
                         .id(1L)
                         .nickname("testUser")
+                        .arcana("DARK_MAGE")
                         .profileImageUrl("https://cdn.example/profile.png")
                         .build();
 
@@ -163,6 +164,7 @@ class PostServiceTest {
                         .title("Test Title")
                         .userId(1L)
                         .username("testUser")
+                        .arcana("DARK_MAGE")
                         .profileImageUrl("https://cdn.example/profile.png")
                         .verified(false)
                         .viewCount(0)
@@ -339,6 +341,7 @@ class PostServiceTest {
             // Then
             assertThat(result.id()).isEqualTo(mockDetailResponse.id());
             assertThat(result.author().nickname()).isEqualTo(username);
+            assertThat(result.author().arcana()).isEqualTo("DARK_MAGE");
             assertThat(result.profileImageUrl()).isEqualTo("https://cdn.example/profile.png");
             assertThat(result.media()).isEmpty();
             assertThat(result.viewCount()).isEqualTo(cnt + 1);

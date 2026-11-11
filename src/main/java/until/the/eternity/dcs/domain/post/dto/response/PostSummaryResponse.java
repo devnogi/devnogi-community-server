@@ -17,6 +17,7 @@ public record PostSummaryResponse(
                 String profileImageUrl,
         Boolean verified,
         String activityGrade,
+        String arcana,
         @Schema(description = "조회수", example = "10") Integer viewCount,
         @Schema(description = "좋아요 수", example = "5") Integer likeCount,
         @Schema(description = "댓글 수", example = "3") Integer commentCount,
@@ -40,6 +41,7 @@ public record PostSummaryResponse(
                 .profileImageUrl(profileImageUrl)
                 .verified(userSummary != null && userSummary.isVerified())
                 .activityGrade(userSummary == null ? null : userSummary.getActivityGrade())
+                .arcana(userSummary == null ? null : userSummary.getArcana())
                 .viewCount(postMeta.viewCount())
                 .likeCount(postMeta.likeCount())
                 .commentCount(postMeta.commentCount())

@@ -23,7 +23,16 @@ class KafkaConsumerServiceTest {
 
     @Test
     void delegatesValidatedProjectionWithoutLoggingPayload() throws Exception {
-        var event = new UserSummaryConsumerDTO(42L, "name", null, "류트", true, 7L);
+        var event =
+                new UserSummaryConsumerDTO(
+                        42L,
+                        "name",
+                        null,
+                        "류트",
+                        true,
+                        7L,
+                        null,
+                        com.fasterxml.jackson.databind.node.NullNode.instance);
 
         kafkaConsumerService.consume(objectMapper.writeValueAsBytes(event));
 

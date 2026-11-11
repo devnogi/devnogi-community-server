@@ -189,7 +189,8 @@ public class PostService {
                         socialUser == null ? null : socialUser.getProfileImageUrl(),
                         socialUser == null ? null : socialUser.getServerName(),
                         socialUser != null && socialUser.isVerified(),
-                        socialUser == null ? null : socialUser.getActivityGrade());
+                        socialUser == null ? null : socialUser.getActivityGrade(),
+                        socialUser == null ? null : socialUser.getArcana());
         List<PostFeedItem.Media> media =
                 post.getImages().stream()
                         .sorted(java.util.Comparator.comparingInt(PostImage::getDisplayOrder))
@@ -678,7 +679,8 @@ public class PostService {
                                     user == null ? null : user.getProfileImageUrl(),
                                     user == null ? null : user.getServerName(),
                                     user != null && user.isVerified(),
-                                    user == null ? null : user.getActivityGrade());
+                                    user == null ? null : user.getActivityGrade(),
+                                    user == null ? null : user.getArcana());
                     return new PostFeedItem(
                             post.getId(),
                             post.getUserId(),

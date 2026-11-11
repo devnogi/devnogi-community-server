@@ -17,6 +17,25 @@ import until.the.eternity.dcs.domain.user.entity.UserSummary;
 
 class UserInfoContractTest {
     @Test
+    void readsNewProducerExplicitNullAndRetainsMissingLegacyPresence() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var upgraded =
+                mapper.readValue(
+                        Files.readString(
+                                Path.of(
+                                        "src/test/resources/contracts/user-info-update-arcana.json")),
+                        UserSummaryConsumerDTO.class);
+        var legacy =
+                mapper.readValue(
+                        Files.readString(
+                                Path.of("src/test/resources/contracts/user-info-update.json")),
+                        UserSummaryConsumerDTO.class);
+        assertTrue(upgraded.hasArcana());
+        assertNull(upgraded.arcana());
+        assertFalse(legacy.hasArcana());
+    }
+
+    @Test
     void readsAuthProducerFixture() throws Exception {
         byte[] payload =
                 Files.readAllBytes(Path.of("src/test/resources/contracts/user-info-update.json"));
