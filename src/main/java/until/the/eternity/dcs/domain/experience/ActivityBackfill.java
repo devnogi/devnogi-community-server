@@ -1,6 +1,5 @@
 package until.the.eternity.dcs.domain.experience;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -42,7 +41,7 @@ public class ActivityBackfill {
             var existing =
                     db.query(
                             "SELECT cutoff_time FROM activity_backfill_checkpoint WHERE source=? FOR UPDATE",
-                            (r, n) -> r.getTimestamp(1).toLocalDateTime().toInstant(ZoneOffset.UTC),
+                            (r, n) -> r.getObject(1, LocalDateTime.class).toInstant(ZoneOffset.UTC),
                             source.name());
             if (!existing.isEmpty()) {
                 if (!existing.getFirst().equals(cutoff))
@@ -56,7 +55,7 @@ public class ActivityBackfill {
                     "INSERT INTO activity_backfill_checkpoint(source,cutoff_id,cutoff_time) VALUES(?,?,?)",
                     source.name(),
                     max,
-                    Timestamp.valueOf(LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC)));
+                    LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC));
         }
     }
 
@@ -65,7 +64,7 @@ public class ActivityBackfill {
         List<Progress> result = new ArrayList<>();
         for (ActivitySource source : ActivitySource.values()) {
             var checkpoints =
-                    db.queryForList(
+                    checkpoints(
                             "SELECT * FROM activity_backfill_checkpoint WHERE source=?",
                             source.name());
             if (checkpoints.isEmpty())
@@ -93,6 +92,20 @@ public class ActivityBackfill {
         return result;
     }
 
+    private List<java.util.Map<String, Object>> checkpoints(String sql, String source) {
+        return db.query(
+                sql,
+                (r, n) -> {
+                    java.util.Map<String, Object> row = new java.util.HashMap<>();
+                    row.put("cutoff_id", r.getLong("cutoff_id"));
+                    row.put("last_id", r.getLong("last_id"));
+                    row.put("complete", r.getBoolean("complete"));
+                    row.put("cutoff_time", r.getObject("cutoff_time", LocalDateTime.class));
+                    return row;
+                },
+                source);
+    }
+
     private ZoneId sourceZone(ActivitySource source) {
         return switch (source) {
             case OUTFIT, OUTFIT_COMMENT, OUTFIT_LIKE -> ZoneOffset.UTC;
@@ -102,10 +115,7 @@ public class ActivityBackfill {
     }
 
     private LocalDateTime sourceCutoff(ActivitySource source, Object storedCutoff) {
-        LocalDateTime utc =
-                storedCutoff instanceof Timestamp value
-                        ? value.toLocalDateTime()
-                        : (LocalDateTime) storedCutoff;
+        LocalDateTime utc = (LocalDateTime) storedCutoff;
         return LocalDateTime.ofInstant(utc.toInstant(ZoneOffset.UTC), sourceZone(source));
     }
 
@@ -115,7 +125,7 @@ public class ActivityBackfill {
         if (size < 1 || size > 1000)
             throw new IllegalArgumentException("Batch size must be 1..1000");
         var rows =
-                db.queryForList(
+                checkpoints(
                         "SELECT * FROM activity_backfill_checkpoint WHERE source=? FOR UPDATE",
                         source.name());
         if (rows.isEmpty()) throw new IllegalStateException("Freeze cutoffs first");
@@ -147,8 +157,7 @@ public class ActivityBackfill {
                                     r.getLong("actor_id"),
                                     r.getLong("author_id"),
                                     r.getLong("root_id"),
-                                    r.getTimestamp("occurred_at")
-                                            .toLocalDateTime()
+                                    r.getObject("occurred_at", LocalDateTime.class)
                                             .atZone(sourceZone(source))
                                             .toInstant());
                             inserted[0]++;

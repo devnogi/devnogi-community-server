@@ -1,7 +1,6 @@
 package until.the.eternity.dcs.domain.experience;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -106,8 +105,7 @@ public class ActivityOutboxPublisher {
                                             r.getLong("root_target_id"),
                                             r.getBoolean("active"),
                                             r.getBoolean("baseline") ? 0 : id,
-                                            r.getTimestamp("occurred_at")
-                                                    .toLocalDateTime()
+                                            r.getObject("occurred_at", LocalDateTime.class)
                                                     .toInstant(ZoneOffset.UTC)));
                         });
         if (rows.isEmpty()) return null;
@@ -120,7 +118,7 @@ public class ActivityOutboxPublisher {
         return claim;
     }
 
-    private static Timestamp timestamp(Instant instant) {
-        return Timestamp.valueOf(LocalDateTime.ofInstant(instant, ZoneOffset.UTC));
+    private static LocalDateTime timestamp(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }

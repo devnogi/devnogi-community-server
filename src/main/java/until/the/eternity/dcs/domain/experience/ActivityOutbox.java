@@ -1,7 +1,6 @@
 package until.the.eternity.dcs.domain.experience;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -140,7 +139,7 @@ public class ActivityOutbox {
                 root,
                 active,
                 baseline,
-                Timestamp.valueOf(LocalDateTime.ofInstant(at, ZoneOffset.UTC)),
+                LocalDateTime.ofInstant(at, ZoneOffset.UTC),
                 enqueuedAt,
                 enqueuedAt);
     }

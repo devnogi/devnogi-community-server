@@ -22,6 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Tag("experience-mysql")
 class ActivityMysqlIntegrationTest {
+    static final java.util.TimeZone ORIGINAL_ZONE = java.util.TimeZone.getDefault();
     static JdbcTemplate db;
     static TransactionTemplate tx;
     ActivityOutbox outbox;
@@ -29,7 +30,11 @@ class ActivityMysqlIntegrationTest {
 
     @BeforeAll
     static void migrate() {
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Seoul"));
         String url = Objects.requireNonNull(System.getenv("TEST_MYSQL_URL"));
+        url +=
+                (url.contains("?") ? "&" : "?")
+                        + "connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true";
         assertTrue(
                 url.startsWith("jdbc:mysql://127.0.0.1:")
                         || url.startsWith("jdbc:mysql://localhost:"));
@@ -54,6 +59,47 @@ class ActivityMysqlIntegrationTest {
                         password);
         db = new JdbcTemplate(ds);
         tx = new TransactionTemplate(new DataSourceTransactionManager(ds));
+    }
+
+    @AfterAll
+    static void restoreZone() {
+        java.util.TimeZone.setDefault(ORIGINAL_ZONE);
+    }
+
+    @Test
+    void utcDatetimeStorageSurvivesSeoulJvmAndUtcConnection() {
+        Instant cutoff = Instant.parse("2026-01-02T03:04:05Z");
+        tx.executeWithoutResult(
+                status -> {
+                    outbox.baseline(ActivitySource.POST, 1, 1, 1, 1, cutoff);
+                    backfill.freeze(cutoff);
+                    backfill.freeze(cutoff);
+                });
+        assertEquals(
+                "2026-01-02 03:04:05",
+                db.queryForObject(
+                        "SELECT DATE_FORMAT(occurred_at,'%Y-%m-%d %H:%i:%s') FROM activity_outbox",
+                        String.class));
+        assertEquals(
+                "2026-01-02 03:04:05",
+                db.queryForObject(
+                        "SELECT DATE_FORMAT(cutoff_time,'%Y-%m-%d %H:%i:%s') FROM activity_backfill_checkpoint WHERE source='POST'",
+                        String.class));
+        var publisher = publisher(mock(KafkaTemplate.class));
+        var claimed = tx.execute(status -> publisher.claim());
+        assertNotNull(claimed);
+        assertEquals(cutoff, claimed.event().occurredAt());
+        assertTrue(
+                db.queryForObject(
+                        "SELECT TIMESTAMPDIFF(SECOND,UTC_TIMESTAMP(),claimed_until) BETWEEN 115 AND 121 FROM activity_outbox",
+                        Boolean.class));
+        assertNull(tx.execute(status -> publisher.claim()));
+        db.update(
+                "UPDATE post SET created_at='2026-01-02 03:04:00',first_published_at=NULL WHERE id=1");
+        db.update("DELETE FROM activity_outbox");
+        assertEquals(1, tx.execute(status -> backfill.step(ActivitySource.POST, 100)).intValue());
+        var baseline = tx.execute(status -> publisher.claim());
+        assertEquals(Instant.parse("2026-01-02T03:04:00Z"), baseline.event().occurredAt());
     }
 
     @BeforeEach
@@ -318,6 +364,7 @@ class ActivityMysqlIntegrationTest {
         var publisher = publisher(kafka);
         publisher.publish();
         assertEquals(1, count("published_at IS NULL AND attempts=1 AND claim_token IS NULL"));
+        assertEquals(1, count("next_attempt_at>UTC_TIMESTAMP(6)"));
         db.update("UPDATE activity_outbox SET next_attempt_at=UTC_TIMESTAMP(6)");
         when(kafka.send(eq(ActivityOutboxPublisher.TOPIC), any(), any(byte[].class)))
                 .thenReturn(CompletableFuture.completedFuture(null));

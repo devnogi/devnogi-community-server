@@ -56,7 +56,7 @@ java -Dloader.main=until.the.eternity.dcs.domain.experience.ActivityBackfillComm
 
 ### 과거 시각의 시간대
 
-라이브 이벤트와 outbox/lease 시각은 UTC다. 기존 원본 컬럼은 저장 방식이 다르므로 소급만 아래 변환을 적용한다.
+라이브 이벤트와 outbox/lease 시각은 UTC다. 새 경험치 DATETIME 컬럼은 JDBC `LocalDateTime`으로 읽고 쓰며 JVM·연결 시간대에 따른 `Timestamp` 재변환을 적용하지 않는다. 기존 원본 컬럼은 저장 방식이 다르므로 소급만 아래 변환을 적용한다.
 
 - 일반 글·댓글·좋아요: `experience.backfill.legacy-zone`, 기본 `Asia/Seoul` (기존 운영 JVM `TZ=Asia/Seoul`).
 - 길드 등록·추억글·모집글: `experience.backfill.guild-zone`, 기본 `Asia/Seoul` (운영 MySQL `--default-time-zone=+09:00`).
