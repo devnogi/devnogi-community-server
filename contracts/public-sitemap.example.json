@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "code": "COMMON_SUCCESS",
+  "message": "요청이 성공적으로 처리되었습니다.",
+  "data": {
+    "items": [{ "id": 12, "updatedAt": "2026-11-13T00:15:30Z" }],
+    "nextCursor": "12",
+    "hasNext": true
+  },
+  "timestamp": "2026-11-13T02:00:00Z"
+}

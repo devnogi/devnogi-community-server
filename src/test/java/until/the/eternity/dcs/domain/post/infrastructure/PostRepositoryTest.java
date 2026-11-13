@@ -161,6 +161,27 @@ public class PostRepositoryTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
     }
 
+    @Test
+    void latestFeedPagesKeepEqualCreationTimesInDescendingIdOrder() {
+        Post first = createPost("first", 0, 0, 0);
+        Post second = createPost("second", 0, 0, 0);
+        Post third = createPost("third", 0, 0, 0);
+        em.flush();
+        LocalDateTime sameTime = LocalDateTime.of(2026, 11, 13, 9, 0);
+        for (Post post : List.of(first, second, third)) {
+            updateCreatedAt(post.getId(), sameTime);
+        }
+        em.clear();
+        Sort order = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+
+        assertThat(postRepository.findFeed(null, PageRequest.of(0, 2, order)).getContent())
+                .extracting(Post::getId)
+                .containsExactly(third.getId(), second.getId());
+        assertThat(postRepository.findFeed(null, PageRequest.of(1, 2, order)).getContent())
+                .extracting(Post::getId)
+                .containsExactly(first.getId());
+    }
+
     // --- 데이터를 쉽게 만들기 위한 헬퍼 메서드 ---
     private Post createPost(String title, int viewCount, int commentCount, int likeCount) {
         // 1. Post 객체 생성
