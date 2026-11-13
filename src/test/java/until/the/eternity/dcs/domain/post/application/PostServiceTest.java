@@ -195,6 +195,34 @@ class PostServiceTest {
         userSummaryList = new ArrayList<>();
     }
 
+    @Test
+    void latestFeedHasDeterministicIdTieBreakerWithoutChangingExplicitIdSort() {
+        SecurityContextHolder.clearContext();
+        given(postRepository.findFeed(isNull(), any(Pageable.class)))
+                .willAnswer(invocation -> Page.empty(invocation.getArgument(1)));
+
+        postService.findFeed(new PostPageRequest(2, 20, null, null), "LATEST", null, null);
+
+        verify(postRepository)
+                .findFeed(
+                        isNull(),
+                        argThat(
+                                page ->
+                                        page.getPageNumber() == 1
+                                                && page.getPageSize() == 20
+                                                && page.getSort()
+                                                        .equals(
+                                                                Sort.by(
+                                                                        Sort.Order.desc(
+                                                                                "createdAt"),
+                                                                        Sort.Order.desc("id")))));
+        postService.findFeed(new PostPageRequest(1, 20, "id", "asc"), "LATEST", null, null);
+        verify(postRepository)
+                .findFeed(
+                        isNull(),
+                        argThat(page -> page.getSort().equals(Sort.by(Sort.Order.asc("id")))));
+    }
+
     @Nested
     class BookmarkTest {
         @Test

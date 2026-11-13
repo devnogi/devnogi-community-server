@@ -209,6 +209,14 @@ public class PostService {
     public Page<PostFeedItem> findFeed(
             PostPageRequest request, String sort, String keyword, Long userId) {
         Pageable pageable = request.toPageable();
+        Sort.Order createdAt = pageable.getSort().getOrderFor("createdAt");
+        if (!"POPULAR".equalsIgnoreCase(sort) && createdAt != null && createdAt.isDescending()) {
+            pageable =
+                    PageRequest.of(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            pageable.getSort().and(Sort.by(Sort.Direction.DESC, "id")));
+        }
         Page<Post> posts;
         if (userId != null) {
             posts =
