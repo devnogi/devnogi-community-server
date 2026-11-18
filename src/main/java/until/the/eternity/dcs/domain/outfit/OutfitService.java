@@ -208,7 +208,7 @@ public class OutfitService {
                                     postId = id;
                                     existing = repository.images(id);
                                     repository.update(
-                                            "UPDATE outfit_post SET content=:content,gender=COALESCE(:gender,gender),updated_at=:now WHERE id=:id",
+                                            "UPDATE outfit_post SET content=:content,gender=:gender,updated_at=:now WHERE id=:id",
                                             new MapSqlParameterSource("content", request.content())
                                                     .addValue("gender", request.gender())
                                                     .addValue("now", time)

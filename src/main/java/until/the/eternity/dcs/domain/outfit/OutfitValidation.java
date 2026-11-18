@@ -39,7 +39,7 @@ public final class OutfitValidation {
     }
 
     public static String gender(String value) {
-        if (value != null && !Set.of("MALE", "FEMALE").contains(value))
+        if (value == null || !Set.of("MALE", "FEMALE").contains(value))
             throw invalid("성별은 남 또는 여를 선택해 주세요.");
         return value;
     }

@@ -1,4 +1,4 @@
-# Outfit snap — revision 3 (gender compatibility)
+# Outfit snap — revision 4 (gender required)
 
 The provider is Community `/api/outfits`, reached through Gateway `/dcs/api/outfits`.
 React owns the same-origin BFF and screens. Outfit posts now have a nullable gender column,
@@ -15,11 +15,9 @@ its name has at most 100 Unicode code points. Custom motions are not added to Ba
 Posts have optional plain text (1,000 code points), up to ten tags (20 code points each),
 and one to five JPEG/PNG/WebP/GIF images (5 MiB each). There is no title or video.
 POST and PUT use multipart `data` (JSON) and repeated `media` files. JSON contains
-`content`, `gender`, `tags`, `items` and `mediaOrder`. `gender` is `MALE` or `FEMALE` for
-new clients. During the React transition, an omitted `gender` is accepted and stored as
-`null`; a legacy client editing a gendered post without this field keeps its existing
-gender. A later server release will require gender on every new or edited post.
-Existing posts remain `null` until their owner selects a gender while editing.
+`content`, `gender`, `tags`, `items` and `mediaOrder`. `gender` must be `MALE` or `FEMALE`
+on every new or edited post; missing or invalid values return 400. Existing posts remain
+`null` until their owner selects a gender while editing.
 Each media order entry has exactly one of
 `imageId` (an existing image belonging to this outfit) or `uploadIndex` (zero-based
 index in the uploaded files). Every new file must appear exactly once; omitted existing
