@@ -32,22 +32,25 @@ public class OutfitController {
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) String items,
             @RequestParam(required = false) List<String> tags,
-            @RequestParam(required = false) String motion) {
-        return service.list(sort, size, page, cursor, filters(items), tags, motion, null);
+            @RequestParam(required = false) String motion,
+            @RequestParam(required = false) List<String> gender) {
+        return service.list(sort, size, page, cursor, filters(items), tags, motion, gender, null);
     }
 
     @GetMapping("/mine")
     public OutfitDtos.Page<OutfitDtos.Outfit> mine(
             @RequestParam(defaultValue = "24") int size,
             @RequestParam(required = false) String cursor) {
-        return service.list("LATEST", size, 0, cursor, List.of(), List.of(), null, "mine");
+        return service.list(
+                "LATEST", size, 0, cursor, List.of(), List.of(), null, List.of(), "mine");
     }
 
     @GetMapping("/bookmarks")
     public OutfitDtos.Page<OutfitDtos.Outfit> bookmarks(
             @RequestParam(defaultValue = "24") int size,
             @RequestParam(required = false) String cursor) {
-        return service.list("LATEST", size, 0, cursor, List.of(), List.of(), null, "saved");
+        return service.list(
+                "LATEST", size, 0, cursor, List.of(), List.of(), null, List.of(), "saved");
     }
 
     @GetMapping("/items")

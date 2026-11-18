@@ -1,7 +1,8 @@
-# Outfit snap — revision 2
+# Outfit snap — revision 3 (gender compatibility)
 
 The provider is Community `/api/outfits`, reached through Gateway `/dcs/api/outfits`.
-React owns the same-origin BFF and screens. Existing post tables and endpoints are unchanged.
+React owns the same-origin BFF and screens. Outfit posts now have a nullable gender column,
+and the existing write, detail and public-list endpoints expose the gender contract below.
 
 ## Content and slots
 
@@ -14,7 +15,12 @@ its name has at most 100 Unicode code points. Custom motions are not added to Ba
 Posts have optional plain text (1,000 code points), up to ten tags (20 code points each),
 and one to five JPEG/PNG/WebP/GIF images (5 MiB each). There is no title or video.
 POST and PUT use multipart `data` (JSON) and repeated `media` files. JSON contains
-`content`, `tags`, `items` and `mediaOrder`. Each media order entry has exactly one of
+`content`, `gender`, `tags`, `items` and `mediaOrder`. `gender` is `MALE` or `FEMALE` for
+new clients. During the React transition, an omitted `gender` is accepted and stored as
+`null`; a legacy client editing a gendered post without this field keeps its existing
+gender. A later server release will require gender on every new or edited post.
+Existing posts remain `null` until their owner selects a gender while editing.
+Each media order entry has exactly one of
 `imageId` (an existing image belonging to this outfit) or `uploadIndex` (zero-based
 index in the uploaded files). Every new file must appear exactly once; omitted existing
 images are removed. The first entry is the cover.
@@ -26,7 +32,10 @@ image redirects. Timestamps are ISO UTC instants with `Z`. Dynamic endpoints use
 
 GET `/api/outfits` accepts `sort=LATEST|POPULAR`, `size` (1–50, default 24), `page`
 (zero-based, popular only), `cursor` (latest only), `items` (JSON array of item references),
-repeated `tags`, and optional `motion` (normalized exact motion name). In item filters,
+repeated `tags`, optional `motion` (normalized exact motion name), and repeated
+`gender=MALE|FEMALE`. No gender value, or both values, returns all genders including
+legacy `null` posts; one value selects only that gender. Unknown values return 400.
+In item filters,
 `slot` may be absent for any-slot matching. Conditions are ANDed. Accessory filters ignore
 the two slot numbers but two filters must match two different equipped rows.
 

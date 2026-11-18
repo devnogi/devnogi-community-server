@@ -20,6 +20,7 @@ public class OutfitRepository {
             long id,
             long userId,
             String content,
+            String gender,
             boolean deleted,
             long likes,
             long comments,
@@ -35,6 +36,7 @@ public class OutfitRepository {
                             r.getLong("id"),
                             r.getLong("user_id"),
                             r.getString("content"),
+                            r.getString("gender"),
                             r.getBoolean("is_deleted"),
                             r.getLong("like_count"),
                             r.getLong("comment_count"),
@@ -158,11 +160,16 @@ public class OutfitRepository {
             List<OutfitDtos.Item> filters,
             List<String> tags,
             String motion,
+            List<String> genders,
             Long user,
             boolean saved) {
         MapSqlParameterSource p = new MapSqlParameterSource("limit", size + 1);
         StringBuilder sql =
                 new StringBuilder("SELECT p.* FROM outfit_post p WHERE p.is_deleted=false");
+        if (genders.size() == 1) {
+            sql.append(" AND p.gender=:gender");
+            p.addValue("gender", genders.getFirst());
+        }
         if (user != null) {
             p.addValue("user", user);
             sql.append(

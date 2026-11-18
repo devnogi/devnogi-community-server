@@ -33,15 +33,19 @@ class OutfitMysqlIntegrationTest extends OutfitServiceTest {
                             .defaultSchema(schema)
                             .cleanDisabled(false)
                             .locations("classpath:db/migration")
-                            .target(schema.contains("upgrade") ? "20261105000002" : "latest")
+                            .target(schema.contains("upgrade") ? "20261111010000" : "latest")
                             .load();
             baseline.clean();
             baseline.migrate();
             if (schema.contains("upgrade")) {
-                new JdbcTemplate(
-                                new DriverManagerDataSource(schemaUrl(url, schema), user, password))
-                        .update(
-                                "INSERT INTO user_summary(id,nickname,is_verified) VALUES(99999,'migration-survivor',false)");
+                JdbcTemplate before =
+                        new JdbcTemplate(
+                                new DriverManagerDataSource(
+                                        schemaUrl(url, schema), user, password));
+                before.update(
+                        "INSERT INTO user_summary(id,nickname,is_verified) VALUES(99999,'migration-survivor',false)");
+                before.update(
+                        "INSERT INTO outfit_post(id,user_id,content,created_at,updated_at) VALUES(99999,99999,'legacy outfit',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)");
             }
             Flyway complete =
                     Flyway.configure()
@@ -65,6 +69,15 @@ class OutfitMysqlIntegrationTest extends OutfitServiceTest {
                         "migration-survivor",
                         verify.queryForObject(
                                 "SELECT nickname FROM user_summary WHERE id=99999", String.class));
+            if (schema.contains("upgrade")) {
+                assertEquals(
+                        "legacy outfit",
+                        verify.queryForObject(
+                                "SELECT content FROM outfit_post WHERE id=99999", String.class));
+                assertNull(
+                        verify.queryForObject(
+                                "SELECT gender FROM outfit_post WHERE id=99999", String.class));
+            }
         }
         mysql =
                 new DriverManagerDataSource(

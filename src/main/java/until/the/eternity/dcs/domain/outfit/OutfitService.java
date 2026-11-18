@@ -68,6 +68,7 @@ public class OutfitService {
                                         p.userId(),
                                         author(p.userId(), authors),
                                         p.content(),
+                                        p.gender(),
                                         images.getOrDefault(p.id(), List.of()).stream()
                                                 .map(
                                                         i ->
@@ -100,6 +101,19 @@ public class OutfitService {
             List<String> tags,
             String motion,
             String scope) {
+        return list(sort, size, page, cursor, filters, tags, motion, List.of(), scope);
+    }
+
+    public OutfitDtos.Page<OutfitDtos.Outfit> list(
+            String sort,
+            int size,
+            int page,
+            String cursor,
+            List<OutfitDtos.Item> filters,
+            List<String> tags,
+            String motion,
+            List<String> genders,
+            String scope) {
         if (!Set.of("LATEST", "POPULAR").contains(sort)
                 || size < 1
                 || size > 50
@@ -108,6 +122,7 @@ public class OutfitService {
                 || filters.size() > 11) throw OutfitValidation.invalid("잘못된 검색 조건입니다.");
         List<OutfitDtos.Item> valid =
                 filters.stream().map(i -> OutfitValidation.item(i, true)).toList();
+        List<String> validGenders = OutfitValidation.genders(genders);
         if (valid.stream()
                         .filter(i -> i.slot() != null && i.slot().startsWith("ACCESSORY_"))
                         .count()
@@ -122,6 +137,7 @@ public class OutfitService {
                         valid,
                         OutfitValidation.tags(tags),
                         motion,
+                        validGenders,
                         user,
                         "saved".equals(scope));
         boolean more = all.size() > size;
@@ -179,9 +195,10 @@ public class OutfitService {
                                 if (id == null) {
                                     postId =
                                             repository.insert(
-                                                    "INSERT INTO outfit_post(user_id,content,created_at,updated_at) VALUES(:user,:content,:now,:now)",
+                                                    "INSERT INTO outfit_post(user_id,content,gender,created_at,updated_at) VALUES(:user,:content,:gender,:now,:now)",
                                                     new MapSqlParameterSource("user", user)
                                                             .addValue("content", request.content())
+                                                            .addValue("gender", request.gender())
                                                             .addValue("now", time));
                                     existing = List.of();
                                     activityOutbox.created(
@@ -191,14 +208,11 @@ public class OutfitService {
                                     postId = id;
                                     existing = repository.images(id);
                                     repository.update(
-                                            "UPDATE outfit_post SET content=:content,updated_at=:now WHERE id=:id",
-                                            Map.of(
-                                                    "content",
-                                                    request.content(),
-                                                    "now",
-                                                    time,
-                                                    "id",
-                                                    id));
+                                            "UPDATE outfit_post SET content=:content,gender=COALESCE(:gender,gender),updated_at=:now WHERE id=:id",
+                                            new MapSqlParameterSource("content", request.content())
+                                                    .addValue("gender", request.gender())
+                                                    .addValue("now", time)
+                                                    .addValue("id", id));
                                 }
                                 validateMedia(request.mediaOrder(), files.size(), existing);
                                 Set<Long> retained = new HashSet<>();
