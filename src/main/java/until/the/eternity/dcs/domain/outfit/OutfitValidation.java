@@ -38,6 +38,20 @@ public final class OutfitValidation {
         return text(value, 255, false).toLowerCase(Locale.ROOT);
     }
 
+    public static String gender(String value) {
+        if (value != null && !Set.of("MALE", "FEMALE").contains(value))
+            throw invalid("성별은 남 또는 여를 선택해 주세요.");
+        return value;
+    }
+
+    public static List<String> genders(List<String> values) {
+        if (values == null || values.isEmpty()) return List.of();
+        if (values.stream()
+                .anyMatch(value -> value == null || !Set.of("MALE", "FEMALE").contains(value)))
+            throw invalid("잘못된 성별 검색 조건입니다.");
+        return values.stream().distinct().toList();
+    }
+
     public static List<String> tags(List<String> tags) {
         if (tags == null) return List.of();
         if (tags.size() > 10) throw invalid("태그는 최대 10개입니다.");
@@ -87,6 +101,7 @@ public final class OutfitValidation {
                 || input.mediaOrder().size() > 5) throw invalid("사진은 1~5장 필요합니다.");
         return new OutfitDtos.Write(
                 text(input.content(), 1000, false),
+                gender(input.gender()),
                 tags(input.tags()),
                 List.copyOf(items),
                 input.mediaOrder());

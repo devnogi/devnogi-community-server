@@ -37,6 +37,10 @@ class OutfitServiceTest {
                         new ClassPathResource(
                                 "db/migration/V20261107000001__create_outfit_snap.sql"))
                 .execute(ds);
+        new ResourceDatabasePopulator(
+                        new ClassPathResource(
+                                "db/migration/V20261118000001__add_outfit_gender.sql"))
+                .execute(ds);
         new JdbcTemplate(ds)
                 .execute(
                         "CREATE TABLE user_summary(id BIGINT PRIMARY KEY,nickname VARCHAR(50),profile_image_url VARCHAR(255),server_name VARCHAR(50),is_verified BOOLEAN)");
@@ -431,6 +435,152 @@ class OutfitServiceTest {
         assertThrows(
                 ResponseStatusException.class,
                 () -> service.list("LATEST", 24, 0, "bad", List.of(), List.of(), null, null));
+    }
+
+    @Test
+    void genderSearchKeepsLegacyPostsAndCombinesWithExistingFilters() {
+        var legacy = create();
+        assertNull(legacy.gender());
+        var maleItems = new ArrayList<>(required());
+        maleItems.add(new OutfitDtos.Item("MOTION", "CUSTOM", "기지개", null, null));
+        var male =
+                service.write(
+                        null,
+                        new OutfitDtos.Write(
+                                "male",
+                                "MALE",
+                                List.of("겨울"),
+                                maleItems,
+                                List.of(new OutfitDtos.MediaOrder(null, 0))),
+                        List.of(photo()));
+        var female =
+                service.write(
+                        null,
+                        new OutfitDtos.Write(
+                                "female",
+                                "FEMALE",
+                                List.of("겨울"),
+                                required(),
+                                List.of(new OutfitDtos.MediaOrder(null, 0))),
+                        List.of(photo()));
+        assertEquals("MALE", service.detail(male.id()).gender());
+        assertEquals("FEMALE", service.detail(female.id()).gender());
+        assertEquals(
+                3,
+                service.list("LATEST", 24, 0, null, List.of(), List.of(), null, List.of(), null)
+                        .content()
+                        .size());
+        assertEquals(
+                3,
+                service.list(
+                                "LATEST",
+                                24,
+                                0,
+                                null,
+                                List.of(),
+                                List.of(),
+                                null,
+                                List.of("MALE", "FEMALE"),
+                                null)
+                        .content()
+                        .size());
+        var maleOnly =
+                service.list(
+                        "LATEST",
+                        24,
+                        0,
+                        null,
+                        List.of(required().getFirst()),
+                        List.of("겨울"),
+                        "기지개",
+                        List.of("MALE"),
+                        null);
+        assertEquals(
+                List.of(male.id()),
+                maleOnly.content().stream().map(OutfitDtos.Outfit::id).toList());
+        assertEquals(
+                List.of(female.id()),
+                service
+                        .list(
+                                "POPULAR",
+                                24,
+                                0,
+                                null,
+                                List.of(),
+                                List.of(),
+                                null,
+                                List.of("FEMALE"),
+                                null)
+                        .content()
+                        .stream()
+                        .map(OutfitDtos.Outfit::id)
+                        .toList());
+        assertEquals(
+                400,
+                assertThrows(
+                                ResponseStatusException.class,
+                                () ->
+                                        service.list(
+                                                "LATEST",
+                                                24,
+                                                0,
+                                                null,
+                                                List.of(),
+                                                List.of(),
+                                                null,
+                                                List.of("UNKNOWN"),
+                                                null))
+                        .getStatusCode()
+                        .value());
+    }
+
+    @Test
+    void transitionAcceptsMissingGenderAndPreservesExistingValueOnLegacyEdit() {
+        var legacy = create();
+        assertNull(legacy.gender());
+        var updated =
+                service.write(
+                        legacy.id(),
+                        new OutfitDtos.Write(
+                                "selected",
+                                "FEMALE",
+                                legacy.tags(),
+                                legacy.items(),
+                                List.of(
+                                        new OutfitDtos.MediaOrder(
+                                                legacy.images().getFirst().id(), null))),
+                        null);
+        assertEquals("FEMALE", updated.gender());
+        var oldClientUpdate =
+                service.write(
+                        legacy.id(),
+                        new OutfitDtos.Write(
+                                "old client",
+                                updated.tags(),
+                                updated.items(),
+                                List.of(
+                                        new OutfitDtos.MediaOrder(
+                                                updated.images().getFirst().id(), null))),
+                        null);
+        assertEquals("FEMALE", oldClientUpdate.gender());
+        assertEquals(
+                400,
+                assertThrows(
+                                ResponseStatusException.class,
+                                () ->
+                                        service.write(
+                                                null,
+                                                new OutfitDtos.Write(
+                                                        "invalid",
+                                                        "OTHER",
+                                                        List.of(),
+                                                        required(),
+                                                        List.of(
+                                                                new OutfitDtos.MediaOrder(
+                                                                        null, 0))),
+                                                List.of(photo())))
+                        .getStatusCode()
+                        .value());
     }
 
     @Test

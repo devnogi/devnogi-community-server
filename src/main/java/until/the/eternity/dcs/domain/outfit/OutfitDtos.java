@@ -12,7 +12,16 @@ public final class OutfitDtos {
     public record MediaOrder(Long imageId, Integer uploadIndex) {}
 
     public record Write(
-            String content, List<String> tags, List<Item> items, List<MediaOrder> mediaOrder) {}
+            String content,
+            String gender,
+            List<String> tags,
+            List<Item> items,
+            List<MediaOrder> mediaOrder) {
+        public Write(
+                String content, List<String> tags, List<Item> items, List<MediaOrder> mediaOrder) {
+            this(content, null, tags, items, mediaOrder);
+        }
+    }
 
     public record Author(
             long id,
@@ -38,6 +47,7 @@ public final class OutfitDtos {
             long userId,
             Author author,
             String content,
+            String gender,
             List<Image> images,
             List<Item> items,
             List<String> tags,

@@ -48,6 +48,7 @@ class OutfitControllerTest {
                         anyList(),
                         nullable(List.class),
                         nullable(String.class),
+                        nullable(List.class),
                         nullable(String.class)))
                 .thenReturn(new OutfitDtos.Page<>(List.of(), null, false));
         mvc.perform(get("/api/outfits"))
@@ -55,6 +56,34 @@ class OutfitControllerTest {
                 .andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    void repeatedGenderValuesReachPublicList() throws Exception {
+        when(service.list(
+                        anyString(),
+                        anyInt(),
+                        anyInt(),
+                        nullable(String.class),
+                        anyList(),
+                        nullable(List.class),
+                        nullable(String.class),
+                        nullable(List.class),
+                        nullable(String.class)))
+                .thenReturn(new OutfitDtos.Page<>(List.of(), null, false));
+        mvc.perform(get("/api/outfits").param("gender", "MALE", "FEMALE"))
+                .andExpect(status().isOk());
+        verify(service)
+                .list(
+                        eq("LATEST"),
+                        eq(24),
+                        eq(0),
+                        isNull(),
+                        eq(List.of()),
+                        isNull(),
+                        isNull(),
+                        eq(List.of("MALE", "FEMALE")),
+                        isNull());
     }
 
     @Test
