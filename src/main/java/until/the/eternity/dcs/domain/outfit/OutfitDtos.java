@@ -16,12 +16,7 @@ public final class OutfitDtos {
             String gender,
             List<String> tags,
             List<Item> items,
-            List<MediaOrder> mediaOrder) {
-        public Write(
-                String content, List<String> tags, List<Item> items, List<MediaOrder> mediaOrder) {
-            this(content, null, tags, items, mediaOrder);
-        }
-    }
+            List<MediaOrder> mediaOrder) {}
 
     public record Author(
             long id,

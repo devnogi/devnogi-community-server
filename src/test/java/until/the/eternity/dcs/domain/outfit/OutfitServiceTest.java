@@ -112,10 +112,27 @@ class OutfitServiceTest {
                 new OutfitDtos.Item("FEET", "CATALOG", "테스트 신발", "방어 장비", "신발"));
     }
 
+    protected OutfitDtos.Write write(
+            String content,
+            List<String> tags,
+            List<OutfitDtos.Item> items,
+            List<OutfitDtos.MediaOrder> order) {
+        return write(content, "MALE", tags, items, order);
+    }
+
+    protected OutfitDtos.Write write(
+            String content,
+            String gender,
+            List<String> tags,
+            List<OutfitDtos.Item> items,
+            List<OutfitDtos.MediaOrder> order) {
+        return new OutfitDtos.Write(content, gender, tags, items, order);
+    }
+
     protected OutfitDtos.Outfit create() {
         return service.write(
                 null,
-                new OutfitDtos.Write(
+                write(
                         "착용샷",
                         List.of("#겨울"),
                         required(),
@@ -175,25 +192,18 @@ class OutfitServiceTest {
                 () ->
                         service.write(
                                 null,
-                                new OutfitDtos.Write(
-                                        "", List.of(), required().subList(0, 2), order),
+                                write("", List.of(), required().subList(0, 2), order),
                                 List.of(photo())));
         var invalid = new ArrayList<>(required());
         invalid.add(new OutfitDtos.Item("HEAD", "CUSTOM", "직접 입력", null, null));
         assertThrows(
                 ResponseStatusException.class,
-                () ->
-                        service.write(
-                                null,
-                                new OutfitDtos.Write("", List.of(), invalid, order),
-                                List.of(photo())));
+                () -> service.write(null, write("", List.of(), invalid, order), List.of(photo())));
         var valid = new ArrayList<>(required());
         valid.add(new OutfitDtos.Item("MOTION", "CUSTOM", "  의상 전용 모션  ", null, null));
         var post =
                 service.write(
-                        null,
-                        new OutfitDtos.Write("", List.of("#겨울", "겨울"), valid, order),
-                        List.of(photo()));
+                        null, write("", List.of("#겨울", "겨울"), valid, order), List.of(photo()));
         assertEquals(1, post.tags().size());
         assertEquals("의상 전용 모션", post.items().getLast().name());
         assertEquals(List.of("의상 전용 모션"), service.motions("전용"));
@@ -241,7 +251,7 @@ class OutfitServiceTest {
                 () ->
                         service.write(
                                 first.id(),
-                                new OutfitDtos.Write(
+                                write(
                                         "",
                                         List.of(),
                                         required(),
@@ -254,7 +264,7 @@ class OutfitServiceTest {
                 () ->
                         service.write(
                                 first.id(),
-                                new OutfitDtos.Write(
+                                write(
                                         "",
                                         List.of(),
                                         required(),
@@ -274,7 +284,7 @@ class OutfitServiceTest {
         var updated =
                 service.write(
                         post.id(),
-                        new OutfitDtos.Write(
+                        write(
                                 "changed",
                                 List.of(),
                                 required(),
@@ -314,7 +324,7 @@ class OutfitServiceTest {
                 () ->
                         service.write(
                                 null,
-                                new OutfitDtos.Write(
+                                write(
                                         "",
                                         List.of(),
                                         required(),
@@ -395,7 +405,7 @@ class OutfitServiceTest {
         var one =
                 service.write(
                         null,
-                        new OutfitDtos.Write(
+                        write(
                                 "one",
                                 List.of("겨울"),
                                 items,
@@ -406,7 +416,7 @@ class OutfitServiceTest {
         var two =
                 service.write(
                         null,
-                        new OutfitDtos.Write(
+                        write(
                                 "two",
                                 List.of("겨울"),
                                 items,
@@ -440,13 +450,14 @@ class OutfitServiceTest {
     @Test
     void genderSearchKeepsLegacyPostsAndCombinesWithExistingFilters() {
         var legacy = create();
-        assertNull(legacy.gender());
+        jdbc.update("UPDATE outfit_post SET gender=NULL WHERE id=?", legacy.id());
+        assertNull(service.detail(legacy.id()).gender());
         var maleItems = new ArrayList<>(required());
         maleItems.add(new OutfitDtos.Item("MOTION", "CUSTOM", "기지개", null, null));
         var male =
                 service.write(
                         null,
-                        new OutfitDtos.Write(
+                        write(
                                 "male",
                                 "MALE",
                                 List.of("겨울"),
@@ -456,7 +467,7 @@ class OutfitServiceTest {
         var female =
                 service.write(
                         null,
-                        new OutfitDtos.Write(
+                        write(
                                 "female",
                                 "FEMALE",
                                 List.of("겨울"),
@@ -535,13 +546,53 @@ class OutfitServiceTest {
     }
 
     @Test
-    void transitionAcceptsMissingGenderAndPreservesExistingValueOnLegacyEdit() {
+    void newAndLegacyEditsRequireGender() {
         var legacy = create();
-        assertNull(legacy.gender());
+        jdbc.update("UPDATE outfit_post SET gender=NULL WHERE id=?", legacy.id());
+        assertNull(service.detail(legacy.id()).gender());
+        assertEquals(
+                400,
+                assertThrows(
+                                ResponseStatusException.class,
+                                () ->
+                                        service.write(
+                                                null,
+                                                write(
+                                                        "missing",
+                                                        null,
+                                                        List.of(),
+                                                        required(),
+                                                        List.of(
+                                                                new OutfitDtos.MediaOrder(
+                                                                        null, 0))),
+                                                List.of(photo())))
+                        .getStatusCode()
+                        .value());
+        assertEquals(
+                400,
+                assertThrows(
+                                ResponseStatusException.class,
+                                () ->
+                                        service.write(
+                                                legacy.id(),
+                                                write(
+                                                        "missing",
+                                                        null,
+                                                        legacy.tags(),
+                                                        legacy.items(),
+                                                        List.of(
+                                                                new OutfitDtos.MediaOrder(
+                                                                        legacy.images()
+                                                                                .getFirst()
+                                                                                .id(),
+                                                                        null))),
+                                                null))
+                        .getStatusCode()
+                        .value());
         var updated =
                 service.write(
                         legacy.id(),
-                        new OutfitDtos.Write(
+                        write(
                                 "selected",
                                 "FEMALE",
                                 legacy.tags(),
@@ -551,18 +602,27 @@ class OutfitServiceTest {
                                                 legacy.images().getFirst().id(), null))),
                         null);
         assertEquals("FEMALE", updated.gender());
-        var oldClientUpdate =
-                service.write(
-                        legacy.id(),
-                        new OutfitDtos.Write(
-                                "old client",
-                                updated.tags(),
-                                updated.items(),
-                                List.of(
-                                        new OutfitDtos.MediaOrder(
-                                                updated.images().getFirst().id(), null))),
-                        null);
-        assertEquals("FEMALE", oldClientUpdate.gender());
+        assertEquals(
+                400,
+                assertThrows(
+                                ResponseStatusException.class,
+                                () ->
+                                        service.write(
+                                                updated.id(),
+                                                write(
+                                                        "missing again",
+                                                        null,
+                                                        updated.tags(),
+                                                        updated.items(),
+                                                        List.of(
+                                                                new OutfitDtos.MediaOrder(
+                                                                        updated.images()
+                                                                                .getFirst()
+                                                                                .id(),
+                                                                        null))),
+                                                null))
+                        .getStatusCode()
+                        .value());
         assertEquals(
                 400,
                 assertThrows(
@@ -570,7 +630,7 @@ class OutfitServiceTest {
                                 () ->
                                         service.write(
                                                 null,
-                                                new OutfitDtos.Write(
+                                                write(
                                                         "invalid",
                                                         "OTHER",
                                                         List.of(),
@@ -616,7 +676,7 @@ class OutfitServiceTest {
                                 () ->
                                         service.write(
                                                 null,
-                                                new OutfitDtos.Write("", List.of(), items, order),
+                                                write("", List.of(), items, order),
                                                 List.of(photo())))
                         .getStatusCode()
                         .value());
@@ -669,7 +729,7 @@ class OutfitServiceTest {
                 () ->
                         transactional.write(
                                 null,
-                                new OutfitDtos.Write(
+                                write(
                                         "",
                                         List.of(),
                                         required(),

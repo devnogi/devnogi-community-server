@@ -113,7 +113,7 @@ class OutfitControllerTest {
                         "data",
                         "",
                         "application/json",
-                        "{\"content\":\"hello\",\"tags\":[],\"items\":[],\"mediaOrder\":[]}"
+                        "{\"content\":\"hello\",\"gender\":\"MALE\",\"tags\":[],\"items\":[],\"mediaOrder\":[]}"
                                 .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         mvc.perform(
                         multipart("/api/outfits/1")
@@ -124,7 +124,14 @@ class OutfitControllerTest {
                                             return request;
                                         }))
                 .andExpect(status().isOk());
-        verify(service).write(eq(1L), argThat(write -> write.content().equals("hello")), isNull());
+        verify(service)
+                .write(
+                        eq(1L),
+                        argThat(
+                                write ->
+                                        write.content().equals("hello")
+                                                && write.gender().equals("MALE")),
+                        isNull());
     }
 
     @Test
